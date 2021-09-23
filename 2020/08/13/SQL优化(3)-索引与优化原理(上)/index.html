@@ -1,0 +1,775 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="ryan">
+  <meta name="keywords" content="">
+  <meta name="description" content="上一篇，我们重走了一遍数据库索引的历史，认识了B+树结构，这一篇我们回归现实中的MySQL数据库，初步学习具体的SQL优化原则，并尝试从索引底层原理出发，分析为什么会有那么多的“规则”。 为什么要学习SQL优化我的前东家是做招聘服务的，所以不可避免地要查询行业分类。通常来说，前端可以采用根据parentId分步加载的方式获取行业类别，但有些场景也需要全量嵌套查询：查询行业分类及其子分类。 这里我们">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL优化(3)-索引与优化原理(上)">
+<meta property="og:url" content="http://example.com/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/index.html">
+<meta property="og:site_name" content="ryan‘s space">
+<meta property="og:description" content="上一篇，我们重走了一遍数据库索引的历史，认识了B+树结构，这一篇我们回归现实中的MySQL数据库，初步学习具体的SQL优化原则，并尝试从索引底层原理出发，分析为什么会有那么多的“规则”。 为什么要学习SQL优化我的前东家是做招聘服务的，所以不可避免地要查询行业分类。通常来说，前端可以采用根据parentId分步加载的方式获取行业类别，但有些场景也需要全量嵌套查询：查询行业分类及其子分类。 这里我们">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876552845-1508cebc-e24b-4812-b5f1-d44df431105b-20210923151052749.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876666317-5f0f97f0-aa23-4be1-a7bf-e1d8fce54587-20210923151044115.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877002375-f8dd6ff0-eff5-485b-a2e7-277a049ffdaa-20210923151103929.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877133249-0f113716-f40b-4824-be73-a6fbc5eac808-20210923151113333.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877340185-9be080f5-c98b-4ef3-9dbc-6b6e690f36a4-20210923151121192.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877601504-4c6d4ea7-967a-4e78-9d0c-1219fc21c491-20210923151138685.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877845815-757a0f69-eaee-42bc-90b4-d4949e03cb0c-20210923151148208.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520399248-9a8373e7-567f-4ab5-9d74-f39ac0bb3332-20210923151215022.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533482892-ea6a7e77-c129-45e3-8519-827ae57c69c7-20210923151221445.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533947057-755cdba3-b196-44cd-88c4-813dc6397463-20210923151227170.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608951320970-75bcceba-6e55-4737-9e29-8a7da83502b6-20210923151233076.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520661369-1d8b2328-8dca-4f08-8fb4-94df84b770b5-20210923151242400.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521376561-1c62b92e-60ae-4d06-ad73-6cfa4c69101b-20210923151251589.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521546600-37ba8127-ad31-4f94-a137-e1986de9354f-20210923151256752.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589527342910-49ca1484-7ba5-4924-944f-d1008cd46e85-20210923151312836.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589532501128-7bf641bd-946e-446b-9a0f-a581b3f13887-20210923151325454.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589586538060-89e3781c-22ed-4b16-a734-d5466af2d6aa-20210923151335790.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589536446002-5fddd16a-59f2-4928-b10e-088aaa01f927-20210923151343933.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608956710604-75cdbc20-a59e-473f-9e98-b963ac3cd49d-20210923151351478.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162572296-97295d9c-ab7c-444b-a99a-6c8ea8f106eb-20210923151400366.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162521710-d2586c99-f888-4db1-b713-3a69dc59028d-20210923151409810.png">
+<meta property="article:published_time" content="2020-08-12T17:31:09.000Z">
+<meta property="article:modified_time" content="2021-09-23T07:17:03.248Z">
+<meta property="article:author" content="ryan">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876552845-1508cebc-e24b-4812-b5f1-d44df431105b-20210923151052749.png">
+  
+  <title>SQL优化(3)-索引与优化原理(上) - ryan‘s space</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>ryan&#39;s space</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923143607.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="SQL优化(3)-索引与优化原理(上)">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-08-13 01:31" pubdate>
+        2020年8月13日 凌晨
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      8.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      27 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">SQL优化(3)-索引与优化原理(上)</h1>
+            
+            <div class="markdown-body">
+              <p>上一篇，我们重走了一遍数据库索引的历史，认识了B+树结构，这一篇我们回归现实中的MySQL数据库，初步学习具体的SQL优化原则，并尝试从索引底层原理出发，分析为什么会有那么多的“规则”。</p>
+<h1 id="为什么要学习SQL优化"><a href="#为什么要学习SQL优化" class="headerlink" title="为什么要学习SQL优化"></a>为什么要学习SQL优化</h1><p>我的前东家是做招聘服务的，所以不可避免地要查询行业分类。通常来说，前端可以采用根据parentId分步加载的方式获取行业类别，但有些场景也需要全量嵌套查询：查询行业分类及其子分类。</p>
+<p>这里我们就假定直接查询所有分类及其子分类：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876552845-1508cebc-e24b-4812-b5f1-d44df431105b-20210923151052749.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>我自己设计了一个简单版的表结构，大概如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876666317-5f0f97f0-aa23-4be1-a7bf-e1d8fce54587-20210923151044115.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>表中有1106条数据：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877002375-f8dd6ff0-eff5-485b-a2e7-277a049ffdaa-20210923151103929.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>经过《实用小算法》的学习，我们很容易写出以下代码：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs reasonml"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 查询行业分类及其子分类</span><br><span class="hljs-comment"> */</span><br>@Test<br>public void test<span class="hljs-constructor">Cascade()</span> &#123;<br><br>    <span class="hljs-comment">// 查询数据库，得到所有行业类别</span><br>    List&lt;SysPosition&gt; sysPositionList = sysPositionMapper.select<span class="hljs-constructor">All()</span>;<br><br>    long start = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br><br>    Map&lt;String, SysPosition&gt; sysPositionMap = <span class="hljs-keyword">new</span> HashMap&lt;&gt;<span class="hljs-literal">()</span>;<br>    List&lt;SysPosition&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;<span class="hljs-literal">()</span>;<br><br>    <span class="hljs-comment">// 第一步：List转Map</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        sysPositionMap.put(sysPosition.get<span class="hljs-constructor">Code()</span>, sysPosition);<br>    &#125;<br><br>    <span class="hljs-comment">// 第二步：遍历List，利用Map完成嵌套</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;-1&quot;</span>.equals(sysPosition.get<span class="hljs-constructor">ParentCode()</span>)) &#123;<br>            result.add(sysPosition);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            SysPosition parent = sysPositionMap.get(sysPosition.get<span class="hljs-constructor">ParentCode()</span>);<br>            parent.get<span class="hljs-constructor">Children()</span>.add(sysPosition);<br>        &#125;<br>    &#125;<br><br>    long <span class="hljs-keyword">end</span> = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br>    <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(<span class="hljs-string">&quot;耗时：&quot;</span> + (<span class="hljs-keyword">end</span> - start));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在《实用小算法》中，我们分析过效率：List转Map这种方式会有2N次循环，也就是会循环2212次。</p>
+<p>大家猜上面程序耗时多少？</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877133249-0f113716-f40b-4824-be73-a6fbc5eac808-20210923151113333.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>只需1<strong>毫秒</strong>。</p>
+<p>对于CPU来说，计算内存中的数据是非常快的，几千次的循环基本可以忽略不计。</p>
+<p>你们想知道之前《实用小算法》的第一版算法耗时多少吗？测一下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877340185-9be080f5-c98b-4ef3-9dbc-6b6e690f36a4-20210923151121192.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>也<strong>只要</strong>33毫秒。</p>
+<p>要知道，第一版算法在这种情况下可是循环了1106*1106 = 100w+次！！<strong>但是对于CPU来说，不足挂齿。</strong>当然，这是单次调用的差距，想象一下这个接口每天要被几十万、甚至几百万用户调用，累计差距还是很可观的。</p>
+<p>通过上面的案例，我想说的是：绝大多数情况下，内存中数据的处理耗时几乎可以忽略不计。</p>
+<p>大家有没有发现，上面的程序并没有把Mapper查询数据库的操作计入时间？数据库select操作会很耗时吗？</p>
+<p>我在某网站的专栏中看到过关于数据库insert的一段话：</p>
+<p>插入行所需的时间由以下因素决定（参考MySQL 5.7参考手册：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/insert-optimization.html">8.2.4.1优化INSERT语句</a>）</p>
+<ul>
+<li><p>连接：30%</p>
+</li>
+<li><p>向服务器发送查询：20%</p>
+</li>
+<li><p>解析查询：20%</p>
+</li>
+<li><p>插入行：10% * 行的大小</p>
+</li>
+<li><p>插入索引：10% * 索引数</p>
+</li>
+<li><p>结束：10%</p>
+</li>
+</ul>
+<p>可发现大部分时间耗费在客户端与服务端通信的时间，因此可以使用 insert 包含多个值来减少客户端和服务器之间的通信。我们通过实验来验证下一次插入多行与一次插入一行的效率对比。</p>
+<p>上面虽然说得是insert，但select的情况其实也差不多。现在我把Mapper查询的时间也包括进来：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877601504-4c6d4ea7-967a-4e78-9d0c-1219fc21c491-20210923151138685.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><strong>竟然暴增到496毫秒！！</strong></p>
+<p>好了，这个例子告诉我们，网络请求（以及IO操作）是非常耗时的操作，我们应该尽量避免在循环中调用网络请求或进行IO操作，比如：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877845815-757a0f69-eaee-42bc-90b4-d4949e03cb0c-20210923151148208.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>这是非常差劲的写法。</p>
+<p>OK，到这里大家应该能形成一个认知：一次正常的请求，最可能出现性能瓶颈的地方就是网络请求及IO操作（通常而言性能瓶颈往往出现在数据库）。</p>
+<p>要想优化数据的查询，大方向有两个：</p>
+<ul>
+<li>优化关系型数据库本身，比如增加索引等</li>
+<li>借助大数据和ES，转嫁查询压力（本质已经和关系型数据库无关了）</li>
+</ul>
+<p>对于一般小公司而言，大数据和ES还是稀罕物，所以当我们讨论性能优化时，SQL优化几乎是重点！和SQL的性能提升相比，代码的优化有时是微不足道的。<strong>即使有优化，归根到底其实还是减少、减小对数据库的请求。</strong>大家应该要感到高兴，因为你们终于也将登堂入室，要去探索SQL优化了。</p>
+<p>没有特殊情况的话，本文讨论的内容都是基于InnoDB引擎</p>
+<p>在我看来，对于一般的Java开发而言，SQL优化分为几个层次：</p>
+<ul>
+<li><p>索引优化 70%</p>
+</li>
+<li><p>事务及锁 20%</p>
+</li>
+<li><p>读写分离等 10%</p>
+</li>
+</ul>
+<p>其中，索引优化是最重要、也是一般Java开发人员最常用的手段。</p>
+<h1 id="索引的类型"><a href="#索引的类型" class="headerlink" title="索引的类型"></a>索引的类型</h1><p>索引的分类可能有不同维度，这里不追求特别准确的分类，毕竟不是做学术，只要感性认识几种即可。</p>
+<p>打开Navicat，尝试创建索引时会发现有4种索引类型可以选择：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520399248-9a8373e7-567f-4ab5-9d74-f39ac0bb3332-20210923151215022.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ul>
+<li><p>全文索引</p>
+</li>
+<li><p>普通索引</p>
+</li>
+<li><p>空间索引</p>
+</li>
+<li><p>唯一索引</p>
+</li>
+</ul>
+<p>普通索引就可以组织树结构了，而唯一索引在普通索引的基础上还要求索引列不能重复。比如，假设我们给student表的name列加了唯一索引，如果表中已经存在”张三”，那么再次插入”张三”将会报错。</p>
+<p>MySQL这种关系型数据库并不适合进行全文检索（考虑Elastic Search），所以全文索引一般很少使用。</p>
+<p>至于空间索引，我也不知道是什么。</p>
+<p>实际开发常用的索引只有<strong>普通索引</strong>和<strong>唯一索引</strong>，其他的可以不用理会（主键索引其实相当于唯一索引+非NULL）。</p>
+<h1 id="索引的实现方式"><a href="#索引的实现方式" class="headerlink" title="索引的实现方式"></a>索引的实现方式</h1><p>常见的索引实现方式有两种，通过B+树结构或hash算法实现。</p>
+<p><strong>特别注意，这里虽然写的是”BTREE”，但MySQL确实使用的是B+Tree。</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533482892-ea6a7e77-c129-45e3-8519-827ae57c69c7-20210923151221445.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>这个概念，其实和上面“索引的类型”并不冲突。</p>
+<p>比如，对于普通索引，我们可以使用B+树的结构组织索引，也可以使用hash算法实现。经过上一篇的学习，我们对B+树结构已经比较了解，所以这里单独聊一下hash索引。</p>
+<p>所谓hash索引，其实就是利用<strong>哈希算法为索引列计算得到唯一的存储地址</strong>，一般来说这个地址是不会重复的（重复的情况被称为哈希冲突）。</p>
+<p>举个燕十八老师说的例子：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533947057-755cdba3-b196-44cd-88c4-813dc6397463-20210923151227170.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>在墙上装一根弹性永不衰变的弹簧，每次拿不同的物件把弹簧压到极限后放开，不同的物件最终落点会不同。比如你上回存了一本书，那么下次想要找到这本书时，只需要拿一本<strong>一模一样的书</strong>重新弹一下，即可在本次落点处找到上次那本书。</p>
+<p>数据库hash索引的设计也类似，假设你要存入id=10086的数据，就需要通过hash算法对id进行计算，得到一个存储位置后写入数据。下次拿着id=10086查询时，只要按同样的算法再次计算，就能马上找到对应的数据，是不是很快呢~</p>
+<p>需要注意的是，弹簧的例子用来比喻hash算法虽然挺形象的，但可能会让人误以为越重的物品落点越近，越轻的物品落点越远，进而得出结论：hash索引可以进行范围查找。</p>
+<p>其实并不是如此。</p>
+<p>hash算法有个比较显著的特征：即使源数据具备一定的相关性，经过hash映射后得到的结果也会变得“很散”，没有规律可循。回到之前的例子中，你可以理解为重量并不是影响书本最终落点的唯一因素，书的材质、形状等都占有一定比例，最终体现到空气阻力上导致落点的不规则。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608951320970-75bcceba-6e55-4737-9e29-8a7da83502b6-20210923151233076.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>不知道大家还是否记得，在JavaSE阶段接触HashMap时，很多人会发现put的顺序和get的顺序并不一定相同。比如put的顺序是1000克、500克、300克，而get的顺序却是500克、300克、1000克。也就是说，经过hash计算后，数据的相关性会大大减弱。</p>
+<p>所以，当你希望查找500g~1000g的书本时，就无法利用边界值进行范围查找。而B+树<strong>叶子节点是有序链表</strong>，范围查询非常方便。</p>
+<p><strong>hash索引除了无法进行范围查找外，还不能进行模糊搜索。</strong></p>
+<p>hash算法本身代表着精确定位，依赖于计算的入参得出“唯一”的值，所以无法进行模糊匹配。比如，你给我”bravo”，我可以计算唯一的hash值，你给我”bra%”，我会以为这人就叫”bra%”，也计算一个值，<strong>而****这个值代表着”bra%”计算得到的落点，而不是”所有以bra开头的数据”的落点</strong>，显然是不对的。</p>
+<p>但B+树可以进行模糊搜索，你可以姑且认为因为它会顺着树查找，并在装有数据的节点内调用类似Java的String#startWith()方法进行比较。</p>
+<p>hash索引的优劣势</p>
+<ul>
+<li>优势：速度非常快，只需一次计算即可得到地址，时间复杂度O(1)，而B+树是O(logn)</li>
+<li>劣势：不支持模糊查询、范围查询、索引排序（本身就是不规则的，如何利用索引排序呢）</li>
+</ul>
+<p>最后，《实用小算法》中List转HashMap的操作其实就是借鉴了hash索引！</p>
+<h1 id="索引的创建"><a href="#索引的创建" class="headerlink" title="索引的创建"></a>索引的创建</h1><p>索引的创建时机一般有两处：</p>
+<ul>
+<li>起初，建表时顺便建立索引</li>
+<li>后期，修改表结构创建索引（一般都是这样，因为很难未卜先知，提前优化等于瞎优化）</li>
+</ul>
+<p>比如，一开始就创建索引：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520661369-1d8b2328-8dca-4f08-8fb4-94df84b770b5-20210923151242400.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>这张表有两个索引：主键索引、auditor_id普通索引。</p>
+<p>主键索引并不属于上面介绍的4种索引类型之一，但所谓的Primary Key可以看做 唯一索引 + NOT NULL约束。</p>
+<p>后期如果需要添加索引，可以通过两种方式：</p>
+<ul>
+<li>SQL语句</li>
+<li>Navicat图形界面</li>
+</ul>
+<p>利用SQL语句添加索引：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-comment">-- 1.添加PRIMARY KEY（主键索引） </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">PRIMARY KEY</span> (`<span class="hljs-keyword">column</span>`) ;<br><span class="hljs-comment">-- 2.添加UNIQUE(唯一索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">UNIQUE</span> (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 3.添加INDEX(普通索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 4.添加FULLTEXT(全文索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> FULLTEXT (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 5.添加联合索引 </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`column1`, `column2`, `column3`);<br></code></pre></td></tr></table></figure>
+
+<p>在本案例中，可以写：</p>
+<figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">ALTER TABLE `moneywithdraw` ADD INDEX idx_auditor_id (`auditor_id`)<span class="hljs-comment">;</span><br></code></pre></td></tr></table></figure>
+
+<p>利用Navicat图形界面创建<strong>单列索引：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521376561-1c62b92e-60ae-4d06-ad73-6cfa4c69101b-20210923151251589.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>利用Navicat图形界面创建<strong>联合索引：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521546600-37ba8127-ad31-4f94-a137-e1986de9354f-20210923151256752.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>哦，对了，数据量太大的表，不要自己随便加索引，搞不好会锁表哦…后面有机会再说。总之，你可以“懂索引”，但要“动索引”前，最好三思。</p>
+<h1 id="索引的好与坏"><a href="#索引的好与坏" class="headerlink" title="索引的好与坏"></a>索引的好与坏</h1><p>提到索引，很多人就会说：哦，索引能提高查询速度。一般这么说的人，可能学得还不错，但绝对还没有完全掌握索引的底层原理。</p>
+<p>如果你认为索引的优势只是加快查询，那就太小看索引了。</p>
+<p>索引的优势是：</p>
+<ul>
+<li><p>加快查询速度（包括关联查询）</p>
+</li>
+<li><p>加快排序速度（ORDER BY）</p>
+</li>
+<li><p>加快分组速度（GROUP BY）</p>
+</li>
+</ul>
+<p>虽然加快排序、加快分组最终还是体现在加快查询速度上，但能主动意识到这一点算是一种突破。只有当你意识到索引能加快排序和分组，你才会在写ORDER BY和GROUP BY时有意识地利用索引分组和排序（最左匹配原则），从而写出更优的SQL。</p>
+<p>索引的劣势：</p>
+<ul>
+<li><p>创建索引是需要付出代价的，主要体现在维护成本、空间成本和回表成本。也就是说<strong>索引能提高查询效率，但往往会降低增删改的速度</strong>（字典新增几百个字，需要额外编排目录吧，要多占几页纸吧）</p>
+</li>
+<li><p>如果使用了联合索引，还需要考虑索引失效问题（下篇介绍联合索引）</p>
+</li>
+<li><p>太多的索引会增加查询优化器的选择时间（选择太多也麻烦）</p>
+</li>
+</ul>
+<h1 id="建索引的原则"><a href="#建索引的原则" class="headerlink" title="建索引的原则"></a>建索引的原则</h1><p>很多人觉得SQL优化才是重中之重，创建索引只需要一行代码即可，没什么大不了的。但现在你已经知道了索引的优势与劣势，你会明白“在合适的时候、合适的字段建立索引”是多么空泛的口号。创建索引的判断依据究竟是什么呢？</p>
+<p>创建索引有4个大原则：</p>
+<ul>
+<li><p>索引并不是越多越好，联合索引应该优于多个单列索引</p>
+</li>
+<li><p>索引应该建立在区分度高的字段上</p>
+</li>
+<li><p>尽量给查询频繁的字段创建索引，避免为修改频繁的字段创建索引</p>
+</li>
+<li><p>避免重复索引</p>
+</li>
+</ul>
+<p>第一个原则背后的原因是，实际上数据库一次查询只会选择<strong>一棵索引树</strong>（不包括回表），更专业的说法是每次查询只会选择一个执行计划。即使你给a,b,c,d,e,f,g…所有列都加了索引，SELECT xx, xxx FROM table WHERE …时，数据库也只会<strong>择优****选择</strong>一个执行计划进行查询。</p>
+<p>需要注意的是，<strong>每建一个索引，就需要维护一棵索引树，</strong>所以索引绝对不是越多越好，不合适的索引会增加数据库的负担。比如，你已经搞了一个根据拼音查找汉字的目录，又想根据偏旁部首来，那没辙了，只能劳烦您自己再搞一个目录了。</p>
+<p>看到这，你可能会反问：我靠，那MySQL也太笨了吧，为什么这么死心眼一次只利用一个索引？</p>
+<p>比较粗浅的理由是：你根据拼音查完汉字以后，还会根据偏旁部首再查一遍吗？</p>
+<p>比较正经的理由是：按我个人的理解，索引本身的出发点是“走完一遍索引后，数据库应该返回<strong>精确的结果</strong>或<strong>很小的结果集</strong>”，从成本上考虑，此时再走一遍索引还不如直接遍历结果集来得快。当然，要想一次索引就得到精确的结果集，着实需要下一番苦功夫。给哪个字段加索引好呢？我建议，应该尽可能给区分度高的字段添加索引。</p>
+<p>什么是区分度很高？这就是建索引的第二个原则啦。比如，表中有100w学生数据，你如果在sex列加索引，那么根据sex大概只能过滤掉50w数据，剩下的结果集仍然很大，说明这个索引建得不太合适，区分度太低了。</p>
+<p>第三个原则就是字面意思。比如一本字典根据内容编好目录以后，隔三差五地就有新词汇要往里面加，或者经常要修改汉字读音，一顿操作后必然要连累目录，只能重新编排啦。也就是说，为了保证目录能正确指向对应的汉字，每次增删改后都要额外多一个操作：重新修订目录。</p>
+<p>总之要意识到索引在加快查询的同时几乎必然会对修改产生负担，所以创建索引并没有那么简单，它绝对是一门“平衡的艺术”。</p>
+<p>第四个原则是，比如已经建立a索引，又建立index(a,b,c)联合索引，此时单列索引a就是冗余的，因为联合索引已经可以保证符合条件时会利用a索引。<strong>在物理存储上，a单列索引和index(a, b, c)是两个独立的B+树，</strong>重复的索引会增加维护成本。</p>
+<p>以上四个原则，后面的内容还会重新提到。</p>
+<h1 id="MySQL常用引擎"><a href="#MySQL常用引擎" class="headerlink" title="MySQL常用引擎"></a>MySQL常用引擎</h1><p>MySQL的引擎有很多种，但最常听到的就MyISAM和InnoDB，而实际开发几乎99%选择使用InnoDB，而且MySQL5.6还是哪个版本以后默认引擎就从MyISAM变成了InnoDB，所以这里着重介绍InnoDB，简略介绍MyISAM。</p>
+<p>对于两种引擎的介绍，可以看：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1RE41187Yo?p=9">存储引擎简介</a></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589527342910-49ca1484-7ba5-4924-944f-d1008cd46e85-20210923151312836.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>这里主要想和大家讨论MyISAM和InnoDB在索引组织上的区别。大家应该都已经知道，MyISAM和InnoDB存储数据的方式是不同的。</p>
+<p>MyISAM的每张表在存储时会分为3个文件：</p>
+<ul>
+<li><p>表结构</p>
+</li>
+<li><p>表数据</p>
+</li>
+<li><p>索引</p>
+</li>
+</ul>
+<p>也就是说，表数据和索引是分别独立存储的。</p>
+<p>而InnoDB的表数据在存储时只分为2个文件：</p>
+<ul>
+<li>表结构</li>
+<li>表数据+索引</li>
+</ul>
+<p>需要注意的是，InnoDB所有表的数据和索引都在同一个文件里（见下一个小节）。</p>
+<h1 id="聚簇索引与非聚簇索引"><a href="#聚簇索引与非聚簇索引" class="headerlink" title="聚簇索引与非聚簇索引"></a>聚簇索引与非聚簇索引</h1><p>对于BTREE索引而言，从数据的组织形式来看，索引又可以分为两大类：</p>
+<ul>
+<li>聚簇索引</li>
+<li>非聚簇索引</li>
+</ul>
+<p>所谓聚簇索引，可以简单理解为索引和数据是“聚合”在一起的，而非聚簇索引的数据和索引是分开的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589532501128-7bf641bd-946e-446b-9a0f-a581b3f13887-20210923151325454.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>根据InnoDB引擎的<strong>主键索引</strong>查询时无需回表，每一行完整的数据都直接挂在叶子节点下，可以直接返回。也就是说，对于InnoDB的<strong>主键索引</strong>而言，数据即索引，索引即数据。<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589586538060-89e3781c-22ed-4b16-a734-d5466af2d6aa-20210923151335790.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>MyISAM不是很重要，不提了。</p>
+<p>InnoDB的索引也并不是都不需要回表，根据是否需要回表其实可以分为两类：主键索引、辅助索引（或者叫二级索引、普通索引）。</p>
+<p>会什么要做这种区分呢？</p>
+<p>假设一个场景：</p>
+<p>新建一张表后，自然会产生主键索引。但后期发现name字段查询很频繁，于是加了name索引。</p>
+<p><strong>如果name索引也和主键索引一样挂着数据，那么两个索引数据就会重复。想象一下，现在磁盘中有一颗叫name的树和一棵叫id的树，一个以name为节点，一个以id为节点，相同的是最底层叶子节点都挂着完整的表数据。也就是说，磁盘中存了两份一模一样的student数据。且不说数据冗余，更新时还可能产生数据不一致（要同步数据，确保多张表的数据一致性）。</strong></p>
+<p>所以InnoDB的做法是，辅助索引只存储索引列+主键，必要时进行“回表”操作：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589536446002-5fddd16a-59f2-4928-b10e-088aaa01f927-20210923151343933.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>由于SELECT * FROM stu WHERE name=’bravo’中，查询的数据是*，也就是整行数据。而上面的辅助索引只存了主键+name，所以必须回表：拿着主键再去跑一遍主键索引，最终返回整行数据。</p>
+<p>现在，我们可以给MyISAM和InnoDB的索引分类做个简单的总结：</p>
+<ul>
+<li><p>MyISAM：非聚簇索引，需要回表</p>
+</li>
+<li><p>InnoDB：</p>
+</li>
+<li><ul>
+<li>聚簇索引：主键索引，叶子节点是表数据，不需要回表</li>
+<li>非聚簇索引：辅助索引（唯一索引、普通索引），叶子节点是主键，必要时需要根据主键回表查询</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608956710604-75cdbc20-a59e-473f-9e98-b963ac3cd49d-20210923151351478.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>InnoDB每张表只能有一个主键索引，辅助索引则可以有多个。表数据只有一份，挂在主键索引下面。</p>
+<p>需要注意的是，如有可能，应该尽量避免回表。<strong>SQL优化的本质其实就是减少/减小磁盘IO</strong>，而回表必然会增加磁盘IO次数。</p>
+<p>举个例子，假设某张表总共就两棵索引树：主键索引+name辅助索引，两棵树高度都是3。由于只有主键索引下才挂着表数据，所以对于SELECT * FROM table WHERE name=’xxx’来说，需要先走辅助索引取得id，再根据id走一遍主键索引。假设两棵树需要的数据都在第三层，那么这条SQL需要进行6次逻辑IO访问。而如果直接根据id查询，就可以直接走主键索引，IO次数为3。</p>
+<p>所以，<strong>通常情况下</strong>辅助索引查询都是需要回表的，比主键索引查询多扫描一棵索引树（自身+主键索引），实际编写SQL时，应该尽量走主键索引。</p>
+<p>那么，<strong>什么情况下</strong>辅助索引可以避免回表吗？</p>
+<h1 id="索引覆盖"><a href="#索引覆盖" class="headerlink" title="索引覆盖"></a>索引覆盖</h1><p>索引覆盖这个名字，咋一听不知所云，所以很多初学者一直搞不明白什么意思，其实它最大的作用就是：避免回表。</p>
+<p>下面通过一个案例来说明。</p>
+<p>假设有个需求：前端需要支持<strong>根据用户名模糊搜索订单，</strong>而页面需要的字段如下。</p>
+<table>
+<thead>
+<tr>
+<th><strong>id</strong></th>
+<th><strong>productName</strong></th>
+<th><strong>price</strong></th>
+<th><strong>userName</strong></th>
+<th><strong>userAge</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>iphone12</td>
+<td>5999</td>
+<td>bravo1988</td>
+<td>18</td>
+</tr>
+</tbody></table>
+<p>一个可行的方案是：</p>
+<ol>
+<li><p>在t_user表中根据name搜索用户，得到user_id、user_name、user_age</p>
+</li>
+<li><p>在t_order表中根据user_id查询订单</p>
+</li>
+<li><p>在内存中根据user_id匹配order和user数据后返回</p>
+</li>
+</ol>
+<p>由于t_user表此时的查询条件是user_name，为了加快t_user表的查询速度，可以给user_name加普通索引。但，这样真的好吗？我劝！不要犯这样的聪明，小聪明啊。</p>
+<p>你要知道，此时我们从t_user表查询的可不止user_name，还有user_age和id。如果只是给user_name加了索引，那么此时磁盘中产生的索引树是这样的：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162572296-97295d9c-ab7c-444b-a99a-6c8ea8f106eb-20210923151400366.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>这棵树的非叶子节点是user_name，叶子节点是id，<strong>也就是说从这棵树上我们只能得到user_name和user_id</strong>，至于user_age，MySQL底层只能跳出name索引树，然后跑到隔壁主键索引获取。整个过程被称为回表，而回表意味着多跑一趟。</p>
+<p>此时我们可以给user_name和user_age加一个联合索引，这样就能产生所谓的“索引覆盖”：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162521710-d2586c99-f888-4db1-b713-3a69dc59028d-20210923151409810.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>当辅助索引上的字段完全满足本次查询的列时，就是所谓的索引覆盖，这是一个好消息，意味着不需要回表，查询效率将会大大提高。这也是为什么SQL优化原则中经常会强调：尽量只取必要的字段，避免SELECT *（提高索引覆盖的几率，查询的字段越多，几率越低）。</p>
+<p>即使目前表中只有两个字段且已经索引覆盖，也不要写SELECT *。因为后期随着业务扩展，这张表会新增其他字段，此时SELECT *将不再覆盖索引！</p>
+<p>为了方便记忆，大家可以把索引覆盖理解为 索引的字段 &gt;= 查询需要的字段。比如联合索引的字段是index(a,b,c)，那么此时SELCT a, b就会发生索引覆盖，索引覆盖最大的好处是避免回表。</p>
+<p>需要强调的是，覆盖索引和联合索引没有必然关系。比如我只给user_name加单索引，而我查询语句是</p>
+<p>SELECT id, user_name FROM t_user WHERE name=’bravo’;</p>
+<p>此时也是索引覆盖。所以，<strong>能否索引覆盖不取决于索引单方面，需要查询配合。</strong></p>
+<p>关于联合索引，我们放在下一篇介绍。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/mysql/">mysql</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/05/08/%E9%9D%A2%E8%AF%95%E9%A2%98/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">面试题</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/">
+                        <span class="hidden-mobile">SQL优化(2)-索引与B+树</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <!-- Baidu Analytics -->
+    <script defer>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
