@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
+<html lang="en" data-default-color-scheme=auto>
 
 
 
@@ -22,7 +22,7 @@
 <meta property="og:url" content="http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/index.html">
 <meta property="og:site_name" content="ryan‘s space">
 <meta property="og:description" content="静态代理假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。 你如何在不修改已有代码的前提下，完成这个需求？ 我首先想到的是静态代理。具体做法是： 1.为现有的每一个类都编写一个对应的代理类，并且让它实现和目标类相同的接口（假设都有）  2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，代理对象 &#x3D; 增强代码">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-001c5db900d8785d47c1a5a0c6f32762_1440w-20210902214027681.jpg">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e302487f952bdf8e284afc0d8d6a770b_1440w-20210902214033494.jpg">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-9cd31ab516bd967e1b8e68736931f8ba_1440w-20210903091359016.jpg">
@@ -64,7 +64,7 @@
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
     
   
 
@@ -121,7 +121,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                Home
               </a>
             </li>
           
@@ -133,7 +133,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                Archives
               </a>
             </li>
           
@@ -145,7 +145,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                Categories
               </a>
             </li>
           
@@ -157,7 +157,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                Tags
               </a>
             </li>
           
@@ -169,7 +169,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                About
               </a>
             </li>
           
@@ -181,7 +181,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/links/">
                 <i class="iconfont icon-link-fill"></i>
-                友链
+                Links
               </a>
             </li>
           
@@ -221,7 +221,7 @@
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
       <time datetime="2019-12-08 21:03" pubdate>
-        2019年12月8日 晚上
+        December 8, 2019 pm
       </time>
     </span>
   
@@ -315,11 +315,11 @@
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-b5fc8b279a6152889afdfedbb0f611cc_1440w-20210903091605600.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>大家仔细看上图右侧的动态代理，我在invocationHandler的invoke()方法中并没有写目标对象。因为一开始invocationHandler的invoke()里确实没有目标对象，需要我们手动new。<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-88147b81ee9342015374159b2671320b_1440w-20210903091623203.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>但这种写法不够优雅，属于硬编码。我这次代理A对象，下次想代理B对象还要进来改invoke()方法，太差劲了。改进一下，让调用者把目标对象作为参数传进来：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProxyTest</span> </span>&#123;<br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>		CalculatorImpl target = <span class="hljs-keyword">new</span> CalculatorImpl();<br>                <span class="hljs-comment">//传入目标对象</span><br>                <span class="hljs-comment">//目的：1.根据它实现的接口生成代理对象 2.代理对象调用目标对象方法</span><br>		Calculator calculatorProxy = (Calculator) getProxy(target);<br>		calculatorProxy.add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>);<br>		calculatorProxy.subtract(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>);<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title">getProxy</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Object target)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>		<span class="hljs-comment">//参数1：随便找个类加载器给它， 参数2：目标对象实现的接口，让代理对象实现相同接口</span><br>		Class proxyClazz = Proxy.getProxyClass(target.getClass().getClassLoader(), target.getClass().getInterfaces());<br>		Constructor constructor = proxyClazz.getConstructor(InvocationHandler.class);<br>		Object proxy = constructor.newInstance(<span class="hljs-keyword">new</span> InvocationHandler() &#123;<br>			<span class="hljs-meta">@Override</span><br>			<span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>				System.out.println(method.getName() + <span class="hljs-string">&quot;方法开始执行...&quot;</span>);<br>				Object result = method.invoke(target, args);<br>				System.out.println(result);<br>				System.out.println(method.getName() + <span class="hljs-string">&quot;方法执行结束...&quot;</span>);<br>				<span class="hljs-keyword">return</span> result;<br>			&#125;<br>		&#125;);<br>		<span class="hljs-keyword">return</span> proxy;<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProxyTest</span> </span>&#123;<br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>		CalculatorImpl target = <span class="hljs-keyword">new</span> CalculatorImpl();<br>                <span class="hljs-comment">//传入目标对象</span><br>                <span class="hljs-comment">//目的：1.根据它实现的接口生成代理对象 2.代理对象调用目标对象方法</span><br>		Calculator calculatorProxy = (Calculator) getProxy(target);<br>		calculatorProxy.add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>);<br>		calculatorProxy.subtract(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>);<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title">getProxy</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Object target)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>		<span class="hljs-comment">//参数1：随便找个类加载器给它， 参数2：目标对象实现的接口，让代理对象实现相同接口</span><br>		Class proxyClazz = Proxy.getProxyClass(target.getClass().getClassLoader(), target.getClass().getInterfaces());<br>		Constructor constructor = proxyClazz.getConstructor(InvocationHandler.class);<br>		Object proxy = constructor.newInstance(<span class="hljs-keyword">new</span> InvocationHandler() &#123;<br>			<span class="hljs-meta">@Override</span><br>			<span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>				System.out.println(method.getName() + <span class="hljs-string">&quot;方法开始执行...&quot;</span>);<br>				Object result = method.invoke(target, args);<br>				System.out.println(result);<br>				System.out.println(method.getName() + <span class="hljs-string">&quot;方法执行结束...&quot;</span>);<br>				<span class="hljs-keyword">return</span> result;<br>			&#125;<br>		&#125;);<br>		<span class="hljs-keyword">return</span> proxy;<br>	&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>这样就非常灵活，非常优雅了。无论现在系统有多少类，只要你把实例传进来，getProxy()都能给你返回对应的代理对象。就这样，我们完美地跳过了代理类，直接创建了代理对象！</p>
 <p>不过实际编程中，一般不用getProxyClass()，而是使用Proxy类的另一个静态方法：Proxy.newProxyInstance()，直接返回代理实例，连中间得到代理Class对象的过程都帮你隐藏：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProxyTest</span> </span>&#123;<br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>		CalculatorImpl target = <span class="hljs-keyword">new</span> CalculatorImpl();<br>		Calculator calculatorProxy = (Calculator) getProxy(target);<br>		calculatorProxy.add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>);<br>		calculatorProxy.subtract(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>);<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title">getProxy</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Object target)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>		Object proxy = Proxy.newProxyInstance(<br>				target.getClass().getClassLoader(),<span class="hljs-comment">/*类加载器*/</span><br>				target.getClass().getInterfaces(),<span class="hljs-comment">/*让代理对象和目标对象实现相同接口*/</span><br>				<span class="hljs-keyword">new</span> InvocationHandler()&#123;<span class="hljs-comment">/*代理对象的方法最终都会被JVM导向它的invoke方法*/</span><br>					<span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>						System.out.println(method.getName() + <span class="hljs-string">&quot;方法开始执行...&quot;</span>);<br>						Object result = method.invoke(target, args);<br>						System.out.println(result);<br>						System.out.println(method.getName() + <span class="hljs-string">&quot;方法执行结束...&quot;</span>);<br>						<span class="hljs-keyword">return</span> result;<br>					&#125;<br>				&#125;<br>		);<br>		<span class="hljs-keyword">return</span> proxy;<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProxyTest</span> </span>&#123;<br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>		CalculatorImpl target = <span class="hljs-keyword">new</span> CalculatorImpl();<br>		Calculator calculatorProxy = (Calculator) getProxy(target);<br>		calculatorProxy.add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>);<br>		calculatorProxy.subtract(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>);<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title">getProxy</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Object target)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;<br>		Object proxy = Proxy.newProxyInstance(<br>				target.getClass().getClassLoader(),<span class="hljs-comment">/*类加载器*/</span><br>				target.getClass().getInterfaces(),<span class="hljs-comment">/*让代理对象和目标对象实现相同接口*/</span><br>				<span class="hljs-keyword">new</span> InvocationHandler()&#123;<span class="hljs-comment">/*代理对象的方法最终都会被JVM导向它的invoke方法*/</span><br>					<span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>						System.out.println(method.getName() + <span class="hljs-string">&quot;方法开始执行...&quot;</span>);<br>						Object result = method.invoke(target, args);<br>						System.out.println(result);<br>						System.out.println(method.getName() + <span class="hljs-string">&quot;方法执行结束...&quot;</span>);<br>						<span class="hljs-keyword">return</span> result;<br>					&#125;<br>				&#125;<br>		);<br>		<span class="hljs-keyword">return</span> proxy;<br>	&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 
 
@@ -349,7 +349,7 @@
 <p>如果说继承的父类是亲爹（只有一个），那么实现的接口是干爹（可以有多个）。</p>
 <p>实现接口是一个类认干爹的过程。接口无法创建对象，但实现该接口的类可以。</p>
 <p>比如 </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">class Student extends Person implements A, B<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs text">class Student extends Person implements A, B<br></code></pre></div></td></tr></table></figure>
 
 <p>这个类new一个实例出来，你问它：你爸爸是谁啊？它会告诉你：我只有一个爸爸Person。</p>
 <p>但是student instanceof A interface，或者student instanceof B interface，它会告诉你两个都是它干爹（true），都可以用来接收它。</p>
@@ -396,7 +396,7 @@
                       <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">多线程基础(下)</span>
-                        <span class="visible-mobile">上一篇</span>
+                        <span class="visible-mobile">Previous</span>
                       </a>
                     
                   </article>
@@ -405,7 +405,7 @@
                     
                       <a href="/2019/12/08/java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E4%B9%8BInvocationHandler/">
                         <span class="hidden-mobile">java动态代理之InvocationHandler</span>
-                        <span class="visible-mobile">下一篇</span>
+                        <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
                     
@@ -422,7 +422,7 @@
     
       <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
         <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
@@ -448,7 +448,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
         <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -457,7 +457,7 @@
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
           <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+                 for="local-search-input">keyword</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>

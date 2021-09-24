@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
+<html lang="en" data-default-color-scheme=auto>
 
 
 
@@ -22,7 +22,7 @@
 <meta property="og:url" content="http://example.com/2019/12/08/java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E4%B9%8BInvocationHandler/index.html">
 <meta property="og:site_name" content="ryan‘s space">
 <meta property="og:description" content="网上关于Java的动态代理，Proxy和InvocationHandler这些概念有讲解得非常高深的文章。其实这些概念没有那么复杂。现在咱们通过一个最简单的例子认识什么是InvocationHandler。值得一提的是，InvocationHandler在Spring框架实现中被广泛使用，这意味着我们吃透了InvocationHandler，就为将来的Spring源码学习打下一个坚实的基础。 开发">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210902183109.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210902183127.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210902183142.png">
@@ -49,7 +49,7 @@
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
     
   
 
@@ -106,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                Home
               </a>
             </li>
           
@@ -118,7 +118,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                Archives
               </a>
             </li>
           
@@ -130,7 +130,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                Categories
               </a>
             </li>
           
@@ -142,7 +142,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                Tags
               </a>
             </li>
           
@@ -154,7 +154,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                About
               </a>
             </li>
           
@@ -166,7 +166,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/links/">
                 <i class="iconfont icon-link-fill"></i>
-                友链
+                Links
               </a>
             </li>
           
@@ -206,7 +206,7 @@
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
       <time datetime="2019-12-08 15:12" pubdate>
-        2019年12月8日 下午
+        December 8, 2019 pm
       </time>
     </span>
   
@@ -259,10 +259,10 @@
             <div class="markdown-body">
               <p>网上关于Java的动态代理，Proxy和InvocationHandler这些概念有讲解得非常高深的文章。其实这些概念没有那么复杂。现在咱们通过一个最简单的例子认识什么是InvocationHandler。值得一提的是，InvocationHandler在Spring框架实现中被广泛使用，这意味着我们吃透了InvocationHandler，就为将来的Spring源码学习打下一个坚实的基础。</p>
 <p>开发一个接口，包含两个方法，可以向指定的人问候“你好”或者“再见”。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IHello</span> </span>&#123;<br><br>   <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">sayHello</span><span class="hljs-params">(String name)</span></span>;<br><br>   <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">sayGoogBye</span><span class="hljs-params">(String name)</span></span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IHello</span> </span>&#123;<br><br>   <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">sayHello</span><span class="hljs-params">(String name)</span></span>;<br><br>   <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">sayGoogBye</span><span class="hljs-params">(String name)</span></span>;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>创建一个简单的类，实现这个IHello接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Helloimplements</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IHello</span> </span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayHello</span><span class="hljs-params">(String name)</span> </span>&#123;<br>        System.out.println(<span class="hljs-string">&quot;Hello &quot;</span> + name);<br>    &#125;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayGoogBye</span><span class="hljs-params">(String name)</span> </span>&#123;<br>        System.out.println(name+<span class="hljs-string">&quot; GoodBye!&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Helloimplements</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IHello</span> </span>&#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayHello</span><span class="hljs-params">(String name)</span> </span>&#123;<br>        System.out.println(<span class="hljs-string">&quot;Hello &quot;</span> + name);<br>    &#125;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayGoogBye</span><span class="hljs-params">(String name)</span> </span>&#123;<br>        System.out.println(name+<span class="hljs-string">&quot; GoodBye!&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>消费这个实现类，迄今为止没什么特别的。</p>
 <p>现在假设我们接到了这个需求：老板要求在该实现类每次问候某人时，必须把问候的细节记录到日志文件里。为了简单起见，我们在问候前打印下面的一行语句来模拟日志记录的动作。</p>
@@ -271,16 +271,16 @@
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210902183109.png" srcset="/img/loading.gif" lazyload></p>
 <p>然而，老板的要求是：不允许你修改原来的Helloimplements类。在现实场景中，Helloimplements可能是第三方的jar包提供的，我们没有办法修改代码。</p>
 <p>您也许会说，我们可以用设计模式里的代理模式，即创建一个新的Java类作为代理类，同样实现IHello接口，然后将Helloimplements类的实例传入代理类。我们虽然被要求不允许修改Helloimplements的代码，但是可以把日志记录代码写在代理类里。完整代码如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StaticProxy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IHello</span> </span>&#123;<br><br>  <span class="hljs-keyword">private</span> IHello iHello;<br><br>  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setImpl</span><span class="hljs-params">(IHello impl)</span></span>&#123;<br><br>  <span class="hljs-keyword">this</span>.iHello = impl;<br><br>&#125;<br><br><span class="hljs-meta">@Override</span><br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayHello</span><span class="hljs-params">(String name)</span> </span>&#123;<br><br>    System.out.println(<span class="hljs-string">&quot;问候之前的日志记录...&quot;</span>);<br><br>    iHello.sayHello(name);<br><br>&#125;<br><br><span class="hljs-meta">@Override</span><br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayGoogBye</span><span class="hljs-params">(String name)</span> </span>&#123;<br><br>     System.out.println(<span class="hljs-string">&quot;问候之前的日志记录...&quot;</span>);<br><br>     iHello.sayGoogBye(name);<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] arg)</span> </span>&#123;<br><br>     Helloimplements hello = <span class="hljs-keyword">new</span> Helloimplements();<br><br>     StaticProxy proxy = <span class="hljs-keyword">new</span> StaticProxy();<br><br>     proxy.setImpl(hello);<br><br>     proxy.sayHello(<span class="hljs-string">&quot;Jerry&quot;</span>);<br><br>  &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StaticProxy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IHello</span> </span>&#123;<br><br>  <span class="hljs-keyword">private</span> IHello iHello;<br><br>  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setImpl</span><span class="hljs-params">(IHello impl)</span></span>&#123;<br><br>  <span class="hljs-keyword">this</span>.iHello = impl;<br><br>&#125;<br><br><span class="hljs-meta">@Override</span><br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayHello</span><span class="hljs-params">(String name)</span> </span>&#123;<br><br>    System.out.println(<span class="hljs-string">&quot;问候之前的日志记录...&quot;</span>);<br><br>    iHello.sayHello(name);<br><br>&#125;<br><br><span class="hljs-meta">@Override</span><br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sayGoogBye</span><span class="hljs-params">(String name)</span> </span>&#123;<br><br>     System.out.println(<span class="hljs-string">&quot;问候之前的日志记录...&quot;</span>);<br><br>     iHello.sayGoogBye(name);<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] arg)</span> </span>&#123;<br><br>     Helloimplements hello = <span class="hljs-keyword">new</span> Helloimplements();<br><br>     StaticProxy proxy = <span class="hljs-keyword">new</span> StaticProxy();<br><br>     proxy.setImpl(hello);<br><br>     proxy.sayHello(<span class="hljs-string">&quot;Jerry&quot;</span>);<br><br>  &#125;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>这种做法能够实现需求：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210902183127.png" srcset="/img/loading.gif" lazyload></p>
 <p>下面我们再看如何用InvocationHandler实现同样的效果。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java">InvocationHandler是一个JDK提供的标准接口。看下面的代码：<br><span class="hljs-keyword">import</span> java.lang.reflect.InvocationHandler;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.lang.reflect.Proxy;<br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DynaProxyHello</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">InvocationHandler</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> Object delegate;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">bind</span><span class="hljs-params">(Object delegate)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.delegate = delegate;<br>        <span class="hljs-keyword">return</span> Proxy.newProxyInstance(<br>        <span class="hljs-keyword">this</span>.delegate.getClass().getClassLoader(), <span class="hljs-keyword">this</span>.delegate<br>        .getClass().getInterfaces(), <span class="hljs-keyword">this</span>);<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span></span><br><span class="hljs-function">    <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>        Object result = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;问候之前的日志记录...&quot;</span>);<br>            <span class="hljs-comment">// JVM通过这条语句执行原来的方法(反射机制)</span><br>            result = method.invoke(<span class="hljs-keyword">this</span>.delegate, args);<br>        &#125;<br>        <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">InvocationHandler是一个JDK提供的标准接口。看下面的代码：<br><span class="hljs-keyword">import</span> java.lang.reflect.InvocationHandler;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.lang.reflect.Proxy;<br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DynaProxyHello</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">InvocationHandler</span> </span>&#123;<br>    <span class="hljs-keyword">private</span> Object delegate;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">bind</span><span class="hljs-params">(Object delegate)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.delegate = delegate;<br>        <span class="hljs-keyword">return</span> Proxy.newProxyInstance(<br>        <span class="hljs-keyword">this</span>.delegate.getClass().getClassLoader(), <span class="hljs-keyword">this</span>.delegate<br>        .getClass().getInterfaces(), <span class="hljs-keyword">this</span>);<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span></span><br><span class="hljs-function">    <span class="hljs-keyword">throws</span> Throwable </span>&#123;<br>        Object result = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;问候之前的日志记录...&quot;</span>);<br>            <span class="hljs-comment">// JVM通过这条语句执行原来的方法(反射机制)</span><br>            result = method.invoke(<span class="hljs-keyword">this</span>.delegate, args);<br>        &#125;<br>        <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> result;<br>    &#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>上面代码里的bind方法很想我之前代理类StaticProxy的setImpl方法，只不过这个bind方法的输入参数类型更加通用。日志记录的代码写在方法invoke里。</p>
 <p>看看如何使用：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] arg)</span> </span>&#123;<br>    DynaProxyHello helloproxy = <span class="hljs-keyword">new</span> DynaProxyHello();<br>    Helloimplements hello = <span class="hljs-keyword">new</span> Helloimplements();<br>    IHello ihello = (IHello) helloproxy.bind(hello);<br>    ihello.sayHello(<span class="hljs-string">&quot;Jerry&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] arg)</span> </span>&#123;<br>    DynaProxyHello helloproxy = <span class="hljs-keyword">new</span> DynaProxyHello();<br>    Helloimplements hello = <span class="hljs-keyword">new</span> Helloimplements();<br>    IHello ihello = (IHello) helloproxy.bind(hello);<br>    ihello.sayHello(<span class="hljs-string">&quot;Jerry&quot;</span>);<br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>执行效果和StaticProxy那种解决方案完全一致。</p>
 <p>咱们先来调试一下。当bind方法执行时，方法Proxy.newProxyInstance被调用，Helloimplements类的实例被传入。</p>
@@ -334,7 +334,7 @@
                       <a href="/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">静态代理&动态代理</span>
-                        <span class="visible-mobile">上一篇</span>
+                        <span class="visible-mobile">Previous</span>
                       </a>
                     
                   </article>
@@ -343,7 +343,7 @@
                     
                       <a href="/2019/12/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8A)/">
                         <span class="hidden-mobile">多线程基础(上)</span>
-                        <span class="visible-mobile">下一篇</span>
+                        <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
                     
@@ -360,7 +360,7 @@
     
       <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
         <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
@@ -386,7 +386,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
         <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -395,7 +395,7 @@
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
           <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+                 for="local-search-input">keyword</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>

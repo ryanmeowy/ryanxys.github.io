@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
+<html lang="en" data-default-color-scheme=auto>
 
 
 
@@ -22,7 +22,7 @@
 <meta property="og:url" content="http://example.com/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/index.html">
 <meta property="og:site_name" content="ryan‘s space">
 <meta property="og:description" content="很多博客或者视频每次都会说“实现”多线程的方式有3种：Thread、Runnable和Callable，其实我个人是不太认同这种说法的，Thread是线程类，另外两个是任务类，不是一类事物啊！ 也即是说，JDK看似提供了很多和多线程相关的类，实际上有且仅有Thread类能通过start0()方法向操作系统申请线程资源（本地方法）。  并且，在JVM的设定中Java的线程和操作系统的线程是一一对应的">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1597586134875-8b46bb15-50a0-488c-b703-61f1b02d0909-20210923215627617.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1597563841354-7196fcb8-683e-42fd-88d9-eb1cf5ee0f08-20210923215636217.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608708324821-680b47cf-1db5-45e9-a0cf-a59ef3023880-20210923215642589.png">
@@ -49,7 +49,7 @@
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
     
   
 
@@ -106,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                Home
               </a>
             </li>
           
@@ -118,7 +118,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                Archives
               </a>
             </li>
           
@@ -130,7 +130,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                Categories
               </a>
             </li>
           
@@ -142,7 +142,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                Tags
               </a>
             </li>
           
@@ -154,7 +154,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                About
               </a>
             </li>
           
@@ -166,7 +166,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/links/">
                 <i class="iconfont icon-link-fill"></i>
-                友链
+                Links
               </a>
             </li>
           
@@ -206,7 +206,7 @@
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
       <time datetime="2019-12-12 23:01" pubdate>
-        2019年12月12日 晚上
+        December 12, 2019 pm
       </time>
     </span>
   
@@ -276,7 +276,7 @@
 <li>把任务塞到Runnable/Callable，丢到线程池里，屏蔽内部细节，省心省力</li>
 </ul>
 <p><strong>为什么要塞到这3个地方呢？因为当初在设计这些类时，其实就规划好了线程的执行路径，我们只要把待执行任务埋伏到指定位置就一定能碰上啦！</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AsyncAndWaitTest</span> </span>&#123;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> ExecutionException, InterruptedException </span>&#123;<br>        <span class="hljs-comment">// 方式1：重写Thread#run()</span><br>        Thread thread = <span class="hljs-keyword">new</span> Thread() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>                System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;========&gt;正在执行&quot;</span>);<br>            &#125;<br>        &#125;;<br>        thread.start();<br><br>        <span class="hljs-comment">// 方式2：构造方法传入Runnable实例</span><br>        <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;========&gt;正在执行&quot;</span>);<br>        &#125;).start();<br><br>        <span class="hljs-comment">// 方式3：线程池 + Callable/Runnable，这里以Callble为例</span><br>        ExecutorService executorService = Executors.newSingleThreadExecutor();<br>        Future&lt;String&gt; submit = executorService.submit(() -&gt; &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;========&gt;正在执行&quot;</span>);<br>            Thread.sleep(<span class="hljs-number">3</span> * <span class="hljs-number">1000L</span>);<br>            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;success&quot;</span>;<br>        &#125;);<br>        String result = submit.get();<br>        System.out.println(<span class="hljs-string">&quot;result=======&gt;&quot;</span> + result);<br>        <span class="hljs-comment">// 关闭线程池</span><br>        executorService.shutdown();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AsyncAndWaitTest</span> </span>&#123;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> ExecutionException, InterruptedException </span>&#123;<br>        <span class="hljs-comment">// 方式1：重写Thread#run()</span><br>        Thread thread = <span class="hljs-keyword">new</span> Thread() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>                System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;========&gt;正在执行&quot;</span>);<br>            &#125;<br>        &#125;;<br>        thread.start();<br><br>        <span class="hljs-comment">// 方式2：构造方法传入Runnable实例</span><br>        <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;========&gt;正在执行&quot;</span>);<br>        &#125;).start();<br><br>        <span class="hljs-comment">// 方式3：线程池 + Callable/Runnable，这里以Callble为例</span><br>        ExecutorService executorService = Executors.newSingleThreadExecutor();<br>        Future&lt;String&gt; submit = executorService.submit(() -&gt; &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;========&gt;正在执行&quot;</span>);<br>            Thread.sleep(<span class="hljs-number">3</span> * <span class="hljs-number">1000L</span>);<br>            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;success&quot;</span>;<br>        &#125;);<br>        String result = submit.get();<br>        System.out.println(<span class="hljs-string">&quot;result=======&gt;&quot;</span> + result);<br>        <span class="hljs-comment">// 关闭线程池</span><br>        executorService.shutdown();<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1597564427871-eb185e43-a08a-4a98-a13e-e2a70bcf6bbd-20210923215705510.gif" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>上面介绍了多线程执行任务的3种方式（Runnable/Callable/线程池），我们再另外介绍一种初学者可能觉得有点绕，但源码里经常会见到的写法，算是Runnable的变种写法<strong>：</strong></p>
@@ -323,7 +323,7 @@
                       <a href="/2020/03/02/Cookie&amp;Session&amp;Token/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">cookie&session&token</span>
-                        <span class="visible-mobile">上一篇</span>
+                        <span class="visible-mobile">Previous</span>
                       </a>
                     
                   </article>
@@ -332,7 +332,7 @@
                     
                       <a href="/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/">
                         <span class="hidden-mobile">静态代理&动态代理</span>
-                        <span class="visible-mobile">下一篇</span>
+                        <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
                     
@@ -349,7 +349,7 @@
     
       <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
         <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
@@ -375,7 +375,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
         <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -384,7 +384,7 @@
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
           <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+                 for="local-search-input">keyword</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>

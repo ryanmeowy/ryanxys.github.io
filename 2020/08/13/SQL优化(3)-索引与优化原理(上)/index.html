@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
+<html lang="en" data-default-color-scheme=auto>
 
 
 
@@ -22,7 +22,7 @@
 <meta property="og:url" content="http://example.com/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/index.html">
 <meta property="og:site_name" content="ryan‘s space">
 <meta property="og:description" content="上一篇，我们重走了一遍数据库索引的历史，认识了B+树结构，这一篇我们回归现实中的MySQL数据库，初步学习具体的SQL优化原则，并尝试从索引底层原理出发，分析为什么会有那么多的“规则”。 为什么要学习SQL优化我的前东家是做招聘服务的，所以不可避免地要查询行业分类。通常来说，前端可以采用根据parentId分步加载的方式获取行业类别，但有些场景也需要全量嵌套查询：查询行业分类及其子分类。 这里我们">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876552845-1508cebc-e24b-4812-b5f1-d44df431105b-20210923151052749.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584876666317-5f0f97f0-aa23-4be1-a7bf-e1d8fce54587-20210923151044115.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877002375-f8dd6ff0-eff5-485b-a2e7-277a049ffdaa-20210923151103929.png">
@@ -63,7 +63,7 @@
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
     
   
 
@@ -120,7 +120,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                Home
               </a>
             </li>
           
@@ -132,7 +132,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                Archives
               </a>
             </li>
           
@@ -144,7 +144,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                Categories
               </a>
             </li>
           
@@ -156,7 +156,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                Tags
               </a>
             </li>
           
@@ -168,7 +168,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                About
               </a>
             </li>
           
@@ -180,7 +180,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/links/">
                 <i class="iconfont icon-link-fill"></i>
-                友链
+                Links
               </a>
             </li>
           
@@ -220,7 +220,7 @@
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
       <time datetime="2020-08-13 01:31" pubdate>
-        2020年8月13日 凌晨
+        August 13, 2020 am
       </time>
     </span>
   
@@ -280,7 +280,7 @@
 <p>表中有1106条数据：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877002375-f8dd6ff0-eff5-485b-a2e7-277a049ffdaa-20210923151103929.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>经过《实用小算法》的学习，我们很容易写出以下代码：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs reasonml"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 查询行业分类及其子分类</span><br><span class="hljs-comment"> */</span><br>@Test<br>public void test<span class="hljs-constructor">Cascade()</span> &#123;<br><br>    <span class="hljs-comment">// 查询数据库，得到所有行业类别</span><br>    List&lt;SysPosition&gt; sysPositionList = sysPositionMapper.select<span class="hljs-constructor">All()</span>;<br><br>    long start = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br><br>    Map&lt;String, SysPosition&gt; sysPositionMap = <span class="hljs-keyword">new</span> HashMap&lt;&gt;<span class="hljs-literal">()</span>;<br>    List&lt;SysPosition&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;<span class="hljs-literal">()</span>;<br><br>    <span class="hljs-comment">// 第一步：List转Map</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        sysPositionMap.put(sysPosition.get<span class="hljs-constructor">Code()</span>, sysPosition);<br>    &#125;<br><br>    <span class="hljs-comment">// 第二步：遍历List，利用Map完成嵌套</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;-1&quot;</span>.equals(sysPosition.get<span class="hljs-constructor">ParentCode()</span>)) &#123;<br>            result.add(sysPosition);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            SysPosition parent = sysPositionMap.get(sysPosition.get<span class="hljs-constructor">ParentCode()</span>);<br>            parent.get<span class="hljs-constructor">Children()</span>.add(sysPosition);<br>        &#125;<br>    &#125;<br><br>    long <span class="hljs-keyword">end</span> = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br>    <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(<span class="hljs-string">&quot;耗时：&quot;</span> + (<span class="hljs-keyword">end</span> - start));<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight reasonml"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs reasonml"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 查询行业分类及其子分类</span><br><span class="hljs-comment"> */</span><br>@Test<br>public void test<span class="hljs-constructor">Cascade()</span> &#123;<br><br>    <span class="hljs-comment">// 查询数据库，得到所有行业类别</span><br>    List&lt;SysPosition&gt; sysPositionList = sysPositionMapper.select<span class="hljs-constructor">All()</span>;<br><br>    long start = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br><br>    Map&lt;String, SysPosition&gt; sysPositionMap = <span class="hljs-keyword">new</span> HashMap&lt;&gt;<span class="hljs-literal">()</span>;<br>    List&lt;SysPosition&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;<span class="hljs-literal">()</span>;<br><br>    <span class="hljs-comment">// 第一步：List转Map</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        sysPositionMap.put(sysPosition.get<span class="hljs-constructor">Code()</span>, sysPosition);<br>    &#125;<br><br>    <span class="hljs-comment">// 第二步：遍历List，利用Map完成嵌套</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;-1&quot;</span>.equals(sysPosition.get<span class="hljs-constructor">ParentCode()</span>)) &#123;<br>            result.add(sysPosition);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            SysPosition parent = sysPositionMap.get(sysPosition.get<span class="hljs-constructor">ParentCode()</span>);<br>            parent.get<span class="hljs-constructor">Children()</span>.add(sysPosition);<br>        &#125;<br>    &#125;<br><br>    long <span class="hljs-keyword">end</span> = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br>    <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(<span class="hljs-string">&quot;耗时：&quot;</span> + (<span class="hljs-keyword">end</span> - start));<br>&#125;<br></code></pre></div></td></tr></table></figure>
 
 <p>在《实用小算法》中，我们分析过效率：List转Map这种方式会有2N次循环，也就是会循环2212次。</p>
 <p>大家猜上面程序耗时多少？</p>
@@ -391,10 +391,10 @@
 <li>Navicat图形界面</li>
 </ul>
 <p>利用SQL语句添加索引：</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-comment">-- 1.添加PRIMARY KEY（主键索引） </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">PRIMARY KEY</span> (`<span class="hljs-keyword">column</span>`) ;<br><span class="hljs-comment">-- 2.添加UNIQUE(唯一索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">UNIQUE</span> (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 3.添加INDEX(普通索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 4.添加FULLTEXT(全文索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> FULLTEXT (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 5.添加联合索引 </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`column1`, `column2`, `column3`);<br></code></pre></td></tr></table></figure>
+<figure class="highlight pgsql"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs pgsql"><span class="hljs-comment">-- 1.添加PRIMARY KEY（主键索引） </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">PRIMARY KEY</span> (`<span class="hljs-keyword">column</span>`) ;<br><span class="hljs-comment">-- 2.添加UNIQUE(唯一索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">UNIQUE</span> (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 3.添加INDEX(普通索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 4.添加FULLTEXT(全文索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> FULLTEXT (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 5.添加联合索引 </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`column1`, `column2`, `column3`);<br></code></pre></div></td></tr></table></figure>
 
 <p>在本案例中，可以写：</p>
-<figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs autohotkey">ALTER TABLE `moneywithdraw` ADD INDEX idx_auditor_id (`auditor_id`)<span class="hljs-comment">;</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight autohotkey"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs autohotkey">ALTER TABLE `moneywithdraw` ADD INDEX idx_auditor_id (`auditor_id`)<span class="hljs-comment">;</span><br></code></pre></div></td></tr></table></figure>
 
 <p>利用Navicat图形界面创建<strong>单列索引：</strong></p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521376561-1c62b92e-60ae-4d06-ad73-6cfa4c69101b-20210923151251589.png" srcset="/img/loading.gif" lazyload alt="img"></p>
@@ -579,7 +579,7 @@
                       <a href="/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">SQL优化(4)-索引与优化原理(下)</span>
-                        <span class="visible-mobile">上一篇</span>
+                        <span class="visible-mobile">Previous</span>
                       </a>
                     
                   </article>
@@ -588,7 +588,7 @@
                     
                       <a href="/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/">
                         <span class="hidden-mobile">SQL优化(2)-索引与B+树</span>
-                        <span class="visible-mobile">下一篇</span>
+                        <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
                     
@@ -605,7 +605,7 @@
     
       <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
         <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
@@ -631,7 +631,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
         <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -640,7 +640,7 @@
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
           <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+                 for="local-search-input">keyword</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>

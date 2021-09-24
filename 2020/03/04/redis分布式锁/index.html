@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
+<html lang="en" data-default-color-scheme=auto>
 
 
 
@@ -22,7 +22,7 @@
 <meta property="og:url" content="http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/index.html">
 <meta property="og:site_name" content="ryan‘s space">
 <meta property="og:description" content="这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。 Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？ 因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？  基于 Redis 如何实现一个分布式锁？ Redis 分布式锁真的安全吗？ Redis 的 Redlock 有">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101801037.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101752919.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101730050.png">
@@ -57,7 +57,7 @@
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
     
   
 
@@ -114,7 +114,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                Home
               </a>
             </li>
           
@@ -126,7 +126,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                Archives
               </a>
             </li>
           
@@ -138,7 +138,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                Categories
               </a>
             </li>
           
@@ -150,7 +150,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                Tags
               </a>
             </li>
           
@@ -162,7 +162,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                About
               </a>
             </li>
           
@@ -174,7 +174,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/links/">
                 <i class="iconfont icon-link-fill"></i>
-                友链
+                Links
               </a>
             </li>
           
@@ -214,7 +214,7 @@
     <span class="post-meta">
       <i class="iconfont icon-date-fill" aria-hidden="true"></i>
       <time datetime="2020-03-04 09:11" pubdate>
-        2020年3月4日 上午
+        March 4, 2020 am
       </time>
     </span>
   
@@ -293,15 +293,15 @@
 <p>想要实现分布式锁，必须要求 Redis 有「互斥」的能力，我们可以使用 SETNX 命令，这个命令表示<strong>SET</strong> if <strong>N</strong>ot e<strong>X</strong>ists，即如果 key 不存在，才会设置它的值，否则什么也不做。</p>
 <p>两个客户端进程可以执行这个命令，达到互斥，就可以实现一个分布式锁。</p>
 <p>客户端 1 申请加锁，加锁成功：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">127.0.0.1:6379&gt; SETNX lock 1<br>(integer) 1     // 客户端1，加锁成功<br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">127.0.0.1:6379&gt; SETNX lock 1<br>(integer) 1     // 客户端1，加锁成功<br></code></pre></div></td></tr></table></figure>
 
 <p>客户端 2 申请加锁，因为它后到达，加锁失败：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">127.0.0.1:6379&gt; SETNX lock 1<br>(integer) 0     // 客户端2，加锁失败<br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">127.0.0.1:6379&gt; SETNX lock 1<br>(integer) 0     // 客户端2，加锁失败<br></code></pre></div></td></tr></table></figure>
 
 <p>此时，加锁成功的客户端，就可以去操作「共享资源」，例如，修改 MySQL 的某一行数据，或者调用一个 API 请求。</p>
 <p>操作完成后，还要及时释放锁，给后来者让出操作共享资源的机会。如何释放锁呢？</p>
 <p>也很简单，直接使用 DEL 命令删除这个 key 即可：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">127.0.0.1:6379&gt; DEL lock // 释放锁<br>(integer) 1<br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">127.0.0.1:6379&gt; DEL lock // 释放锁<br>(integer) 1<br></code></pre></div></td></tr></table></figure>
 
 <p>这个逻辑非常简单，整体的路程就是这样：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101730050.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
@@ -314,7 +314,7 @@
 <p>怎么解决这个问题呢？</p>
 <h1 id="如何避免死锁？"><a href="#如何避免死锁？" class="headerlink" title="如何避免死锁？"></a>如何避免死锁？</h1><p>我们很容易想到的方案是，在申请锁时，给这把锁设置一个「租期」。</p>
 <p>在 Redis 中实现时，就是给这个 key 设置一个「过期时间」。这里我们假设，操作共享资源的时间不会超过 10s，那么在加锁时，给这个 key 设置 10s 过期即可：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs terminal">127.0.0.1:6379&gt; SETNX lock 1    // 加锁<br>(integer) 1<br>127.0.0.1:6379&gt; EXPIRE lock 10  // 10s后自动过期<br>(integer) 1<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs terminal">127.0.0.1:6379&gt; SETNX lock 1    // 加锁<br>(integer) 1<br>127.0.0.1:6379&gt; EXPIRE lock 10  // 10s后自动过期<br>(integer) 1<br></code></pre></div></td></tr></table></figure>
 
 <p>这样一来，无论客户端是否异常，这个锁都可以在 10s 后被「自动释放」，其它客户端依旧可以拿到锁。</p>
 <p>但这样真的没问题吗？</p>
@@ -329,7 +329,7 @@
 <p>怎么办？</p>
 <p>在 Redis 2.6.12 版本之前，我们需要想尽办法，保证 SETNX 和 EXPIRE 原子性执行，还要考虑各种异常情况如何处理。</p>
 <p>但在 Redis 2.6.12 之后，Redis 扩展了 SET 命令的参数，用这一条命令就可以了：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs terminal">// 一条命令保证原子性执行<br>127.0.0.1:6379&gt; SET lock 1 EX 10 NX<br>OK<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs terminal">// 一条命令保证原子性执行<br>127.0.0.1:6379&gt; SET lock 1 EX 10 NX<br>OK<br></code></pre></div></td></tr></table></figure>
 
 <p>这样就解决了死锁问题，也比较简单。</p>
 <p>我们再来看分析下，它还有什么问题？</p>
@@ -362,13 +362,13 @@
 <p>如何解决这个问题呢？</p>
 <h1 id="锁被别人释放怎么办"><a href="#锁被别人释放怎么办" class="headerlink" title="锁被别人释放怎么办?"></a>锁被别人释放怎么办?</h1><p>解决办法是：客户端在加锁时，设置一个只有自己知道的「唯一标识」进去。</p>
 <p>例如，可以是自己的线程 ID，也可以是一个 UUID（随机且唯一），这里我们以 UUID 举例：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">// 锁的VALUE设置为UUID<br>127.0.0.1:6379&gt; SET lock $uuid EX 20 NX<br>OK<br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">// 锁的VALUE设置为UUID<br>127.0.0.1:6379&gt; SET lock $uuid EX 20 NX<br>OK<br></code></pre></div></td></tr></table></figure>
 
 <blockquote>
 <p>这里假设 20s 操作共享时间完全足够，先不考虑锁自动过期的问题。</p>
 </blockquote>
 <p>之后，在释放锁时，要先判断这把锁是否还归自己持有，伪代码可以这么写：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 锁是自己的，才释放</span><br><span class="hljs-keyword">if</span> redis.get(<span class="hljs-string">&quot;lock&quot;</span>) == $uuid:<br>    redis.del(<span class="hljs-string">&quot;lock&quot;</span>)<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// 锁是自己的，才释放</span><br><span class="hljs-keyword">if</span> redis.get(<span class="hljs-string">&quot;lock&quot;</span>) == $uuid:<br>    redis.del(<span class="hljs-string">&quot;lock&quot;</span>)<br></code></pre></div></td></tr></table></figure>
 
 <p>这里释放锁使用的是 GET + DEL 两条命令，这时，又会遇到我们前面讲的原子性问题了。</p>
 <ol>
@@ -382,7 +382,7 @@
 <p>因为 Redis 处理每一个请求是「单线程」执行的，在执行一个 Lua 脚本时，其它请求必须等待，直到这个 Lua 脚本处理完成，这样一来，GET + DEL 之间就不会插入其它命令了。</p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101642484.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
 <p>安全释放锁的 Lua 脚本如下：</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs lua">// 判断锁是自己的，才释放<br><span class="hljs-keyword">if</span> redis.call(<span class="hljs-string">&quot;GET&quot;</span>,KEYS[<span class="hljs-number">1</span>]) == ARGV[<span class="hljs-number">1</span>]<br><span class="hljs-keyword">then</span><br>    <span class="hljs-keyword">return</span> redis.call(<span class="hljs-string">&quot;DEL&quot;</span>,KEYS[<span class="hljs-number">1</span>])<br><span class="hljs-keyword">else</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span><br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight lua"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs lua">// 判断锁是自己的，才释放<br><span class="hljs-keyword">if</span> redis.call(<span class="hljs-string">&quot;GET&quot;</span>,KEYS[<span class="hljs-number">1</span>]) == ARGV[<span class="hljs-number">1</span>]<br><span class="hljs-keyword">then</span><br>    <span class="hljs-keyword">return</span> redis.call(<span class="hljs-string">&quot;DEL&quot;</span>,KEYS[<span class="hljs-number">1</span>])<br><span class="hljs-keyword">else</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span><br><span class="hljs-keyword">end</span><br></code></pre></div></td></tr></table></figure>
 
 <p>好了，这样一路优化，整个的加锁、解锁的流程就更「严谨」了。</p>
 <p>这里我们先小结一下，基于 Redis 实现的分布式锁，一个严谨的的流程如下：</p>
@@ -625,7 +625,7 @@
 <p>Redis 作者对于对方提出的 fecing token 机制，也提出了质疑，主要分为 2 个问题，这里最不宜理解，请跟紧我的思路。</p>
 <p><strong>第一</strong>，这个方案必须要求要操作的「共享资源服务器」有拒绝「旧 token」的能力。</p>
 <p>例如，要操作 MySQL，从锁服务拿到一个递增数字的 token，然后客户端要带着这个 token 去改 MySQL 的某一行，这就需要利用 MySQL 的「事物隔离性」来做。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-operator">/</span><span class="hljs-operator">/</span> 两个客户端必须利用事物和隔离性达到目的<br><span class="hljs-operator">/</span><span class="hljs-operator">/</span> 注意 token 的判断条件<br>UPDATE <span class="hljs-keyword">table</span> T <span class="hljs-keyword">SET</span> val <span class="hljs-operator">=</span> $new_val <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> $id <span class="hljs-keyword">AND</span> current_token <span class="hljs-operator">&lt;</span> $token<br></code></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs sql"><span class="hljs-operator">/</span><span class="hljs-operator">/</span> 两个客户端必须利用事物和隔离性达到目的<br><span class="hljs-operator">/</span><span class="hljs-operator">/</span> 注意 token 的判断条件<br>UPDATE <span class="hljs-keyword">table</span> T <span class="hljs-keyword">SET</span> val <span class="hljs-operator">=</span> $new_val <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> $id <span class="hljs-keyword">AND</span> current_token <span class="hljs-operator">&lt;</span> $token<br></code></pre></div></td></tr></table></figure>
 
 <p>但如果操作的不是 MySQL 呢？例如向磁盘上写一个文件，或发起一个 HTTP 请求，那这个方案就无能为力了，这对要操作的资源服务器，提出了更高的要求。</p>
 <p>也就是说，大部分要操作的资源服务器，都是没有这种互斥能力的。</p>
@@ -648,7 +648,7 @@
 <li>客户端处理业务逻辑</li>
 <li>客户端修改 MySQL 的这一行数据，把 VALUE 当做 WHERE 条件，再修改</li>
 </ol>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs sql">UPDATE <span class="hljs-keyword">table</span> T <span class="hljs-keyword">SET</span> val <span class="hljs-operator">=</span> $new_val <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> $id <span class="hljs-keyword">AND</span> current_token <span class="hljs-operator">=</span> $redlock_value<br></code></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs sql">UPDATE <span class="hljs-keyword">table</span> T <span class="hljs-keyword">SET</span> val <span class="hljs-operator">=</span> $new_val <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> $id <span class="hljs-keyword">AND</span> current_token <span class="hljs-operator">=</span> $redlock_value<br></code></pre></div></td></tr></table></figure>
 
 <p>可见，这种方案依赖 MySQL 的事物机制，也达到对方提到的 fecing token 一样的效果。</p>
 <p>但这里还有个小问题，是网友参与问题讨论时提出的：<strong>两个客户端通过这种方案，先「标记」再「检查+修改」共享资源，那这两个客户端的操作顺序无法保证啊？</strong></p>
@@ -772,7 +772,7 @@
                       <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">SQL优化(1)-SQL基础</span>
-                        <span class="visible-mobile">上一篇</span>
+                        <span class="visible-mobile">Previous</span>
                       </a>
                     
                   </article>
@@ -781,7 +781,7 @@
                     
                       <a href="/2020/03/02/Cookie&amp;Session&amp;Token/">
                         <span class="hidden-mobile">cookie&session&token</span>
-                        <span class="visible-mobile">下一篇</span>
+                        <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
                     
@@ -798,7 +798,7 @@
     
       <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
         <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
@@ -824,7 +824,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
         <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -833,7 +833,7 @@
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
           <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+                 for="local-search-input">keyword</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
