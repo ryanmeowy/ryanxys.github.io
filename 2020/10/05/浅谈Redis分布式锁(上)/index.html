@@ -23,16 +23,16 @@
 <meta property="og:site_name" content="ryan‘s space">
 <meta property="og:description" content="不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。 本篇文章我们一起来探讨Redis分布式锁相关的内容。 说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220124635.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220131677.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220143033.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220153166-20210923220208685.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604203263605-6b838677-f5b4-48cd-9298-2788c694aa15-20210924103020945.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612488996804-3ea7c557-98ae-4d76-aa5a-5933c1fe6026-20210924103037552.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604205724123-0a6ab812-080e-4626-8a35-db6b6a41bd04-20210924103057869.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604208962907-39530cce-67a1-41ff-9855-13f3297d2c10-20210924103109319.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612489131320-62cceb64-2ba8-431d-985f-03cbe8f42df2-20210923220222012.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612489200273-6e3caa00-7625-42b7-9b03-e2a87ba09633-20210923220236604.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604463084016-ce0704e8-55d9-4035-9dda-15778b125560-20210923220242536.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290796058-a3bfc5f5-f6be-4543-8796-a2b170d36464-20210923220322058.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604211050450-4463b6fc-3864-4822-b6a5-e8ed98283b7c-20210924103138330.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290796058-a3bfc5f5-f6be-4543-8796-a2b170d36464-20210923220322058.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290844351-21fa8f5e-80ac-400f-8033-88aad2dd6960-20210923220329432.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290893998-8ba4a1e0-48a4-4789-9856-b5de2539ff7c-20210923220336563.png">
@@ -41,11 +41,11 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604292366085-77c2f620-9dce-417e-a714-e094c690b934-20210923220359938.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604292683347-9f095018-1aa9-464d-848e-f26b2ae69a52-20210923220408318.png">
 <meta property="article:published_time" content="2020-10-05T13:33:26.000Z">
-<meta property="article:modified_time" content="2021-09-23T14:32:44.086Z">
+<meta property="article:modified_time" content="2021-09-24T02:32:07.765Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="分布式锁">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220124635.png">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png">
   
   <title>浅谈Redis分布式锁(上) - ryan‘s space</title>
 
@@ -271,7 +271,7 @@
 <p>本篇文章我们一起来探讨Redis分布式锁相关的内容。</p>
 <p>说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、自旋锁、重量级锁或者CAS甚至AQS。一般来说，我不喜欢一下子引入这么多概念，可能会把问题弄复杂，但为了方便大家理解Redis分布式锁，这里稍微提一下。</p>
 <h1 id="JVM锁"><a href="#JVM锁" class="headerlink" title="JVM锁"></a>JVM锁</h1><p>所谓JVM锁，其实指的是诸如synchronized关键字或者ReentrantLock实现的锁。之所以统称为JVM锁，是因为我们的项目其实都是跑在JVM上的。理论上每一个项目启动后，就对应一片JVM内存，后续运行时数据的生离死别都在这一片土地上。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220124635.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png" srcset="/img/loading.gif" lazyload alt="图片.png"></p>
 <h1 id="什么是锁、怎么锁？"><a href="#什么是锁、怎么锁？" class="headerlink" title="什么是锁、怎么锁？"></a>什么是锁、怎么锁？</h1><p>明白了“JVM锁”名字的由来，我们再来聊什么是“锁”，以及怎么“锁”。</p>
 <p>有时候我们很难阐述清楚某个事物<strong>是什么</strong>，但很容易解释它<strong>能干什么</strong>，JVM锁也是这个道理。JVM锁的出现，就是为了解决线程安全问题。所谓线程安全问题，可以简单地理解为数据不一致（与预期不一致）。</p>
 <p>什么时候可能出现线程安全问题呢？</p>
@@ -285,14 +285,14 @@
 </li>
 </ul>
 <p>比如线程A、B同时对int count进行+1操作（初始值假设为1），在一定的概率下两次操作最终结果可能为2，而不是3。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220131677.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604203263605-6b838677-f5b4-48cd-9298-2788c694aa15-20210924103020945.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 <p>那么加锁为什么能解决这个问题呢？</p>
 <p>如果不考虑原子性、内存屏障等晦涩的名词，加锁之所以能保证线程安全，核心就是“互斥”。所谓互斥，就是字面意思上的<strong>互</strong>相排<strong>斥</strong>。这里的“互相”是指谁呢？就是多线程之间！</p>
 <p>怎么实现多线程之间的互斥呢？</p>
 <p>引入“中间人”即可。</p>
 <p>注意，这是个非常简单且伟大的思想。在编程世界中，通过引入“中介”最终解决问题的案例不胜枚举，包括但不限于Spring、MQ。在码农之间，甚至流传着一句话：没有什么问题是引入中间层解决不了的。</p>
 <p>而JVM锁其实就是线程和线程彼此的“中间人”，多个线程在操作加锁数据前都必须征求“中间人”的同意：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612488996804-3ea7c557-98ae-4d76-aa5a-5933c1fe6026-20210924103037552.png" srcset="/img/loading.gif" lazyload alt="图片.png"></p>
 <p>锁在这里扮演的角色其实就是守门员，是<strong>唯一</strong>的访问入口，所有的线程都要经过它的拷问。在JDK中，锁的实现机制最常见的就是两种，分别是两个派系：</p>
 <ul>
 <li>synchronized关键字</li>
@@ -301,7 +301,7 @@
 <p>个人觉得synchronized关键字要比AQS难理解，但AQS的源码比较抽象。这里简要介绍一下Java对象内存结构和synchronized关键字的实现原理。</p>
 <h1 id="Java对象内存结构"><a href="#Java对象内存结构" class="headerlink" title="Java对象内存结构"></a>Java对象内存结构</h1><p>要了解synchronized关键字，首先要知道Java对象的内存结构。强调一遍，是Java<strong>对象的内存结构</strong>。</p>
 <p>它的存在仿佛向我们抛出一个疑问：如果有机会解剖一个Java对象，我们能看到什么？</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220143033.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604205724123-0a6ab812-080e-4626-8a35-db6b6a41bd04-20210924103057869.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 <p>右上图画了两个对象，只看其中一个即可。我们可以观察到，Java对象内存结构大致分为几块：</p>
 <ul>
 <li><p>Mark Word（锁相关）</p>
@@ -326,7 +326,7 @@
 </li>
 </ul>
 <p>这一切的一切，其实都可以在Java对象内存结构中的Mark Word找到答案：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27-20210923220153166-20210923220208685.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604208962907-39530cce-67a1-41ff-9855-13f3297d2c10-20210924103109319.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 <p>很多同学可能是第一次看到这幅图，会感到有点懵，没关系，我也很头大，都一样的。</p>
 <p>Mark Word包含的信息还是蛮多的，但这里我们只需要简单地把它理解为<strong>记录锁信息</strong>的标记即可。上图展示的是32位虚拟机下的Java对象内存，如果你仔细数一数，会发现全部bit加起来刚好是32位。64位虚拟机下的结构大同小异，就不特别介绍。</p>
 <p>Mark Word从有限的32bit中划分出2bit，专门用作锁标志位，通俗地讲就是标记当前锁的状态。</p>
@@ -364,7 +364,7 @@
 </li>
 </ul>
 <p>无锁就是一个Java对象刚new出来的状态。当这个对象第一次被一个线程访问时，该线程会把自己的线程id“贴到”它的头上（Mark Word中部分位数被修改），表示“你是我的”：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290796058-a3bfc5f5-f6be-4543-8796-a2b170d36464-20210923220322058.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604211050450-4463b6fc-3864-4822-b6a5-e8ed98283b7c-20210924103138330.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 <p>此时是不存在锁竞争的，所以并不会有什么阻塞或等待。</p>
 <p>为什么要设计“偏向锁”这个状态呢？</p>
 <p>大家回忆一下，项目中并发的场景真的这么多吗？并没有吧。大部分项目的大部分时候，某个变量都是单个线程在执行，此时直接向操作系统申请重量级锁显然没有必要，因为根本不会发生线程安全问题。</p>
