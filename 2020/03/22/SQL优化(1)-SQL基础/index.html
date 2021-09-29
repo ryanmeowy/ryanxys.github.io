@@ -16,12 +16,12 @@
   <meta name="description" content="">
   <meta name="author" content="ryan">
   <meta name="keywords" content="">
-  <meta name="description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&amp;#53;&amp;#x32;&amp;#51;&amp;#56;&amp;#51;&amp;#57;&amp;#x30;&amp;#48;&amp;#48;&amp;#64;&amp;#x71;&amp;#113;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#x6d;“是比较糟糕的做法，因为此时该列包含了phone、address、emai">
+  <meta name="description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&amp;#x35;&amp;#50;&amp;#x33;&amp;#56;&amp;#51;&amp;#57;&amp;#x30;&amp;#x30;&amp;#x30;&amp;#x40;&amp;#113;&amp;#113;&amp;#x2e;&amp;#99;&amp;#111;&amp;#109;“是比较糟糕的做法，因为此时该列包含了phone、address、e">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SQL优化(1)-SQL基础">
 <meta property="og:url" content="http://example.com/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="ryan‘s space">
-<meta property="og:description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&amp;#53;&amp;#x32;&amp;#51;&amp;#56;&amp;#51;&amp;#57;&amp;#x30;&amp;#48;&amp;#48;&amp;#64;&amp;#x71;&amp;#113;&amp;#x2e;&amp;#x63;&amp;#111;&amp;#x6d;“是比较糟糕的做法，因为此时该列包含了phone、address、emai">
+<meta property="og:description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&amp;#x35;&amp;#50;&amp;#x33;&amp;#56;&amp;#51;&amp;#57;&amp;#x30;&amp;#x30;&amp;#x30;&amp;#x40;&amp;#113;&amp;#113;&amp;#x2e;&amp;#99;&amp;#111;&amp;#109;“是比较糟糕的做法，因为此时该列包含了phone、address、e">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589609778497-d64e7ece-7979-4baa-83d7-15555882f163-20210923213840093.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589605039821-daa06c46-0aad-482a-a2e3-5935f95ca480-20210923213848199.png">
@@ -258,7 +258,7 @@
               <h1 id="范式与反范式"><a href="#范式与反范式" class="headerlink" title="范式与反范式"></a>范式与反范式</h1><p>实际上数据库范式不止3种，但大家熟知的就三种。</p>
 <p>第一范式</p>
 <p>所有列应该不可再分</p>
-<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#53;&#x32;&#51;&#56;&#51;&#57;&#x30;&#48;&#48;&#64;&#x71;&#113;&#x2e;&#x63;&#111;&#x6d;">&#53;&#x32;&#51;&#56;&#51;&#57;&#x30;&#48;&#48;&#64;&#x71;&#113;&#x2e;&#x63;&#111;&#x6d;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
+<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#x35;&#50;&#x33;&#56;&#51;&#57;&#x30;&#x30;&#x30;&#x40;&#113;&#113;&#x2e;&#99;&#111;&#109;">&#x35;&#50;&#x33;&#56;&#51;&#57;&#x30;&#x30;&#x30;&#x40;&#113;&#113;&#x2e;&#99;&#111;&#109;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
 <p>第二范式</p>
 <p>必须存在业务主键，且非主键字段应该依赖于全部业务主键（之所以写“全部”，因为可能存在复合主键）</p>
 <p>说人话就是：每张表最好都设定主键。虽然某些列可能具备主键的特质（比如user表的id_card），但个人认为主键最好与业务无关，比如自增id。</p>
