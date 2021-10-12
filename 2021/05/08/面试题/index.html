@@ -29,7 +29,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzMzODQwMjUx,size_16,color_FFFFFF,t_70.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/17497804-d28c03332d41ce2f.png">
 <meta property="article:published_time" content="2021-05-08T11:26:55.000Z">
-<meta property="article:modified_time" content="2021-09-23T07:41:26.827Z">
+<meta property="article:modified_time" content="2021-10-12T16:25:51.267Z">
 <meta property="article:author" content="ryan">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/image-20210726150619391.png">
@@ -213,7 +213,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      9.9k 字
+      15k 字
     </span>
   
 
@@ -222,7 +222,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      31 分钟
+      46 分钟
     </span>
   
 
@@ -266,7 +266,7 @@
 <li>底层是hash表,不保证有序</li>
 </ol>
 <hr>
-<h3 id="谈一下hashNap的底层原理"><a href="#谈一下hashNap的底层原理" class="headerlink" title="谈一下hashNap的底层原理"></a>谈一下hashNap的底层原理</h3><ul>
+<h3 id="谈一下hashMap的底层原理"><a href="#谈一下hashMap的底层原理" class="headerlink" title="谈一下hashMap的底层原理"></a>谈一下hashMap的底层原理</h3><ul>
 <li>基于hashing的原理,jdk8之后采用数组+链表+红黑树的数据结构</li>
 <li>通过put和get来存储或获取对象</li>
 <li>当我们给put方法传递键值对时,先对key做一个hashCode()的计算来得到它在bucket数组中的位置来存储entry对象;获取对象时,通过get获取到bucket的位置,再通过key的equals方法找到正确的键值对,然后返回value</li>
@@ -340,7 +340,7 @@
 <li>哪些可以作为gc root <ol>
 <li>虚拟机栈中引用的对象</li>
 <li>方法区中类静态属性引用的对象</li>
-<li>方法区中常亮引用的对象</li>
+<li>方法区中常量引用的对象</li>
 <li>本地方法栈中JNI引用的对象    JNI(JAVA NATIVE INTERFACE 就是本地方法)</li>
 </ol>
 </li>
@@ -620,6 +620,140 @@
 <li>视图渲染，就是将ModelAndView对象中的数据放到request域中，用来让页面加载数据的。</li>
 <li>通过第8步，通过名称找到了对应的页面，通过第10步，request域中有了所需要的数据，那么就能够进行视图渲染了。最后将其返回即可。</li>
 </ol>
+<hr>
+<h3 id="说说线程和进程"><a href="#说说线程和进程" class="headerlink" title="说说线程和进程"></a>说说线程和进程</h3><ul>
+<li>进程是程序在操作系统中的一次执行过程,是系统运行程序的基本单位;进程是动态的,系统运行一个程序就是一个进程从创建到运行到消亡的过程; 在Java中,当我们启动Main函数时,其实就是启动了一个JVM进程,而Main函数所在的线程,被称之为主线程</li>
+<li>线程与进程类型,线程是一个比进程更小的执行单位;一个进程在其运行期间可以产生多个线程;线程和进程的最大不同在于,进程是各自独立的,而线程不是,同一进程中线程可能会相互影响.线程执行开销小,但不利于资源的管理和保护,而进程正好相反;在Java中,同一进程的多个线程之间,共享堆和方法区,而栈和程序计数器为每个线程私有;在进程中的切换线程工作的负担,比在操作系统中切换进程的负担小的多;所以,线程也被称之为轻量化进程</li>
+</ul>
+<hr>
+<h3 id="说一下线程私有的3块内存和私有的原因"><a href="#说一下线程私有的3块内存和私有的原因" class="headerlink" title="说一下线程私有的3块内存和私有的原因"></a>说一下线程私有的3块内存和私有的原因</h3><ul>
+<li><p>程序计数器</p>
+<ol>
+<li>字节码解释器通过改变程序计数器来依次读取指令,从而实现代码的流程控制,比如:顺序执行、选择、循环、异常处理</li>
+<li>在多线程的情况下,程序计数器用于记录当前线程的执行位置,从而当线程切换回来的时候,能够正确执行</li>
+</ol>
+<p><strong>程序计数器私有主要是为了线程切换后能恢复到正确的执行位置</strong></p>
+</li>
+<li><p>虚拟机栈</p>
+<ol>
+<li>每个java方法在执行的同时会创建一个栈帧用于存储局部变量表、操作数栈、常量池引用等信息.从方法调用直至执行完成的过程,就对应着一个栈帧在Java虚拟机中入栈和出栈的过程;</li>
+</ol>
+</li>
+<li><p>本地方法栈</p>
+<ol>
+<li>和虚拟机栈所发挥的作为非常相似,区别在于,虚拟机栈为虚拟机执行Java方法(就是字节码)服务,而本地方法栈则为虚拟机使用到的Native方法服务</li>
+</ol>
+<p>**为了保证线程中的局部变量不被其他线程访问到,虚拟机栈和本地方法栈是线程私有的 **</p>
+</li>
+</ul>
+<hr>
+<h3 id="为什么要使用自增列作为主键"><a href="#为什么要使用自增列作为主键" class="headerlink" title="为什么要使用自增列作为主键"></a>为什么要使用自增列作为主键</h3><p>Innodb会使用自增列作为聚集索引（如果没有显示定义主键，innodb会选择第一个非null列作为主键，如果没有非null列，会使用隐式的ROWID） </p>
+<p>数据记录是存主索引的叶子节点上的，所以要求同一叶子节点内的数据需要按照主键顺序排列</p>
+<p>如果使用自增主键，则每次插入新数据，可以顺序添加到当前节点的后续位置；如果不使用，则每次插入新数据，就需要频繁的去移动、排序、读写，会增加很多开销，产生很多内存碎片，并且会得到不够紧凑的索引结构，后续需要通过OPTIMIZE TABLE来重建表优化填充页面</p>
+<hr>
+<h3 id="为什么使用索引可以提高效率"><a href="#为什么使用索引可以提高效率" class="headerlink" title="为什么使用索引可以提高效率"></a>为什么使用索引可以提高效率</h3><p>1.数据索引是有序的</p>
+<p>2.在有序情况下，通过索引查询一个数据是无需遍历索引记录的</p>
+<p>3.极端情况下，数据索引的查询效率为二分法查询效率，趋近于log2（N）</p>
+<hr>
+<h3 id="B数和B-树的区别"><a href="#B数和B-树的区别" class="headerlink" title="B数和B+树的区别"></a>B数和B+树的区别</h3><p>B树的每个节点都存储key和data，所有的节点组成这棵树，并且叶子节点指针为null，叶子节点不包含任何关键字信息</p>
+<p>B+树的所有叶子节点包含所有的关键字信息和指向这个关键字信息对应数据的指针，并且叶子节点本身是依靠关键字的大小进行排序的；非叶子节点的都可以看作是索引的部分，非叶子节点中只含有其子树根节点中最大/最小的关键字（而B树的非叶子节点中也包含数据）</p>
+<hr>
+<h3 id="为什么说B-树比B树更适用于数据库索引"><a href="#为什么说B-树比B树更适用于数据库索引" class="headerlink" title="为什么说B+树比B树更适用于数据库索引"></a>为什么说B+树比B树更适用于数据库索引</h3><ol>
+<li><p>B+树的磁盘读写开销低</p>
+</li>
+<li><p>B+树的查询效率更稳定</p>
+</li>
+</ol>
+<hr>
+<h3 id="快排"><a href="#快排" class="headerlink" title="快排"></a>快排</h3><p>所有的未排序的部分,将第一个元素设为轴心点; 存储指数 = 轴心点指数 + 1 ; 然后遍历 存储指数到数组最右指数范围的数据,如果元素小于轴心点的元素,则交换当前元素和存储指数位置的元素,然后存储指数++ ;遍历完成后,交换轴心点元素和存储指数 - 1 位置的元素;</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span>[] quickSort(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> right) &#123;<br>    <span class="hljs-keyword">if</span> (left &lt; right) &#123;<br>        <span class="hljs-keyword">int</span> partitionIndex = partition(arr, left, right);<br>        quickSort(arr, left, partitionIndex - <span class="hljs-number">1</span>);<br>        quickSort(arr, partitionIndex + <span class="hljs-number">1</span>, right);<br>    &#125;<br>    <span class="hljs-keyword">return</span> arr;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> <span class="hljs-title">partition</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] arr, <span class="hljs-keyword">int</span> left, <span class="hljs-keyword">int</span> right)</span> </span>&#123;<br>    <span class="hljs-comment">// 设定基准值（pivot）</span><br>    <span class="hljs-keyword">int</span> pivot = left;<br>    <span class="hljs-keyword">int</span> index = pivot + <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = index; i &lt;= right; i++) &#123;<br>        <span class="hljs-keyword">if</span> (arr[i] &lt; arr[pivot]) &#123;<br>            swap(arr, i, index);<br>            index++;<br>        &#125;<br>    &#125;<br>    swap(arr, pivot, index - <span class="hljs-number">1</span>);<br>    <span class="hljs-keyword">return</span> index - <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<hr>
+<h3 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h3><p>依次比较相邻的两个数,将较小的数放在前面,较大的数放在后面,重复步骤直至排序完成,时间复杂度O(n^2) ,排序时间会随着数组元素数量增加而指数级增加,不适用于大数据量排序</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">boolean</span> flag;<br><span class="hljs-keyword">do</span> &#123;<br>    flag = <span class="hljs-keyword">false</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; array.length -<span class="hljs-number">1</span>; i++) &#123;<br>        <span class="hljs-keyword">if</span>(array[i] &gt; array[i+<span class="hljs-number">1</span>]) &#123;<br>            swap(array,i,i+<span class="hljs-number">1</span>);<br>            flag = <span class="hljs-keyword">true</span>;<br>        &#125;<br>    &#125;<br>&#125;<span class="hljs-keyword">while</span> (flag);<br></code></pre></div></td></tr></table></figure>
+
+<hr>
+<h3 id="计数排序"><a href="#计数排序" class="headerlink" title="计数排序"></a>计数排序</h3><p>计数排序是一种非比较的排序算法,统计数组所有元素出现的次数,存入一个新的数组,遍历新数组,以数组下标作为值,下标对应的为数量, 这是一种空间换时间的思想,时间复杂度O(n+k)</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">ArrayList&lt;Integer&gt; list = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(<span class="hljs-number">10</span>);<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>    list.add(<span class="hljs-number">0</span>);<br>&#125;<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i : nums) &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> n = <span class="hljs-number">0</span>; n &lt; list.size(); n++) &#123;<br>        <span class="hljs-keyword">if</span> (i == n) &#123;<br>            Integer a = list.get(n);<br>            a++;<br>            list.set(n, a);<br>        &#125;<br>    &#125;<br>&#125;<br>System.out.println(<span class="hljs-string">&quot;计数集合：&quot;</span> + list);<br>ArrayList&lt;Integer&gt; list1 = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; list.size(); i++) &#123;<br>    Integer size = list.get(i);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> integer = <span class="hljs-number">0</span>; integer &lt; size; integer++) &#123;<br>        list1.add(i);<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<hr>
+<h3 id="设计模式"><a href="#设计模式" class="headerlink" title="设计模式"></a>设计模式</h3><ul>
+<li><p>单例模式:指一个类只有一个实例，且该类能自行创建这个实例的一种模式</p>
+<ol>
+<li>单例类只有一个实例对象；</li>
+<li>该单例对象必须由单例类自行创建；</li>
+<li>单例类对外提供一个访问该单例的全局访问点。</li>
+</ol>
+</li>
+<li><p>原型模式:用一个已经创建的实例作为原型，通过复制该原型对象来创建一个和原型相同或相似的新对象</p>
+</li>
+<li><p>构造者模式:使用多个简单的对象一步一步构建成一个复杂的对象。这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。</p>
+</li>
+<li><p>工厂模式:这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。在工厂模式中，我们在创建对象时不会对客户端暴露创建逻辑，并且是通过使用一个共同的接口来指向新创建的对象。</p>
+</li>
+<li><p>代理模式:由于某些原因需要给某对象提供一个代理以控制对该对象的访问。这时，访问对象不适合或者不能直接引用目标对象，代理对象作为访问对象和目标对象之间的中介。</p>
+</li>
+</ul>
+<hr>
+<h3 id="单例-bean-的线程安全问题了解吗？"><a href="#单例-bean-的线程安全问题了解吗？" class="headerlink" title="单例 bean 的线程安全问题了解吗？"></a>单例 bean 的线程安全问题了解吗？</h3><p>大部分时候我们并没有在项目中使用多线程，所以很少有人会关注这个问题。单例 bean 存在线程问题，主要是因为当多个线程操作同一个对象的时候是存在资源竞争的。</p>
+<p>常见的有两种解决办法：</p>
+<ol>
+<li>在 bean 中尽量避免定义可变的成员变量。</li>
+<li>在类中定义一个 <code>ThreadLocal</code> 成员变量，将需要的可变成员变量保存在 <code>ThreadLocal</code> 中（推荐的一种方式）。</li>
+</ol>
+<p>不过，大部分 bean 实际都是无状态（没有实例变量）的（比如 Dao、Service），这种情况下， bean 是线程安全的。</p>
+<hr>
+<h3 id="bean-的作用域有哪些"><a href="#bean-的作用域有哪些" class="headerlink" title="bean 的作用域有哪些?"></a>bean 的作用域有哪些?</h3><p>Spring 中 Bean 的作用域通常有下面几种：</p>
+<ul>
+<li><strong>singleton</strong> : 唯一 bean 实例，Spring 中的 bean 默认都是单例的，对单例设计模式的应用。</li>
+<li><strong>prototype</strong> : 每次请求都会创建一个新的 bean 实例。</li>
+<li><strong>request</strong> : 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP request 内有效。</li>
+<li><strong>session</strong> : 每一次来自新 session 的 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效。</li>
+<li><strong>global-session</strong> ： 全局 session 作用域，仅仅在基于 portlet 的 web 应用中才有意义，Spring5 已经没有了。Portlet 是能够生成语义代码(例如：HTML)片段的小型 Java Web 插件。它们基于 portlet 容器，可以像 servlet 一样处理 HTTP 请求。但是，与 servlet 不同，每个 portlet 都有不同的会话。</li>
+</ul>
+<hr>
+<h3 id="Spring-MVC框架"><a href="#Spring-MVC框架" class="headerlink" title="Spring MVC框架"></a>Spring MVC框架</h3><p>MVC是一种设计思想,代表model view controller ,这三部分以最少的耦合协同工作,提高应用的可扩展性和可维护性</p>
+<p>Spring MVC流程: 客户端发送请求, dispatcherServlet接收到请求,通过hanldeMapping根据请求url找到对应处理器,然后使用处理器适配器去适配和执行处理器,将执行的结果modelAndView对象返回,然后dispatcherServlet去请求ViewResolver解析modelAndView对象,返回视图对象,进行渲染</p>
+<hr>
+<h3 id="说说并发与并行的区别"><a href="#说说并发与并行的区别" class="headerlink" title="说说并发与并行的区别"></a>说说并发与并行的区别</h3><ul>
+<li><strong>并发：</strong> 同一时间段，多个任务都在执行 (单位时间内不一定同时执行)；</li>
+<li><strong>并行：</strong> 单位时间内，多个任务同时执行。</li>
+</ul>
+<hr>
+<h3 id="线程生命周期和状态"><a href="#线程生命周期和状态" class="headerlink" title="线程生命周期和状态"></a>线程生命周期和状态</h3><ul>
+<li>NEW 初始状态,刚被创建,还未调用start方法</li>
+<li>RUNNABLE 运行中</li>
+<li>BLOCKED 阻塞中</li>
+<li>WAITING 等待状态</li>
+<li>TIME_WAITING 超时等待,不同于WAITING,它可以在指定时间自行返回</li>
+<li>TERMINATED 终止,执行完成</li>
+</ul>
+<hr>
+<h3 id="什么是上下文切换"><a href="#什么是上下文切换" class="headerlink" title="什么是上下文切换?"></a>什么是上下文切换?</h3><p>线程在执行过程中会有自己的运行条件和状态（也称上下文），比如上文所说到过的程序计数器，栈信息等。当出现如下情况的时候，线程会从占用 CPU 状态中退出。</p>
+<ul>
+<li>主动让出 CPU，比如调用了 <code>sleep()</code>, <code>wait()</code> 等。</li>
+<li>时间片用完，因为操作系统要防止一个线程或者进程长时间占用CPU导致其他线程或者进程饿死。</li>
+<li>调用了阻塞类型的系统中断，比如请求 IO，线程被阻塞。</li>
+<li>被终止或结束运行</li>
+</ul>
+<p>这其中前三种都会发生线程切换，线程切换意味着需要保存当前线程的上下文，留待线程下次占用 CPU 的时候恢复现场。并加载下一个将要占用 CPU 的线程上下文。这就是所谓的 <strong>上下文切换</strong>。</p>
+<p>上下文切换是现代操作系统的基本功能，因其每次需要保存信息恢复信息，这将会占用 CPU，内存等系统资源进行处理，也就意味着效率会有一定损耗，如果频繁切换就会造成整体效率低下。</p>
+<hr>
+<h3 id="什么是死锁-如何避免死锁"><a href="#什么是死锁-如何避免死锁" class="headerlink" title="什么是死锁,如何避免死锁"></a>什么是死锁,如何避免死锁</h3><p>多个线程被同时阻塞,都在等在某一资源的释放;由于线程无限阻塞,导致应用无法正常终止</p>
+<p>比如线程A持有锁1,线程B持有锁2,而它们同时都想申请对方的锁,这样就导致死锁</p>
+<p>避免死锁: 1.线程结束后一定要释放锁 2. 线程申请锁按顺序申请,而释放锁的时候按反序释放,这样可以破坏循环等待的条件 3.线程申请锁如果失败,可以主动释放本身的锁</p>
+<hr>
+<h3 id="sleep和wait的区别"><a href="#sleep和wait的区别" class="headerlink" title="sleep和wait的区别"></a>sleep和wait的区别</h3><p>1.sleep不会释放锁 而wait会释放锁</p>
+<p>2.sleep到时间会自动苏醒,wait需要别的线程进行唤醒</p>
+<p>3.都是暂停线程执行</p>
+<hr>
+<h3 id="为什么我们调用-start-方法时会执行-run-方法，为什么我们不能直接调用-run-方法"><a href="#为什么我们调用-start-方法时会执行-run-方法，为什么我们不能直接调用-run-方法" class="headerlink" title="为什么我们调用 start() 方法时会执行 run() 方法，为什么我们不能直接调用 run() 方法?"></a>为什么我们调用 start() 方法时会执行 run() 方法，为什么我们不能直接调用 run() 方法?</h3><p>因为调用 start() 方法方可启动线程并使线程进入就绪状态，直接执行 run() 方法的话不会以多线程的方式执行。</p>
+<hr>
+<h3 id="创建线程的几种方法"><a href="#创建线程的几种方法" class="headerlink" title="创建线程的几种方法"></a>创建线程的几种方法</h3><ul>
+<li>继承Thread类,重写run方法</li>
+<li>实现Runnable接口,重写run方法</li>
+<li>实现Callable接口,重写call方法</li>
+</ul>
 <hr>
 
             </div>
