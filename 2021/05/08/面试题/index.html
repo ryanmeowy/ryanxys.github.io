@@ -24,12 +24,10 @@
 <meta property="og:description" content="ArrayList和LinkedList的区别 ArrayList底层基于动态数组,使用下标随机访问元素的效率高(就是查询效率高),向数组尾部添加元素的效率高,但是删除数组中间的数据,或者是向数组中间添加数据的效率比较低,因为需要对数组中的元素进行移位,最坏的情况就是,删除数组第一个元素,那么后面的元素都需要向前进一位 LinkedList底层基于链表,因此添加删除元素的效率高,只需要改变指针指向">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/image-20210726150619391.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/image-20210809151107921.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NvZGV5YW5iYW8=,size_16,color_FFFFFF,t_70.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzMzODQwMjUx,size_16,color_FFFFFF,t_70.png">
-<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/17497804-d28c03332d41ce2f.png">
 <meta property="article:published_time" content="2021-05-08T11:26:55.000Z">
-<meta property="article:modified_time" content="2021-10-12T16:25:51.267Z">
+<meta property="article:modified_time" content="2021-10-18T02:08:47.563Z">
 <meta property="article:author" content="ryan">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/image-20210726150619391.png">
@@ -213,7 +211,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      15k 字
+      12k 字
     </span>
   
 
@@ -222,7 +220,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      46 分钟
+      36 分钟
     </span>
   
 
@@ -370,55 +368,26 @@
 </li>
 </ol>
 <hr>
-<h3 id="spring-和spring大致流程"><a href="#spring-和spring大致流程" class="headerlink" title="spring 和spring大致流程"></a>spring 和spring大致流程</h3><ul>
-<li>spring是一个开源框架,用于对象管理</li>
-<li>流程: </li>
-<li><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/image-20210809151107921.png" srcset="/img/loading.gif" lazyload alt="image-20210809151107921"></li>
-</ul>
-<hr>
-<h3 id="spring事务机制"><a href="#spring事务机制" class="headerlink" title="spring事务机制"></a>spring事务机制</h3><ul>
-<li>spring事务底层基于数据库事务和aop机制</li>
-<li>对于使用了@Transactional注解的bean,spring会创建一个代理对象</li>
-<li>使用代理对象调用方法,判断方法是否加了@Transactional注解</li>
-<li>如果加了,则利用事务管理器,创建一个数据库连接</li>
-<li>修改连接的autocommit属性为false,接着执行sql,如果在执行过程中没有出现异常,则提交事务</li>
-<li>如果执行过程中出现了异常,异常类型是需要回滚的类型,就回滚,不是的话,仍然提交</li>
-<li>spring事务的隔离级别对应的就是数据库的隔离级别<ul>
-<li>READ_UNCOMMITTED 读未提交 , 即能够读到未提交的数据,无法解决脏读、不可重复读、幻读<ul>
-<li>脏读 dirty read 就是事务A读到了事务B未提交的数据</li>
-<li>不可重复读 nonrepeatable read  就是事务A在本事务中执行两次相同的查询,可能出现完全不一样的数据</li>
-<li>幻读 phantom read 就是在事务A执行两次相同的查询之间,事务B添加了新的数据,导致事务A第二次查询出现了”幻影行”</li>
-</ul>
-</li>
-<li>READ_COMMITED 读已提交,可以防止脏读,但是无法解决不可重复读和幻读</li>
-<li>REPEATABLE_READ 重复读,事务B更新了一条数据,无论是否提交,事务A都无法读取到更新的数据,只有当事务A在事务B之后提交了,才能读到事务B更新的数据</li>
-<li>SERLALIZABLE 可串行化,最高事务级别,通过强制事务排序,使之不可能相互冲突,可能会导致大量的超时现象和锁竞争</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h3 id="spring后置处理器"><a href="#spring后置处理器" class="headerlink" title="spring后置处理器"></a>spring后置处理器</h3><p>spring中的后置处理器分为Bean Factory后置处理器 和 Bean后置处理器,它们是spring底层源码架构设计中一种非常重要的机制</p>
 <ul>
-<li>Bean Factory后置处理器表示针对Bean Factory的处理器,Spring在启动过程中,会先创建Bean Factory实例,然后使用BeanFactory后置处理器来对BeanFactory进行加工处理;比如spring的扫描,就是基于BeanFactory后置处理器来实现的</li>
-<li>Spring在创建一个Bean的时候,首先会实例化得到一个对象,然后使用Bean后置处理器来加工这个对象,比如依赖注入,就是基于Bean的后置处理器实现的;还有AOP也是基于Bean后置处理器实现的,Bean后置处理器会判断是否需要进行AOP,如果需要,则基于原实例对象进行动态代理,生成代理对象 </li>
+<li></li>
+</ul>
+<hr>
+<ul>
+<li>- </li>
+</ul>
+<hr>
+<ul>
+<li></li>
 </ul>
 <hr>
 <h3 id="spring的事务传播机制"><a href="#spring的事务传播机制" class="headerlink" title="spring的事务传播机制"></a>spring的事务传播机制</h3><p><a href="./spring%E4%BA%8B%E5%8A%A1%E4%BC%A0%E6%92%AD%E6%9C%BA%E5%88%B6.md">spring事务传播机制.md</a></p>
 <hr>
-<h3 id="transactional失效"><a href="#transactional失效" class="headerlink" title="transactional失效"></a>transactional失效</h3><ul>
-<li>只有当代理对象调用带有@transactional注解的方法时,事务才会生效</li>
-<li>如果target object的某个方法是private的,这个方法的事务也会失效,因为cglib是基于父子类实现的代理,子类无法重载private方法</li>
+<ul>
+<li></li>
 </ul>
 <hr>
-<h3 id="说说你常用的spirngBoot-注解"><a href="#说说你常用的spirngBoot-注解" class="headerlink" title="说说你常用的spirngBoot 注解"></a>说说你常用的spirngBoot 注解</h3><ul>
-<li>SpringBootApplication, 标示这是一个SpringBoot工程; 此注解为复合注解,包含以下三个注解<ul>
-<li>SpringBootConfiguration : 就是一个configration注解,标示启动类也是一个配置类</li>
-<li>EnableAutoConfiguration : 向Spring容器中导入一个selector,用来加载class path 下 spring factories中定义的的自动配置类, 将这些自动装载为配置bean</li>
-<li>ComponentScan : 标识扫描路径 , 如果没有配置扫描路径,默认扫描路径为启动类所在目录</li>
-</ul>
-</li>
-<li>Bean : 用于定义bean,类似于xml中的<bean> 标签,Spirng启动时,会对加了Bean注解的方法进行解析,执行方法等到bean对象</li>
-<li>Controller、Service、Repository、@Autowired 、RestController….</li>
+<ul>
+<li></li>
 </ul>
 <hr>
 <h3 id="线程之间如何进行通讯"><a href="#线程之间如何进行通讯" class="headerlink" title="线程之间如何进行通讯"></a>线程之间如何进行通讯</h3><ul>
@@ -473,12 +442,6 @@
 <hr>
 <h3 id="1-7到1-8-jvm发生了哪些变化"><a href="#1-7到1-8-jvm发生了哪些变化" class="headerlink" title="1.7到1.8 jvm发生了哪些变化"></a>1.7到1.8 jvm发生了哪些变化</h3><ul>
 <li>hotspot jvm 1.7中有永久代(j9,jRockit这些虚拟机都没有永久代), 1.8中没有,取而代之的是元空间, 元空间不使用虚拟机内存,而是使用本地内存,相比永久代,元空间的优势就是无需指定方法区大小,不会影响虚拟机内存</li>
-</ul>
-<hr>
-<h3 id="如何实现aop-哪些地方用到了aop"><a href="#如何实现aop-哪些地方用到了aop" class="headerlink" title="如何实现aop 哪些地方用到了aop"></a>如何实现aop 哪些地方用到了aop</h3><ul>
-<li>通过动态代理实现aop, spring初始化后会判断是否需要生成代理对象</li>
-<li>jdk动态代理或者是cglib动态代理, jdk动态代理只能对实现了接口的类生成代理对象,cglib动态代理是基于父子类的</li>
-<li>事务,权限, 日志</li>
 </ul>
 <hr>
 <h3 id="UDP和TCP的特点和区别"><a href="#UDP和TCP的特点和区别" class="headerlink" title="UDP和TCP的特点和区别"></a>UDP和TCP的特点和区别</h3><ol>
@@ -606,19 +569,8 @@
 <li>步骤6：服务端使用对称密钥解密数据，并把响应数据用对称密钥加密</li>
 </ul>
 <hr>
-<h3 id="SpringMVC-执行流程"><a href="#SpringMVC-执行流程" class="headerlink" title="SpringMVC 执行流程"></a>SpringMVC 执行流程</h3><p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/17497804-d28c03332d41ce2f.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<ol>
-<li>用户发起请求到前端控制器（DispatcherServlet），该控制器会过滤出哪些请求可以访问Servlet、哪些不能访问。就是url-pattern的作用，并且会加载springmvc.xml配置文件。</li>
-<li>前端控制器会找到处理器映射器（HandlerMapping），通过HandlerMapping完成url到controller映射的组件，简单来说，就是将在springmvc.xml中配置的或者注解的url与对应的处理类找到并进行存储，用map&lt;url,handler&gt;这样的方式来存储。</li>
-<li>HandlerMapping有了映射关系，并且找到url对应的处理器，HandlerMapping就会将其处理器（Handler）返回，在返回前，会加上很多拦截器。</li>
-<li>DispatcherServlet拿到Handler后，找到HandlerAdapter（处理器适配器），通过它来访问处理器，并执行处理器。</li>
-<li>执行处理器</li>
-<li>处理器会返回一个ModelAndView对象给HandlerAdapter</li>
-<li>通过HandlerAdapter将ModelAndView对象返回给前端控制器(DispatcherServlet)</li>
-<li>前端控制器请求视图解析器(ViewResolver)去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)，其实就是将ModelAndView对象中存放视图的名称进行查找，找到对应的页面形成视图对象</li>
-<li>返回视图对象到前端控制器。</li>
-<li>视图渲染，就是将ModelAndView对象中的数据放到request域中，用来让页面加载数据的。</li>
-<li>通过第8步，通过名称找到了对应的页面，通过第10步，request域中有了所需要的数据，那么就能够进行视图渲染了。最后将其返回即可。</li>
+<ol start="11">
+<li></li>
 </ol>
 <hr>
 <h3 id="说说线程和进程"><a href="#说说线程和进程" class="headerlink" title="说说线程和进程"></a>说说线程和进程</h3><ul>
@@ -695,25 +647,6 @@
 </li>
 </ul>
 <hr>
-<h3 id="单例-bean-的线程安全问题了解吗？"><a href="#单例-bean-的线程安全问题了解吗？" class="headerlink" title="单例 bean 的线程安全问题了解吗？"></a>单例 bean 的线程安全问题了解吗？</h3><p>大部分时候我们并没有在项目中使用多线程，所以很少有人会关注这个问题。单例 bean 存在线程问题，主要是因为当多个线程操作同一个对象的时候是存在资源竞争的。</p>
-<p>常见的有两种解决办法：</p>
-<ol>
-<li>在 bean 中尽量避免定义可变的成员变量。</li>
-<li>在类中定义一个 <code>ThreadLocal</code> 成员变量，将需要的可变成员变量保存在 <code>ThreadLocal</code> 中（推荐的一种方式）。</li>
-</ol>
-<p>不过，大部分 bean 实际都是无状态（没有实例变量）的（比如 Dao、Service），这种情况下， bean 是线程安全的。</p>
-<hr>
-<h3 id="bean-的作用域有哪些"><a href="#bean-的作用域有哪些" class="headerlink" title="bean 的作用域有哪些?"></a>bean 的作用域有哪些?</h3><p>Spring 中 Bean 的作用域通常有下面几种：</p>
-<ul>
-<li><strong>singleton</strong> : 唯一 bean 实例，Spring 中的 bean 默认都是单例的，对单例设计模式的应用。</li>
-<li><strong>prototype</strong> : 每次请求都会创建一个新的 bean 实例。</li>
-<li><strong>request</strong> : 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP request 内有效。</li>
-<li><strong>session</strong> : 每一次来自新 session 的 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效。</li>
-<li><strong>global-session</strong> ： 全局 session 作用域，仅仅在基于 portlet 的 web 应用中才有意义，Spring5 已经没有了。Portlet 是能够生成语义代码(例如：HTML)片段的小型 Java Web 插件。它们基于 portlet 容器，可以像 servlet 一样处理 HTTP 请求。但是，与 servlet 不同，每个 portlet 都有不同的会话。</li>
-</ul>
-<hr>
-<h3 id="Spring-MVC框架"><a href="#Spring-MVC框架" class="headerlink" title="Spring MVC框架"></a>Spring MVC框架</h3><p>MVC是一种设计思想,代表model view controller ,这三部分以最少的耦合协同工作,提高应用的可扩展性和可维护性</p>
-<p>Spring MVC流程: 客户端发送请求, dispatcherServlet接收到请求,通过hanldeMapping根据请求url找到对应处理器,然后使用处理器适配器去适配和执行处理器,将执行的结果modelAndView对象返回,然后dispatcherServlet去请求ViewResolver解析modelAndView对象,返回视图对象,进行渲染</p>
 <hr>
 <h3 id="说说并发与并行的区别"><a href="#说说并发与并行的区别" class="headerlink" title="说说并发与并行的区别"></a>说说并发与并行的区别</h3><ul>
 <li><strong>并发：</strong> 同一时间段，多个任务都在执行 (单位时间内不一定同时执行)；</li>
@@ -753,6 +686,18 @@
 <li>继承Thread类,重写run方法</li>
 <li>实现Runnable接口,重写run方法</li>
 <li>实现Callable接口,重写call方法</li>
+</ul>
+<hr>
+<ul>
+<li></li>
+</ul>
+<hr>
+<ul>
+<li></li>
+</ul>
+<hr>
+<ul>
+<li></li>
 </ul>
 <hr>
 
