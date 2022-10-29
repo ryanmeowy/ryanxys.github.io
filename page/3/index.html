@@ -200,6 +200,126 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" target="_self">
+          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923142038.png" srcset="/img/loading.gif" lazyload alt="redis常用命令">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" target="_self">
+          redis常用命令
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" target="_self">
+          
+          
+            
+          
+          课件地址      redis命令大全
+12345678redis-server /配置文件位置     #启动redis redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379redis-cli shutdown   #单实例关闭redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭select db #切换到该数据库 
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-21 23:21" pubdate>
+              2020-05-21
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/redis/">redis</a>
+            
+              <a href="/tags/nosql/">nosql</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/05/21/Redis/" target="_self">
+          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923142106.png" srcset="/img/loading.gif" lazyload alt="redis笔记">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/05/21/Redis/" target="_self">
+          redis笔记
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/05/21/Redis/" target="_self">
+          
+          
+            
+          
+          ##Redis基本数据类型
+
+字符串：redis没有直接使用C语言传统的字符串表示，而是自己实现的叫做简单动态字符串SDS的抽象类型。C语言的字符串不记录自身的长度信息，而SDS则保存了长度信息，这样将获取字符串长度的时间由O(N)降低到了O(1)，同时可以避免缓冲区溢出和减少修改字符串长度时所需的内存重分配次数。
+链表linkedlist：redis链表是一个双向无环链表结构，很多发布订阅、慢查
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-21 18:45" pubdate>
+              2020-05-21
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/redis/">redis</a>
+            
+              <a href="/tags/nosql/">nosql</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/" target="_self">
           <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281344569.png" srcset="/img/loading.gif" lazyload alt="IO 模型">
         </a>
@@ -345,7 +465,7 @@ doFil
           范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。
 第一范式
 所有列应该不可再分
-比如，往contact列存储”18257500000,杭州,&#x35;&#x32;&#51;&#x38;&#51;&#57;&#x30;&#x30;&#x30;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;“是比较糟糕的做法，因为此时该列包含了phone、address、e
+比如，往contact列存储”18257500000,杭州,&#53;&#50;&#51;&#x38;&#x33;&#x39;&#48;&#48;&#48;&#64;&#x71;&#x71;&#46;&#x63;&#111;&#109;“是比较糟糕的做法，因为此时该列包含了phone、address、emai
         </a>
       </p>
 
@@ -676,132 +796,11 @@ Redis 的 Redlock 有
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2019/12/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8A)/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145543.png" srcset="/img/loading.gif" lazyload alt="多线程基础(上)">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2019/12/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8A)/" target="_self">
-          多线程基础(上)
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2019/12/07/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8A)/" target="_self">
-          
-          
-            
-          
-          线程、进程概念与区别进程
-当我们双击桌面的图标时，系统会将对应的程序加载进内存，程序将会占用一部分内存用以执行操作。进入到内存的程序即为进程（一个应用程序可以同时运行多个进程）。当使用任务管理器关闭程序时（比如QQ），系统又会将程序从内存中清除，此时进程结束。
-可以理解为：进程指的是占用一定内存的程序。当内存中的程序被清除，进程即结束。
-程序要运行，必须先加载到内存中
-一个应用程序可以同时运行多个
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2019-12-07 22:10" pubdate>
-              2019-12-07
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/JavaSE/">JavaSE</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2019/09/27/%E8%B4%9F%E6%95%B0%3E%3E%3E%E8%BF%90%E7%AE%97%E7%AC%A6%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923135547.png" srcset="/img/loading.gif" lazyload alt="负数 &gt;&gt;&gt;运算符的计算过程">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2019/09/27/%E8%B4%9F%E6%95%B0%3E%3E%3E%E8%BF%90%E7%AE%97%E7%AC%A6%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B/" target="_self">
-          负数 &gt;&gt;&gt;运算符的计算过程
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2019/09/27/%E8%B4%9F%E6%95%B0%3E%3E%3E%E8%BF%90%E7%AE%97%E7%AC%A6%E8%AE%A1%E7%AE%97%E8%BF%87%E7%A8%8B/" target="_self">
-          
-          
-            
-          
-          “&gt;&gt;&gt;” 表示无符号右移,正数情况下, a &gt;&gt;&gt; b 等价于 a / Math.pow(2,b)
-以 -16 &gt;&gt;&gt; 2 为例子 负16右移2位
-
-将-16转为2进制 (用补码表示负数)
-16 = 00000000 00000000 00000000 00010000
-取反并补码 = 11111111 11111111 11111111 1
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2019-09-27 18:22" pubdate>
-              2019-09-27
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/JavaSE/">JavaSE</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%BF%90%E7%AE%97%E7%AC%A6/">运算符</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span>
+      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

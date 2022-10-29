@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="ryan">
+  <meta name="keywords" content="">
+  <meta name="description" content="IK Aanlysis 文档1.源码分析 我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的  core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegem">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IK Aanlysis 文档">
+<meta property="og:url" content="http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="Coding Cat">
+<meta property="og:description" content="IK Aanlysis 文档1.源码分析 我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的  core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegem">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082209853.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082117840.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082215674.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082121508.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082123981.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082130700.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2022/202210242227456.png">
+<meta property="article:published_time" content="2022-06-12T07:22:10.000Z">
+<meta property="article:modified_time" content="2022-10-29T05:45:56.179Z">
+<meta property="article:author" content="ryan">
+<meta property="article:tag" content="分词器">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png">
+  
+  <title>IK Aanlysis 文档 - Coding Cat</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 60vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Coding Cat</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                Home
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                Archives
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                Categories
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                Tags
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                About
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                Links
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://ryansimg.oss-cn-shanghai.aliyuncs.com/2022/202210291341565.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="IK Aanlysis 文档">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-06-12 15:22" pubdate>
+        June 12, 2022 pm
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      9k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      28 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">IK Aanlysis 文档</h1>
+            
+            <div class="markdown-body">
+              <h2 id="IK-Aanlysis-文档"><a href="#IK-Aanlysis-文档" class="headerlink" title="IK Aanlysis 文档"></a>IK Aanlysis 文档</h2><h3 id="1-源码分析"><a href="#1-源码分析" class="headerlink" title="1.源码分析"></a>1.源码分析</h3><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png" srcset="/img/loading.gif" lazyload alt="image-20220508192403184"></p>
+<p>我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的 </p>
+<p>core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegementer(英文字符子分词器),CN_QuantifierSegmenter(中文量词子分词器),CJKSegmenter(中日韩字符分词器)，</p>
+<p>dic包括了词典类Dictionary，词典树分段类DictSegmenter，用来记录词典匹配命中记录的类Hit</p>
+<h5 id="1-词典初始化"><a href="#1-词典初始化" class="headerlink" title="1.词典初始化"></a>1.词典初始化</h5><p>在分词器IKSegmenter首次实例化时，默认会根据DefaultConfig找到主词典和中文量词词典路径，同时DefaultConfig会根据classpath下配置文件IKAnalyzer.cfg.xml，找到扩展词典和停止词典路径，可以在该配置文件中配置自己的扩展词典和停止词典。</p>
+<p>找到词典路径后，初始化Dictionary.java，Dictionary是单例的。在Dictionary的构造函数中加载词典。Dictionary是IK的词典管理类，真正的词典数据是存放在DictSegment中，该类实现了一种树结构，如下图。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082209853.png" srcset="/img/loading.gif" lazyload alt="image-20220508220918804"></p>
+<p>比如,要对字符串”施耐德继电器”进行分词，首先拿到字符串的第一个字符’施’,在上面的词典树中可以匹配到’施’节点，然后拿到字符串第二个字符’耐’，从上一个节点’施’往下找，找到了’耐’节点，’耐’节点是一个非终点节点,继续往下找到’德’节点,’德’节点是终点节点,所以’施耐德’是一个词</p>
+<p>Dictionary中默认有三个DictSegment对象,  _MainDict , _QuantifierDict , _StopWords , 分别是主词典, 中文量词词典, 停用词词典(停用词词典中的词在分词时将会被忽略)</p>
+<p>Dictionary加载主词典，将主词典保存到它的_MainDict对象中，加载完主词典后，加载扩展词典，扩展词典同样保存在_MainDict中。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082117840.png" srcset="/img/loading.gif" lazyload alt="image-20220508211711777"></p>
+<p>fillSegment方法是DictSegment加载单个词的核心方法，charArray是词的字符数组，先是从存储节点搜索词的第一个字符，如果不存在则创建一个节点用于存储第一个字符，后面递归存储，直到最后一个字符。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082215674.png" srcset="/img/loading.gif" lazyload alt="image-20220508221241534"></p>
+<p>子节点如果存粹用map存储，会比较浪费空间，因此ik采用了一种折中的方式。就是根据子节点的数量对存储结构进行调整，如果子节点的数量小于等于3，则采用数组存储，如果子节点的数量大于3，采用map存储。其中的nodeState就是用来标记当前节点</p>
+<p>因为HashMap需要预先分配内存，所以可能存在浪费现象；但是如果全用数组存，后续采用二分查找时无法获得O(1)的时间复杂度。所以这里采用了两种方式，子节点少时用数组存，子节点多时则迁移至HashMap。</p>
+<h5 id="2-自定义词典"><a href="#2-自定义词典" class="headerlink" title="2.自定义词典"></a>2.自定义词典</h5><p>了解了主词典的加载流程,只需要照猫画虎就行, 自定义几个DictSegment对象,如_BrandDic  ,  _CategoryDic ,  _MaterialNoDic 等 , 在config文件夹中创建对应的dic文件 </p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082121508.png" srcset="/img/loading.gif" lazyload alt="image-20220508212158446"></p>
+<p>编写字典加载方法 </p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082123981.png" srcset="/img/loading.gif" lazyload alt="image-20220508212308919"></p>
+<p>在initial方法中调用加载方法,在Dictionary对象创建时会调用此方法,将对应字典加载入内存</p>
+<h5 id="3-基于词典的切分"><a href="#3-基于词典的切分" class="headerlink" title="3.基于词典的切分"></a>3.基于词典的切分</h5><!--todo-->
+
+<h5 id="4-分词模式"><a href="#4-分词模式" class="headerlink" title="4.分词模式"></a>4.分词模式</h5><!--todo-->
+
+<h5 id="5-匹配定义词性"><a href="#5-匹配定义词性" class="headerlink" title="5.匹配定义词性"></a>5.匹配定义词性</h5><p>自定义的字典加载完成后,下一步就是使用词元匹配词典来确认词性,以品牌词典举例, 分词器在获取词元的时候会调用分词器主类IKSegmenter中的next()方法来获取下一个词元,并判断是否为停用词, <strong>我们可以在这里动一些手脚, 通过匹配词典,来判断当前词元的词性</strong></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082130700.png" srcset="/img/loading.gif" lazyload alt="image-20220508213052634"></p>
+<p>isBrand()方法调用DictSegmenter中的match()方法,品牌词已经加载至一个字典树之内，所以整个过程也就是一个从树根层层往下走的一个层层递归的方式,首字符匹配到一个节点后,判断下面是否还有节点,有就继续往下匹配;匹配的结果一共三种UNMATCH（未匹配），MATCH（匹配）， PREFIX（前缀匹配）。</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 匹配词段</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> charArray</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> begin</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> length</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> searchHit</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> Hit </span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">Hit <span class="hljs-title">match</span><span class="hljs-params">(<span class="hljs-keyword">char</span>[] charArray , <span class="hljs-keyword">int</span> begin , <span class="hljs-keyword">int</span> length , Hit searchHit)</span></span>&#123;<br>	<br>	<span class="hljs-keyword">if</span>(searchHit == <span class="hljs-keyword">null</span>)&#123;<br>		<span class="hljs-comment">//如果hit为空，新建</span><br>		searchHit= <span class="hljs-keyword">new</span> Hit();<br>		<span class="hljs-comment">//设置hit的其实文本位置</span><br>		searchHit.setBegin(begin);<br>	&#125;<span class="hljs-keyword">else</span>&#123;<br>		<span class="hljs-comment">//否则要将HIT状态重置</span><br>		searchHit.setUnmatch();<br>	&#125;<br>	<span class="hljs-comment">//设置hit的当前处理位置</span><br>	searchHit.setEnd(begin);<br><br>       Character keyChar = Character.valueOf(charArray[begin]);<br>	DictSegment ds = <span class="hljs-keyword">null</span>;<br>	<br>	<span class="hljs-comment">//引用实例变量为本地变量，避免查询时遇到更新的同步问题</span><br>	DictSegment[] segmentArray = <span class="hljs-keyword">this</span>.childrenArray;<br>	Map&lt;Character , DictSegment&gt; segmentMap = <span class="hljs-keyword">this</span>.childrenMap;		<br>	<br>	<span class="hljs-comment">//STEP1 在节点中查找keyChar对应的DictSegment</span><br>	<span class="hljs-keyword">if</span>(segmentArray != <span class="hljs-keyword">null</span>)&#123;<br>		<span class="hljs-comment">//在数组中查找</span><br>		DictSegment keySegment = <span class="hljs-keyword">new</span> DictSegment(keyChar);<br>		<span class="hljs-keyword">int</span> position = Arrays.binarySearch(segmentArray, <span class="hljs-number">0</span> , <span class="hljs-keyword">this</span>.storeSize , keySegment);<br>		<span class="hljs-keyword">if</span>(position &gt;= <span class="hljs-number">0</span>)&#123;<br>			ds = segmentArray[position];<br>		&#125;<br><br>	&#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(segmentMap != <span class="hljs-keyword">null</span>)&#123;<br>		<span class="hljs-comment">//在map中查找</span><br>		ds = (DictSegment)segmentMap.get(keyChar);<br>	&#125;<br>	<br>	<span class="hljs-comment">//STEP2 找到DictSegment，判断词的匹配状态，是否继续递归，还是返回结果</span><br>	<span class="hljs-keyword">if</span>(ds != <span class="hljs-keyword">null</span>)&#123;			<br>		<span class="hljs-keyword">if</span>(length &gt; <span class="hljs-number">1</span>)&#123;<br>			<span class="hljs-comment">//词未匹配完，继续往下搜索</span><br>			<span class="hljs-keyword">return</span> ds.match(charArray, begin + <span class="hljs-number">1</span> , length - <span class="hljs-number">1</span> , searchHit);<br>		&#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (length == <span class="hljs-number">1</span>)&#123;<br>			<span class="hljs-comment">//搜索最后一个char</span><br>			<span class="hljs-keyword">if</span>(ds.nodeState == <span class="hljs-number">1</span>)&#123;<br>				<span class="hljs-comment">//添加HIT状态为完全匹配</span><br>				searchHit.setMatch();<br>			&#125;<br>			<span class="hljs-keyword">if</span>(ds.hasNextNode())&#123;<br>				<span class="hljs-comment">//添加HIT状态为前缀匹配</span><br>				searchHit.setPrefix();<br>				<span class="hljs-comment">//记录当前位置的DictSegment</span><br>				searchHit.setMatchedDictSegment(ds);<br>			&#125;<br>			<span class="hljs-keyword">return</span> searchHit;<br>		&#125;<br>	&#125;<br>	<span class="hljs-comment">//STEP3 没有找到DictSegment， 将HIT设置为不匹配</span><br>	<span class="hljs-keyword">return</span> searchHit;		<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<p>匹配成功则将当前词元的type设置为brand,没有匹配上则继续匹配其他词典,直至结束.</p>
+<h5 id="6基于规则的歧义判断"><a href="#6基于规则的歧义判断" class="headerlink" title="6基于规则的歧义判断"></a>6基于规则的歧义判断</h5><!--todo-->
+
+<h3 id="2-热更新"><a href="#2-热更新" class="headerlink" title="2.热更新"></a>2.热更新</h3><p>时间戳监听类主逻辑</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DictListener</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;<br><br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger logger = ESPluginLoggerFactory.getLogger(DictListener.class.getName());<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String REMOTE_TIMESTAMP_SQL = <span class="hljs-string">&quot;SELECT UPDATED_AT FROM %s WHERE IS_DELETED = 0 ORDER BY UPDATED_AT DESC LIMIT 1&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String REMOTE_DEL_TIMESTAMP_SQL = <span class="hljs-string">&quot;SELECT UPDATED_AT FROM %s WHERE IS_DELETED = 1 ORDER BY UPDATED_AT DESC LIMIT 1&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEL_QUERY_SQL = <span class="hljs-string">&quot;SELECT NAME FROM %s WHERE IS_DELETED = 1 AND UPDATED_AT &gt; ? and UPDATED_AT &lt;= ?&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEL_QUERY_SQL_MATERIAL = <span class="hljs-string">&quot;SELECT MATERIAL_NO FROM %s WHERE IS_DELETED = 1 AND UPDATED_AT &gt; ? and UPDATED_AT &lt;= ?&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String QUERY_SQL = <span class="hljs-string">&quot;SELECT NAME FROM %s WHERE IS_DELETED = 0 AND UPDATED_AT &gt; ? and UPDATED_AT &lt;= ?&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String QUERY_SQL_MATERIAL = <span class="hljs-string">&quot;SELECT MATERIAL_NO FROM %s WHERE IS_DELETED = 0 AND UPDATED_AT &gt; ? and UPDATED_AT &lt;= ?&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String TIMESTAMP_SUFFIX = <span class="hljs-string">&quot;update.timestamp&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String TIMESTAMP_DEL_SUFFIX = <span class="hljs-string">&quot;del.timestamp&quot;</span>;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String INITIAL_TIMESTAMP = <span class="hljs-string">&quot;2000-01-01T00:00:00&quot;</span>;<br><br>	<span class="hljs-keyword">private</span> String remoteTimeStampStr;<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String,String&gt; timestampMap = <span class="hljs-keyword">new</span> HashMap&lt;&gt;();<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">DictListener</span><span class="hljs-params">()</span> </span>&#123;<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">saveTimestamp</span><span class="hljs-params">(DictEnum dict, <span class="hljs-keyword">boolean</span> isDel)</span> </span>&#123;<br>		String timestampSuffix = isDel ? TIMESTAMP_DEL_SUFFIX : TIMESTAMP_SUFFIX;<br>		String timestampKey = String.format(<span class="hljs-string">&quot;%s.%s&quot;</span>,dict.shortName,timestampSuffix);<br>		timestampMap.put(timestampKey,remoteTimeStampStr);<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;String&gt; <span class="hljs-title">getWords</span><span class="hljs-params">(DictEnum dict, <span class="hljs-keyword">boolean</span> isDel)</span> </span>&#123;<br>		List&lt;String&gt; words = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br>		PreparedStatement pst = <span class="hljs-keyword">null</span>;<br>		ResultSet rs2 = <span class="hljs-keyword">null</span>;<br>		String sql = isDel ? REMOTE_DEL_TIMESTAMP_SQL : REMOTE_TIMESTAMP_SQL;<br>		String timestampSql = String.format(sql, dict.tableName);<br>		<span class="hljs-keyword">try</span>(Connection conn = C3p0Util.getConnection(dict.dsKey);<br>		    Statement statement = conn.createStatement();<br>		    ResultSet rs = statement.executeQuery(timestampSql))&#123;<br>			<span class="hljs-keyword">if</span> (rs.next()) &#123;<br>				DateTimeFormatter dtf = DateTimeFormatter.ofPattern(<span class="hljs-string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>);<br>				LocalDateTime remoteTimestamp = LocalDateTime.parse(rs.getString(<span class="hljs-string">&quot;UPDATED_AT&quot;</span>),dtf);<br>				String localTimestampSuffix = isDel ? TIMESTAMP_DEL_SUFFIX : TIMESTAMP_SUFFIX;<br>				String localTimestampKey = String.format(<span class="hljs-string">&quot;%s.%s&quot;</span>,dict.shortName,localTimestampSuffix);<br>				String localTimestampStr = timestampMap.get(localTimestampKey);<br>				<span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> == localTimestampStr) &#123;<br>					localTimestampStr = INITIAL_TIMESTAMP;<br>				&#125;<br>				LocalDateTime localTimestamp = LocalDateTime.parse(localTimestampStr);<br>				<span class="hljs-keyword">if</span> (remoteTimestamp.isAfter(localTimestamp)) &#123;<br>					remoteTimeStampStr = remoteTimestamp.toString();<br>					<span class="hljs-comment">// todo category只查品类 &amp; 分批?</span><br>					String querySql = isDel ? String.format(dict.code == <span class="hljs-number">3</span> ? DEL_QUERY_SQL_MATERIAL : DEL_QUERY_SQL, dict.tableName)<br>									: String.format(dict.code == <span class="hljs-number">3</span> ? QUERY_SQL_MATERIAL : QUERY_SQL, dict.tableName);<br>					pst = conn.prepareStatement(querySql);<br>					pst.setString(<span class="hljs-number">1</span>,localTimestampStr);<br>					pst.setString(<span class="hljs-number">2</span>,remoteTimeStampStr);<br>					rs2 = pst.executeQuery();<br>					<span class="hljs-keyword">while</span> (rs2.next()) &#123;<br>						String word = rs2.getString(dict.fieldName);<br>						<span class="hljs-keyword">if</span> (<span class="hljs-keyword">null</span> != word) &#123;<br>							words.add(word);<br>						&#125;<br>					&#125;<br>				&#125;<br>			&#125;<br>		&#125;<span class="hljs-keyword">catch</span> (Exception e) &#123;<br>			logger.error(<span class="hljs-string">&quot;failed to get words&quot;</span>, e);<br>		&#125;<span class="hljs-keyword">finally</span> &#123;<br>				C3p0Util.close(pst, rs2);<br>		&#125;<br>		<span class="hljs-keyword">return</span> words;<br>	&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<p>分词词典更新:</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AnaDictListener</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">DictListener</span> </span>&#123;<br><br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>		SpecialPermission.check();<br>		AccessController.doPrivileged((PrivilegedAction&lt;Void&gt;) () -&gt; &#123;<br>			<span class="hljs-comment">// todo stop dict</span><br>			List&lt;String&gt; incrWords = getWords(DictEnum.MAIN,<span class="hljs-keyword">false</span>);<br>			<span class="hljs-keyword">if</span> (incrWords != <span class="hljs-keyword">null</span> &amp;&amp; incrWords.size() &gt; <span class="hljs-number">0</span>) &#123;<br>				incrWords = incrWords.stream().filter(x-&gt;!x.isEmpty()).map(String::toLowerCase).collect(Collectors.toList());<br>				<span class="hljs-keyword">boolean</span> successFlag = Dictionary.getSingleton().incrUpdateDict(DictEnum.MAIN,incrWords);<br>				<span class="hljs-keyword">if</span> (successFlag) saveTimestamp(DictEnum.MAIN,<span class="hljs-keyword">false</span>);<br>			&#125;<br>			List&lt;String&gt; delWords = getWords(DictEnum.MAIN,<span class="hljs-keyword">true</span>);<br>			<span class="hljs-keyword">if</span> (delWords != <span class="hljs-keyword">null</span> &amp;&amp; delWords.size() &gt; <span class="hljs-number">0</span>) &#123;<br>				delWords = delWords.stream().filter(x-&gt;!x.isEmpty()).map(String::toLowerCase).collect(Collectors.toList());<br>				<span class="hljs-keyword">boolean</span> successFlag = Dictionary.getSingleton().disableWords(DictEnum.MAIN, delWords);<br>				<span class="hljs-keyword">if</span> (successFlag) saveTimestamp(DictEnum.MAIN,<span class="hljs-keyword">true</span>);<br>			&#125;<br>			<span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>		&#125;);<br>	&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<p>分类词典更新:</p>
+<p>分多词典新增/删除, 位图判断词元是否操作过, 与分词词典不同的数据源, 数据源在抽象父类中通过词典类型自动切换</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TokenTypeDictListener</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">DictListener</span> </span>&#123;<br><br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RoaringBitmap syncedElem = <span class="hljs-keyword">new</span> RoaringBitmap();<br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RoaringBitmap deletedElem = <span class="hljs-keyword">new</span> RoaringBitmap();<br><br>	<span class="hljs-meta">@Override</span><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;<br>		SpecialPermission.check();<br>		AccessController.doPrivileged((PrivilegedAction&lt;Void&gt;) () -&gt; &#123;<br>			<span class="hljs-keyword">for</span> (DictEnum dict : DictEnum.values()) &#123;<br>				<span class="hljs-keyword">if</span> (dict.code == <span class="hljs-number">5</span> || dict.code == <span class="hljs-number">6</span>) <span class="hljs-keyword">continue</span>;<br>				List&lt;String&gt; incrWords = getWords(dict,<span class="hljs-keyword">false</span>);<br>				<span class="hljs-keyword">if</span> (incrWords != <span class="hljs-keyword">null</span> &amp;&amp; incrWords.size() &gt; <span class="hljs-number">0</span>) &#123;<br>					incrWords = incrWords.stream().filter(removeSyncedWords(syncedElem)).map(String::toLowerCase).collect(Collectors.toList());<br>					<span class="hljs-keyword">boolean</span> successFlag = Dictionary.getSingleton().incrUpdateDict(dict, incrWords);<br>					<span class="hljs-keyword">if</span> (successFlag) saveTimestamp(dict,<span class="hljs-keyword">false</span>);<br>				&#125;<br>				List&lt;String&gt; delWords = getWords(dict,<span class="hljs-keyword">true</span>);<br>				<span class="hljs-keyword">if</span> (delWords != <span class="hljs-keyword">null</span> &amp;&amp; delWords.size() &gt; <span class="hljs-number">0</span>) &#123;<br>					delWords = delWords.stream().filter(removeSyncedWords(deletedElem)).map(String::toLowerCase).collect(Collectors.toList());<br>					<span class="hljs-keyword">boolean</span> successFlag = Dictionary.getSingleton().disableWords(dict, delWords);<br>					<span class="hljs-keyword">if</span> (successFlag) saveTimestamp(dict,<span class="hljs-keyword">true</span>);<br>				&#125;<br>			&#125;<br>			<span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>		&#125;);<br>	&#125;<br><br>	<span class="hljs-function">Predicate&lt;String&gt; <span class="hljs-title">removeSyncedWords</span><span class="hljs-params">(RoaringBitmap rb)</span> </span>&#123;<br>		<span class="hljs-keyword">return</span> s -&gt; &#123;<br>			<span class="hljs-keyword">if</span> (!s.isEmpty() &amp;&amp; !rb.contains(s.hashCode())) &#123;<br>				rb.add(s.hashCode());<br>				<span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>			&#125;<br>			<span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>		&#125;;<br>	&#125;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<p>在词典类初始化方法中调用</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2022/202210242227456.png" srcset="/img/loading.gif" lazyload alt="image-20221024222704349"></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E8%AF%8D%E5%99%A8/">分词器</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/06/18/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF20%E8%AE%B2%E5%9F%BA%E7%A1%80%E6%8A%80%E6%9C%AF%E7%AF%87/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">检索技术20讲 基础技术篇</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/">
+                        <span class="hidden-mobile">analysis</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;TOC</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        
+      </a>
+    </span>
+    
+  </div>
+
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <!-- Baidu Analytics -->
+    <script defer>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
