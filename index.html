@@ -58,7 +58,7 @@
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>Coding Cat</strong>
+      <strong>low gravity</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -441,6 +441,69 @@ db的数据直接全量刷入缓存
     
     
       <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/08/29/rabbitmq%20delay%20queue/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202305232212983.png" srcset="/img/loading.gif" lazyload alt="rabbitmq delay queue">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/08/29/rabbitmq%20delay%20queue/" target="_self">
+          rabbitmq delay queue
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/08/29/rabbitmq%20delay%20queue/" target="_self">
+          
+          
+            
+          
+          一、说明在上一篇中，介绍了RabbitMQ中的死信队列是什么，何时使用以及如何使用RabbitMQ的死信队列。相信通过上一篇的学习，对于死信队列已经有了更多的了解，这一篇的内容也跟死信队列息息相关，如果你还不了解死信队列，那么建议你先进行上一篇文章的阅读。
+这一篇里，我们将继续介绍RabbitMQ的高级特性，通过本篇的学习，你将收获：
+
+什么是延时队列
+延时队列使用场景
+RabbitMQ中的TTL
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-08-29 00:54" pubdate>
+              2021-08-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/rabbitmq/">rabbitmq</a>
+            
+              <a href="/tags/%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97/">延时队列</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/2021/08/28/rabbitmq%20dead%20queue/" target="_self">
           <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202110222055333.png" srcset="/img/loading.gif" lazyload alt="rabbitmq dead queue">
         </a>
@@ -727,64 +790,6 @@ M
             <i class="iconfont icon-date"></i>
             <time datetime="2020-10-17 23:01" pubdate>
               2020-10-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145711.png" srcset="/img/loading.gif" lazyload alt="浅谈Redis分布式锁(上)">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/" target="_self">
-          浅谈Redis分布式锁(上)
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/" target="_self">
-          
-          
-            
-          
-          不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。
-本篇文章我们一起来探讨Redis分布式锁相关的内容。
-说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-10-05 21:33" pubdate>
-              2020-10-05
             </time>
           </div>
         
