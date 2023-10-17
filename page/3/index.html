@@ -1,965 +1,137 @@
-
-
 <!DOCTYPE html>
-<html lang="en" data-default-color-scheme=auto>
-
-
-
-<head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta property="og:type" content="website">
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono.min.css" rel="stylesheet">
+<title>low gravity</title>
+<meta charset="UTF-8">
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="author" content="ryan">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta property="og:type" content="website">
 <meta property="og:title" content="low gravity">
 <meta property="og:url" content="http://example.com/page/3/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:locale" content="en_US">
 <meta property="article:author" content="ryan">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
+<link rel="shortcut icon" href="">
+
+<link rel="stylesheet" href="/css/common.css">
+
+
   
-  <title>low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="/css/index.css">
 
 
 
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
 
 
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
-
-
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"></head>
-
-
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                Home
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                Archives
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                Categories
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                Tags
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                About
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                Links
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202207090050037.jpg') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="We used to look up at the sky">
-              
-            </span>
-
-            
-          </div>
-
-          
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main>
+    <meta name="generator" content="Hexo 5.4.0"></head>
+    <body>
+        <div class="home">
+    <img class="avatar" src=""/>
+    <div class="nav-bar">
     
-      <div class="container nopadding-x-md">
-        <div class="py-5" id="board"
-          >
-          
-          <div class="container">
-            <div class="row">
-              <div class="col-12 col-md-10 m-auto">
-                
-
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/05/22/redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923143535.png" srcset="/img/loading.gif" lazyload alt="redis哨兵模式">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/05/22/redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F/" target="_self">
-          redis哨兵模式
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/05/22/redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F/" target="_self">
-          
-          
-            
-          
-          主从切换技术的方法是：当主服务器宕机后，需要手动把一台从服务器切换为主服务器，这就需要人工干预，费事费力，还会造成一段时间内服务不可用。这不是一种推荐的方式，更多时候，我们优先考虑哨兵模式。
-一、哨兵模式概述哨兵模式是一种特殊的模式，首先Redis提供了哨兵的命令，哨兵是一个独立的进程，作为进程，它会独立运行。其原理是哨兵通过发送命令，等待Redis服务器响应，从而监控运行的多个Redis实例。
-
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-05-22 19:07" pubdate>
-              2020-05-22
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/redis/">redis</a>
-            
-              <a href="/tags/nosql/">nosql</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923142038.png" srcset="/img/loading.gif" lazyload alt="redis常用命令">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" target="_self">
-          redis常用命令
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" target="_self">
-          
-          
-            
-          
-          课件地址      redis命令大全
-12345678redis-server /配置文件位置     #启动redis redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379redis-cli shutdown   #单实例关闭redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭select db #切换到该数据库 
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-05-21 23:21" pubdate>
-              2020-05-21
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/redis/">redis</a>
-            
-              <a href="/tags/nosql/">nosql</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/05/21/Redis/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923142106.png" srcset="/img/loading.gif" lazyload alt="redis笔记">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/05/21/Redis/" target="_self">
-          redis笔记
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/05/21/Redis/" target="_self">
-          
-          
-            
-          
-          ##Redis基本数据类型
-
-字符串：redis没有直接使用C语言传统的字符串表示，而是自己实现的叫做简单动态字符串SDS的抽象类型。C语言的字符串不记录自身的长度信息，而SDS则保存了长度信息，这样将获取字符串长度的时间由O(N)降低到了O(1)，同时可以避免缓冲区溢出和减少修改字符串长度时所需的内存重分配次数。
-链表linkedlist：redis链表是一个双向无环链表结构，很多发布订阅、慢查
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-05-21 18:45" pubdate>
-              2020-05-21
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/redis/">redis</a>
-            
-              <a href="/tags/nosql/">nosql</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/" target="_self">
-          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281344569.png" srcset="/img/loading.gif" lazyload alt="IO 模型">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/" target="_self">
-          IO 模型
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/" target="_self">
-          
-          
-            
-          
-          前言I/O 一直是很多小伙伴难以理解的一个知识点，这篇文章我会将我所理解的 I/O 讲给你听，希望可以对你有所帮助。
-I/O何为 I/O?I/O（Input/Outpu） 即输入／输出 。
-我们先从计算机结构的角度来解读一下 I/O。
-根据冯.诺依曼结构，计算机结构分为 5 大部分：运算器、控制器、存储器、输入设备、输出设备。
-
-输入设备（比如键盘）和输出设备（比如鼠标）都属于外部设备。网卡、硬盘
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-05-12 02:13" pubdate>
-              2020-05-12
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%9F%E7%90%86/">计算机原理</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/IO%E6%A8%A1%E5%9E%8B/">IO模型</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/04/29/%E8%BF%87%E6%BB%A4%E5%99%A8%E5%92%8C%E6%8B%A6%E6%88%AA%E5%99%A8/" target="_self">
-          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202110222055333.png" srcset="/img/loading.gif" lazyload alt="过滤器和拦截器">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/04/29/%E8%BF%87%E6%BB%A4%E5%99%A8%E5%92%8C%E6%8B%A6%E6%88%AA%E5%99%A8/" target="_self">
-          过滤器和拦截器
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/04/29/%E8%BF%87%E6%BB%A4%E5%99%A8%E5%92%8C%E6%8B%A6%E6%88%AA%E5%99%A8/" target="_self">
-          
-          
-            
-          
-          准备环境我们在项目中同时配置 拦截器 和 过滤器。
-1、过滤器 (Filter)过滤器的配置比较简单，直接实现Filter 接口即可，也可以通过@WebFilter注解实现对特定URL拦截，看到Filter 接口中定义了三个方法。
-
-init() ：该方法在容器启动初始化过滤器时被调用，它在 Filter 的整个生命周期只会被调用一次。注意：这个方法必须执行成功，否则过滤器会不起作用。
-doFil
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-04-29 14:09" pubdate>
-              2020-04-29
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Web/">Web</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Filter/">Filter</a>
-            
-              <a href="/tags/Interceptor/">Interceptor</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145433.png" srcset="/img/loading.gif" lazyload alt="SQL优化(1)-SQL基础">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/" target="_self">
-          SQL优化(1)-SQL基础
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/" target="_self">
-          
-          
-            
-          
-          范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。
-第一范式
-所有列应该不可再分
-比如，往contact列存储”18257500000,杭州,&#x35;&#x32;&#x33;&#x38;&#51;&#x39;&#x30;&#x30;&#48;&#x40;&#x71;&#x71;&#x2e;&#99;&#x6f;&#109;“是比较糟糕的做法，因为此时该列包含了phone、address
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-03-22 15:22" pubdate>
-              2020-03-22
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/mysql/">mysql</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" target="_self">
-          <img src="/img/redisDistributed.png" srcset="/img/loading.gif" lazyload alt="redis分布式锁">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" target="_self">
-          redis分布式锁
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" target="_self">
-          
-          
-            
-          
-          这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。
-Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？
-因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？
-
-基于 Redis 如何实现一个分布式锁？
-Redis 分布式锁真的安全吗？
-Redis 的 Redlock 有
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-03-04 09:11" pubdate>
-              2020-03-04
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/redis/">redis</a>
-            
-              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2020/03/02/Cookie&amp;Session&amp;Token/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923141023.png" srcset="/img/loading.gif" lazyload alt="cookie&amp;session&amp;token">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/03/02/Cookie&amp;Session&amp;Token/" target="_self">
-          cookie&amp;session&amp;token
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/03/02/Cookie&amp;Session&amp;Token/" target="_self">
-          
-          
-            
-          
-          Cookie1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。
-但随着交互式 Web 的兴起（所谓交互式就是你不光可以浏览，还可以登录，发评论，购物等用户操作的行为），单纯地浏览 web 已经无法满足人们的要求，比如随着网上购物
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-03-02 22:11" pubdate>
-              2020-03-02
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/Web/">Web</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Communication-protocol/">Communication protocol</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145632.png" srcset="/img/loading.gif" lazyload alt="多线程基础(下)">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/" target="_self">
-          多线程基础(下)
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/" target="_self">
-          
-          
-            
-          
-          很多博客或者视频每次都会说“实现”多线程的方式有3种：Thread、Runnable和Callable，其实我个人是不太认同这种说法的，Thread是线程类，另外两个是任务类，不是一类事物啊！
-也即是说，JDK看似提供了很多和多线程相关的类，实际上有且仅有Thread类能通过start0()方法向操作系统申请线程资源（本地方法）。
-
-并且，在JVM的设定中Java的线程和操作系统的线程是一一对应的
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2019-12-12 23:01" pubdate>
-              2019-12-12
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/JavaSE/">JavaSE</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" target="_self">
-          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923140320.png" srcset="/img/loading.gif" lazyload alt="静态代理&amp;动态代理">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" target="_self">
-          静态代理&amp;动态代理
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" target="_self">
-          
-          
-            
-          
-          静态代理假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。
-你如何在不修改已有代码的前提下，完成这个需求？
-我首先想到的是静态代理。具体做法是：
-1.为现有的每一个类都编写一个对应的代理类，并且让它实现和目标类相同的接口（假设都有）
-
-2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，代理对象 = 增强代码
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2019-12-08 21:03" pubdate>
-              2019-12-08
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/JavaSE/">JavaSE</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/proxy/">proxy</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-
-
-  <nav aria-label="navigation">
-    <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/page/2/#board"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/#board">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/4/#board"><i class="iconfont icon-arrowright"></i></a>
-    </span>
-  </nav>
-
-
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">keyword</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
-    </div>
-  </div>
 </div>
+    <div class="articles-list">
     
-
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/06/15/%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6/" class="article-preview-top-title-link"><span class="article-preview-top-title">双亲委派机制</span></a>
+                <span class="article-preview-top-date">2020-5-15</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
-  
-
-  
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/05/22/redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F/" class="article-preview-top-title-link"><span class="article-preview-top-title">redis哨兵模式</span></a>
+                <span class="article-preview-top-date">2020-4-22</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
     
-  </div>
-
-
-  
-</footer>
-
-
-  <!-- SCRIPTS -->
-  
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
-    })
-  </script>
-
-
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
-
-<!-- Plugins -->
-
-
-  <script  src="/js/local-search.js" ></script>
-
-
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
-
-</body>
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-preview-top-title-link"><span class="article-preview-top-title">redis常用命令</span></a>
+                <span class="article-preview-top-date">2020-4-21</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/05/21/Redis/" class="article-preview-top-title-link"><span class="article-preview-top-title">redis笔记</span></a>
+                <span class="article-preview-top-date">2020-4-21</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/" class="article-preview-top-title-link"><span class="article-preview-top-title">IO 模型</span></a>
+                <span class="article-preview-top-date">2020-4-12</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/04/29/%E8%BF%87%E6%BB%A4%E5%99%A8%E5%92%8C%E6%8B%A6%E6%88%AA%E5%99%A8/" class="article-preview-top-title-link"><span class="article-preview-top-title">过滤器和拦截器</span></a>
+                <span class="article-preview-top-date">2020-3-29</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/" class="article-preview-top-title-link"><span class="article-preview-top-title">SQL优化(1)-SQL基础</span></a>
+                <span class="article-preview-top-date">2020-2-22</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="article-preview-top-title-link"><span class="article-preview-top-title">redis分布式锁</span></a>
+                <span class="article-preview-top-date">2020-2-4</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2020/03/02/Cookie&Session&Token/" class="article-preview-top-title-link"><span class="article-preview-top-title">cookie&amp;session&amp;token</span></a>
+                <span class="article-preview-top-date">2020-2-2</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+        <div class="article-preview">
+            <div class="article-preview-top">
+                <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/" class="article-preview-top-title-link"><span class="article-preview-top-title">多线程基础(下)</span></a>
+                <span class="article-preview-top-date">2019-11-12</span>
+            </div>
+            <p class="article-preview-content"></p>
+        </div>
+    
+</div>
+    <div class="page-switcher">
+    <a class="page-switcher-number" href="/">1</a>
+    
+        <a class="page-switcher-number" href="/page/2">2</a>
+    
+        <a class="page-switcher-number" href="/page/3">3</a>
+    
+        <a class="page-switcher-number" href="/page/4">4</a>
+    
+</div>
+</div>
+        <footer class="footer">Powered By <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> With Theme <a target="_blank" rel="noopener" href="https://github.com/EvanLuo42/oliver">Oliver</a></footer>
+        <footer class="footer"></footer>
+    </body>
 </html>
