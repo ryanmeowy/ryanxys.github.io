@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="ryan">
+  <meta name="keywords" content="">
+  <meta name="description" content="Demo构思在我看来，同样需要使用锁，动机可能完全相反：  在保证线程安全的前提下，尽量让所有线程都执行成功 在保证线程安全的前提下，只让一个线程执行成功  前者适用于秒杀等场景。作为商家，当然希望在不发生线程安全问题的前提下，让每一个订单都生效，直到商品售罄。此时分布式锁的写法可以是“不断重试”或“阻塞等待”，即：递归或while true循环尝试获取、阻塞等待。  而后者适用于分布式系统或多节">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈Redis分布式锁(中)">
+<meta property="og:url" content="http://example.com/2020/10/17/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%AD)/index.html">
+<meta property="og:site_name" content="low gravity">
+<meta property="og:description" content="Demo构思在我看来，同样需要使用锁，动机可能完全相反：  在保证线程安全的前提下，尽量让所有线程都执行成功 在保证线程安全的前提下，只让一个线程执行成功  前者适用于秒杀等场景。作为商家，当然希望在不发生线程安全问题的前提下，让每一个订单都生效，直到商品售罄。此时分布式锁的写法可以是“不断重试”或“阻塞等待”，即：递归或while true循环尝试获取、阻塞等待。  而后者适用于分布式系统或多节">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506622183-fa1bd017-75eb-485a-beed-866826fda0a8-20210923221540849.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604217589786-b289e306-b9c9-4109-8dcc-9c444b5d4354-20210923221547128.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604217793953-9468293c-633e-49dc-9020-c69e34cb3b3e-20210923221555357.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604218829172-5ce20fc4-99d0-4a26-9b62-053c240660bd-20210923221600743.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604489189715-299c40b4-85c2-47c7-9bc4-75aeee053a45-20210923221605971.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506681868-7e03eae9-f974-481b-be00-d32180cd2fe2-20210923221614779.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506732285-dedfe3a9-bbcd-422f-bc35-fe215bbf0035-20210923221619771.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604495698917-9216d65d-baeb-4c25-8eda-4bc3adc0b593-20210923221627242.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604232665683-4d39ad7a-58f0-4bec-b043-d2e67eb68e7b-20210923221633686.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604496815462-e6a559e8-27da-492f-b720-cf3f01e62429-20210923221905040.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606026519366-b528e8be-3cfc-4a9a-a574-8a6ae401b41f-20210923221915282.png">
+<meta property="article:published_time" content="2020-10-17T15:01:56.000Z">
+<meta property="article:modified_time" content="2021-09-24T02:38:54.276Z">
+<meta property="article:author" content="ryan">
+<meta property="article:tag" content="分布式锁">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506622183-fa1bd017-75eb-485a-beed-866826fda0a8-20210923221540849.png">
+  
+  <title>浅谈Redis分布式锁(中) - low gravity</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
+<script src="/assets/js/DPlayer.min.js"></script></head>
+
+
+<body>
+  <header style="height: 40vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>low gravity</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145606.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="浅谈Redis分布式锁(中)">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-10-17 23:01" pubdate>
+        2020年10月17日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      15k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      47 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">浅谈Redis分布式锁(中)</h1>
+            
+            <div class="markdown-body">
+              <h1 id="Demo构思"><a href="#Demo构思" class="headerlink" title="Demo构思"></a>Demo构思</h1><p>在我看来，同样需要使用锁，动机可能完全相反：</p>
+<ul>
+<li>在保证线程安全的前提下，尽量让所有线程都执行成功</li>
+<li>在保证线程安全的前提下，只让一个线程执行成功</li>
+</ul>
+<p>前者适用于秒杀等场景。作为商家，当然希望在不发生线程安全问题的前提下，让每一个订单都生效，直到商品售罄。此时分布式锁的写法可以是<strong>“不断重试”</strong>或<strong>“阻塞等待”</strong>，即：递归或while true循环尝试获取、阻塞等待。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506622183-fa1bd017-75eb-485a-beed-866826fda0a8-20210923221540849.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>而后者适用于分布式系统或多节点项目的定时任务，比如同一份代码部署在A、B两台服务器上，而数据库共用同一个。如果不做限制，那么在同一时刻，两台服务器都会去拉取列表执行，会发生任务重复执行的情况。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604217589786-b289e306-b9c9-4109-8dcc-9c444b5d4354-20210923221547128.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>此时可以考虑使用分布式锁，在cron触发的时刻只允许一个线程去往数据库拉取任务：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604217793953-9468293c-633e-49dc-9020-c69e34cb3b3e-20210923221555357.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>在实现Redis分布式锁控制定时任务唯一性的同时，我们引入之前的Redis消息队列。注意，这与Redis分布式锁本身无关，就是顺便复习一遍Redis消息队列而已，大家可以只实现Redis分布式锁+定时任务的部分。</p>
+<p>整个Demo的结构大致如图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604218829172-5ce20fc4-99d0-4a26-9b62-053c240660bd-20210923221600743.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>当然，实际项目中一般是这样的：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604489189715-299c40b4-85c2-47c7-9bc4-75aeee053a45-20210923221605971.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h1 id="分布式锁为什么难设计？"><a href="#分布式锁为什么难设计？" class="headerlink" title="分布式锁为什么难设计？"></a>分布式锁为什么难设计？</h1><p>首先，要和大家说一下，但凡牵涉到分布式的处理，没有一个是简单的，上面的Demo设计也不过是玩具，用来启发 大家的思路。</p>
+<p>为什么要把Demo设计得这么复杂呢？哈哈，因为这是我在上一家公司自己设计的，遇到了很多坑…拿出来自嘲一番，与各位共勉。</p>
+<p>我当时的设计思路是：</p>
+<p>由于小公司没有用什么Elastic-Job啥的，就是很普通的多节点部署。为了避免任务重复执行，我想设计一个分布式锁。但因为当时根本不知道Redisson，所以就自己百度了Redis实现分布式锁的方式，然后依葫芦画瓢自己手写了一个 。</p>
+<p>但我写完Redis分布式锁后，在实际测试过程中发现还需要考虑锁的失效时间…</p>
+<p>这里有两个问题：</p>
+<ul>
+<li>为什么要设置锁的过期时间？</li>
+<li>锁的过期时间设置多久合适？</li>
+</ul>
+<p>最简单的实现方案是这样的，一般没问题：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506681868-7e03eae9-f974-481b-be00-d32180cd2fe2-20210923221614779.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>但极端的情况下（项目在任务进行时重启或意外宕机），可能当前任务来不及解锁就挂了（死锁），那么下一个任务就会一直被锁在方法外等待。就好比厕所里有人被熏晕了，没法开门，而外面的人又进不去…</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604506732285-dedfe3a9-bbcd-422f-bc35-fe215bbf0035-20210923221619771.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>此时需要装一个自动解锁的门，到时间自动开门，也就是要给锁设置一个过期时间。但紧接着又会有第二个问题：锁的失效时间设多长合适？</p>
+<p><strong>很难定。</strong></p>
+<p>因为随着项目的发展，<strong>定时任务的执行时间很可能是变化的。</strong></p>
+<p>如果设置时间过长，极端点，定为365天。假设任务正常执行，比如10分钟就结束，那么线程继续往下就会执行unLock()主动解锁。但万一和上面一样宕机了，那么这个锁就要等365天后才解开。注意，宕机可不像JVM异常，它压根不会去执行finally里的unLock()。这种情况好比有个人在厕所里上大号直接掉坑里了，而自动门默认365天打开…所以，锁过期时间设置过长的坏处，本质是一旦发生宕机来不及解锁，那么过期时间越长，影响面越广，会导致其他操作阻滞。</p>
+<p>如果设置时间过短，上一个人还没拉完，门就“咔嚓”一声开了，尴尬不，重复执行了。</p>
+<p>终上所述，我当时之所以设计得这么复杂，就是想尽量缩短任务执行的时间，让它尽可能短（拉取后直接丢给队列，自己不处理），这样锁的时间一般设置30分钟就没啥问题。另外，对于死锁问题，我当时没有考虑宕机的情况，只考虑了意外重启…问题还有很多，文末会再总结。</p>
+<p>请大家阅读下面代码时思考两个问题：</p>
+<ul>
+<li>Demo如何处理锁的过期时间</li>
+<li>Demo如何防止死锁</li>
+</ul>
+<h1 id="项目搭建"><a href="#项目搭建" class="headerlink" title="项目搭建"></a>项目搭建</h1><p>新建一个空的SpringBoot项目。</p>
+<p>拷贝下方代码，构建工程：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604495698917-9216d65d-baeb-4c25-8eda-4bc3adc0b593-20210923221627242.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>构建完以后，拷贝一份，修改端口号为8081，避免和原先的冲突</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604232665683-4d39ad7a-58f0-4bec-b043-d2e67eb68e7b-20210923221633686.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h2 id="统一管理Redis-Key：RedisKeyConst"><a href="#统一管理Redis-Key：RedisKeyConst" class="headerlink" title="统一管理Redis Key：RedisKeyConst"></a>统一管理Redis Key：RedisKeyConst</h2><figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 统一管理Redis Key</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> qiyu</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RedisKeyConst</span> </span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 分布式锁的KEY</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String RESUME_PULL_TASK_LOCK = <span class="hljs-string">&quot;resume_pull_task_lock&quot;</span>;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 简历异步解析任务队列</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String RESUME_PARSE_TASK_QUEUE = <span class="hljs-string">&quot;resume_parse_task_queue&quot;</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="Redis消息队列：RedisMessageQueueConsumer"><a href="#Redis消息队列：RedisMessageQueueConsumer" class="headerlink" title="Redis消息队列：RedisMessageQueueConsumer"></a>Redis消息队列：RedisMessageQueueConsumer</h2><figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 消费者，异步获取简历解析结果并存入数据库</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> qiyu</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RedisMessageQueueConsumer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ApplicationListener</span>&lt;<span class="hljs-title">ContextRefreshedEvent</span>&gt; </span>&#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> RedisService redisService;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> AsyncResumeParser asyncResumeParser;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> ObjectMapper objectMapper;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onApplicationEvent</span><span class="hljs-params">(ContextRefreshedEvent event)</span> </span>&#123;<br>        log.info(<span class="hljs-string">&quot;开始监听RedisMessageQueue...&quot;</span>);<br>        CompletableFuture.runAsync(() -&gt; &#123;<br>            <span class="hljs-comment">// 大循环，不断监听队列任务（阻塞式）</span><br>            <span class="hljs-keyword">while</span> (<span class="hljs-keyword">true</span>) &#123;<br>                <span class="hljs-comment">// 阻塞监听</span><br>                ResumeCollectionDTO resumeCollectionDTO = (ResumeCollectionDTO) redisService.popQueue(RedisKeyConst.RESUME_PARSE_TASK_QUEUE, <span class="hljs-number">5</span>, TimeUnit.SECONDS);<br>                <span class="hljs-keyword">if</span> (resumeCollectionDTO != <span class="hljs-keyword">null</span>) &#123;<br>                    <span class="hljs-keyword">int</span> rePullCount = <span class="hljs-number">0</span>;<br>                    <span class="hljs-keyword">int</span> retryCount = <span class="hljs-number">0</span>;<br>                    log.info(<span class="hljs-string">&quot;从队列中取出:&#123;&#125;&quot;</span>, resumeCollectionDTO.getName());<br>                    log.info(<span class="hljs-string">&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;开始拉取简历:&#123;&#125;&quot;</span>, resumeCollectionDTO.getName());<br>                    Long asyncPredictId = resumeCollectionDTO.getAsyncPredictId();<br>                    <span class="hljs-comment">// 小循环，针对每一个任务多次调用第三方接口，直到获取最终结果或丢弃任务</span><br>                    <span class="hljs-keyword">while</span> (<span class="hljs-keyword">true</span>) &#123;<br>                        <span class="hljs-keyword">try</span> &#123;<br>                            PredictResult result = asyncResumeParser.getResult(asyncPredictId);<br>                            rePullCount++;<br>                            <span class="hljs-comment">// 如果已经解析完毕</span><br>                            <span class="hljs-keyword">if</span> (result.getStatus() == <span class="hljs-number">2</span>) &#123;<br>                                <span class="hljs-comment">// 保存数据库</span><br>                                <span class="hljs-keyword">try</span> &#123;<br>                                    log.info(<span class="hljs-string">&quot;简历:&#123;&#125;解析成功&quot;</span>, resumeCollectionDTO.getName());<br>                                    log.info(<span class="hljs-string">&quot;resultJson:&#123;&#125;&quot;</span>, result.getResultJson());<br>                                    ResumeCollectionDO resumeCollectionDO = objectMapper.readValue(result.getResultJson(), ResumeCollectionDO.class);<br>                                    log.info(<span class="hljs-string">&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;保存简历:&#123;&#125;到数据库&quot;</span>, resumeCollectionDO);<br>                                    <span class="hljs-comment">// 归零</span><br>                                    rePullCount = <span class="hljs-number">0</span>;<br>                                    retryCount = <span class="hljs-number">0</span>;<br>                                    <span class="hljs-keyword">break</span>;<br>                                &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                                    discardTask(resumeCollectionDTO);<br>                                    log.info(<span class="hljs-string">&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;保存简历失败，丢弃任务&quot;</span>);<br>                                    rePullCount = <span class="hljs-number">0</span>;<br>                                    retryCount = <span class="hljs-number">0</span>;<br>                                    <span class="hljs-keyword">break</span>;<br>                                &#125;<br>                            &#125;<br>                            <span class="hljs-comment">// 远程服务还未解析完毕，重试</span><br>                            <span class="hljs-keyword">else</span> &#123;<br>                                <span class="hljs-keyword">try</span> &#123;<br>                                    <span class="hljs-keyword">if</span> (rePullCount &lt;= <span class="hljs-number">3</span>) &#123;<br>                                        <span class="hljs-comment">// 前3次重试，时间为1s间隔</span><br>                                        TimeUnit.SECONDS.sleep(<span class="hljs-number">1</span>);<br>                                        log.info(<span class="hljs-string">&quot;简历:&#123;&#125;尚未解析完毕, 准备进行第&#123;&#125;次重试, 停顿1s后进行&quot;</span>, resumeCollectionDTO.getName(), rePullCount);<br>                                    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (rePullCount &gt; <span class="hljs-number">3</span> &amp;&amp; rePullCount &lt;= <span class="hljs-number">6</span>) &#123;<br>                                        <span class="hljs-comment">// 说明任务比较耗时，加长等待时间</span><br>                                        TimeUnit.SECONDS.sleep(<span class="hljs-number">2</span>);<br>                                        log.info(<span class="hljs-string">&quot;简历:&#123;&#125;尚未解析完毕, 准备进行第&#123;&#125;次重试, 停顿2s后进行&quot;</span>, resumeCollectionDTO.getName(), rePullCount);<br>                                    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (rePullCount &gt; <span class="hljs-number">6</span> &amp;&amp; rePullCount &lt;= <span class="hljs-number">8</span>) &#123;<br>                                        <span class="hljs-comment">// 说明任务比较耗时，加长等待时间</span><br>                                        TimeUnit.SECONDS.sleep(<span class="hljs-number">3</span>);<br>                                        log.info(<span class="hljs-string">&quot;简历:&#123;&#125;尚未解析完毕, 准备进行第&#123;&#125;次重试, 停顿3s后进行&quot;</span>, resumeCollectionDTO.getName(), rePullCount);<br>                                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                                        discardTask(resumeCollectionDTO);<br>                                        log.info(<span class="hljs-string">&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;多次拉取仍未得到结果, 丢弃简历:&#123;&#125;&quot;</span>, resumeCollectionDTO.getName());<br>                                        retryCount = <span class="hljs-number">0</span>;<br>                                        rePullCount = <span class="hljs-number">0</span>;<br>                                        <span class="hljs-keyword">break</span>;<br>                                    &#125;<br>                                &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>                                    discardTask(resumeCollectionDTO);<br>                                    log.info(<span class="hljs-string">&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;任务中断异常, 简历:&#123;&#125;&quot;</span>, resumeCollectionDTO.getName());<br>                                    rePullCount = <span class="hljs-number">0</span>;<br>                                    retryCount = <span class="hljs-number">0</span>;<br>                                    <span class="hljs-keyword">break</span>;<br>                                &#125;<br>                            &#125;<br>                        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                            <span class="hljs-keyword">if</span> (retryCount &gt; <span class="hljs-number">3</span>) &#123;<br>                                discardTask(resumeCollectionDTO);<br>                                log.info(<span class="hljs-string">&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;简历:&#123;&#125;重试&#123;&#125;次后放弃, rePullCount:&#123;&#125;, retryCount:&#123;&#125;&quot;</span>, resumeCollectionDTO.getName(), retryCount, rePullCount, retryCount);<br>                                rePullCount = <span class="hljs-number">0</span>;<br>                                retryCount = <span class="hljs-number">0</span>;<br>                                <span class="hljs-keyword">break</span>;<br>                            &#125;<br>                            retryCount++;<br>                            log.info(<span class="hljs-string">&quot;简历:&#123;&#125;远程调用异常, 准备进行第&#123;&#125;次重试...&quot;</span>, resumeCollectionDTO.getName(), retryCount);<br>                        &#125;<br>                    &#125;<br>                    log.info(<span class="hljs-string">&quot;break......&quot;</span>);<br>                &#125;<br>            &#125;<br>        &#125;);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">discardTask</span><span class="hljs-params">(ResumeCollectionDTO task)</span> </span>&#123;<br>        <span class="hljs-comment">// 根据asyncPredictId删除任务...</span><br>        log.info(<span class="hljs-string">&quot;丢弃任务:&#123;&#125;...&quot;</span>, task.getName());<br>    &#125;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="实体类：DO-DTO"><a href="#实体类：DO-DTO" class="headerlink" title="实体类：DO+DTO"></a>实体类：DO+DTO</h2><figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@NoArgsConstructor</span><br><span class="hljs-meta">@AllArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ResumeCollectionDO</span> </span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 简历id</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Long id;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 简历名称</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String name;<br>&#125;<br><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@NoArgsConstructor</span><br><span class="hljs-meta">@AllArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ResumeCollectionDTO</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Serializable</span> </span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 简历id</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Long id;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 异步解析id，稍后根据id可获取最终解析结果</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Long asyncPredictId;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 简历名称</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String name;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="分布式锁：RedisService"><a href="#分布式锁：RedisService" class="headerlink" title="分布式锁：RedisService"></a>分布式锁：RedisService</h2><figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">RedisService</span> </span>&#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 向队列插入消息</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> queue 自定义队列名称</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> obj   要存入的消息</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">pushQueue</span><span class="hljs-params">(String queue, Object obj)</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 从队列取出消息</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> queue    自定义队列名称</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> timeout  最长阻塞等待时间</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> timeUnit 时间单位</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">Object <span class="hljs-title">popQueue</span><span class="hljs-params">(String queue, <span class="hljs-keyword">long</span> timeout, TimeUnit timeUnit)</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 尝试上锁</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> lockKey</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> expireTime</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> timeUnit</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">tryLock</span><span class="hljs-params">(String lockKey, String value, <span class="hljs-keyword">long</span> expireTime, TimeUnit timeUnit)</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据MACHINE_ID解锁（只能解自己的）</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> lockKey</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">unLock</span><span class="hljs-params">(String lockKey, String value)</span></span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 释放锁，不管是不是自己的</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> lockKey</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">releaseLock</span><span class="hljs-params">(String lockKey, String value)</span></span>;<br><br>&#125;<br><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RedisServiceImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">RedisService</span> </span>&#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> RedisTemplate redisTemplate;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 向队列插入消息</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> queue 自定义队列名称</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> obj   要存入的消息</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">pushQueue</span><span class="hljs-params">(String queue, Object obj)</span> </span>&#123;<br>        redisTemplate.opsForList().leftPush(queue, obj);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 从队列取出消息</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> queue    自定义队列名称</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> timeout  最长阻塞等待时间</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> timeUnit 时间单位</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">popQueue</span><span class="hljs-params">(String queue, <span class="hljs-keyword">long</span> timeout, TimeUnit timeUnit)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> redisTemplate.opsForList().rightPop(queue, timeout, timeUnit);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 尝试上锁</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> lockKey</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> expireTime</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> timeUnit</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryLock</span><span class="hljs-params">(String lockKey, String value, <span class="hljs-keyword">long</span> expireTime, TimeUnit timeUnit)</span> </span>&#123;<br>        Boolean lock = redisTemplate.opsForValue().setIfAbsent(lockKey, value);<br>        <span class="hljs-keyword">if</span> (Boolean.TRUE.equals(lock)) &#123;<br>            redisTemplate.expire(lockKey, expireTime, timeUnit);<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>        &#125;<br>    &#125;<br><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据MACHINE_ID解锁（只能解自己的）</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> lockKey</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">unLock</span><span class="hljs-params">(String lockKey, String value)</span> </span>&#123;<br>        String machineId = (String) redisTemplate.opsForValue().get(lockKey);<br>        <span class="hljs-keyword">if</span> (StringUtils.isNotEmpty(machineId) &amp;&amp; machineId.equals(value)) &#123;<br>            redisTemplate.delete(lockKey);<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 释放锁，不管是不是自己的</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> lockKey</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> value</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">releaseLock</span><span class="hljs-params">(String lockKey, String value)</span> </span>&#123;<br>        Boolean delete = redisTemplate.delete(lockKey);<br>        <span class="hljs-keyword">if</span> (Boolean.TRUE.equals(delete)) &#123;<br>            log.info(<span class="hljs-string">&quot;Spring启动，节点:&#123;&#125;成功释放上次简历汇聚定时任务锁&quot;</span>, value);<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;<br>    &#125;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="定时任务：ResumeCollectionTask"><a href="#定时任务：ResumeCollectionTask" class="headerlink" title="定时任务：ResumeCollectionTask"></a>定时任务：ResumeCollectionTask</h2><figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-meta">@EnableScheduling</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ResumeCollectionTask</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ApplicationListener</span>&lt;<span class="hljs-title">ContextRefreshedEvent</span>&gt; </span>&#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 当这份代码被部署到不同的服务器，启动时为每台机器分配一个唯一的机器ID</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String MACHINE_ID = IdUtil.randomUUID();<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> RedisService redisService;<br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> AsyncResumeParser asyncResumeParser;<br><br>    <span class="hljs-meta">@Scheduled(cron = &quot;0 */1 * * * ?&quot;)</span><br><span class="hljs-comment">//    @Scheduled(fixedDelay = 60 * 1000L)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">resumeSchedule</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-comment">// 尝试上锁，返回true或false，锁的过期时间设置为10分钟（实际要根据项目调整，这也是自己实现Redis分布式锁的难点之一）</span><br>        <span class="hljs-keyword">boolean</span> lock = redisService.tryLock(RedisKeyConst.RESUME_PULL_TASK_LOCK, MACHINE_ID, <span class="hljs-number">10</span>, TimeUnit.MINUTES);<br><br>        <span class="hljs-comment">// 如果当前节点成功获取锁，那么整个系统只允许当前程序去MySQL拉取待执行任务</span><br>        <span class="hljs-keyword">if</span> (lock) &#123;<br>            log.info(<span class="hljs-string">&quot;节点:&#123;&#125;获取锁成功，定时任务启动&quot;</span>, MACHINE_ID);<br>            <span class="hljs-keyword">try</span> &#123;<br>                collectResume();<br>            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                log.info(<span class="hljs-string">&quot;定时任务异常:&quot;</span>, e);<br>            &#125; <span class="hljs-keyword">finally</span> &#123;<br>                redisService.unLock(RedisKeyConst.RESUME_PULL_TASK_LOCK, MACHINE_ID);<br>                log.info(<span class="hljs-string">&quot;节点:&#123;&#125;释放锁，定时任务结束&quot;</span>, MACHINE_ID);<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            log.info(<span class="hljs-string">&quot;节点:&#123;&#125;获取锁失败，放弃定时任务&quot;</span>, MACHINE_ID);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 任务主体：</span><br><span class="hljs-comment">     * 1.从数据库拉取符合条件的HR邮箱</span><br><span class="hljs-comment">     * 2.从HR邮箱拉取附件简历</span><br><span class="hljs-comment">     * 3.调用远程服务异步解析简历</span><br><span class="hljs-comment">     * 4.插入待处理任务到数据库，作为记录留存</span><br><span class="hljs-comment">     * 5.把待处理任务的id丢到Redis Message Queue，让Consumer去异步处理</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">collectResume</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;<br>        <span class="hljs-comment">// 跳过1、2两步，假设已经拉取到简历</span><br>        log.info(<span class="hljs-string">&quot;节点:&#123;&#125;从数据库拉取任务简历&quot;</span>, MACHINE_ID);<br>        List&lt;ResumeCollectionDO&gt; resumeCollectionList = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();<br>        resumeCollectionList.add(<span class="hljs-keyword">new</span> ResumeCollectionDO(<span class="hljs-number">1L</span>, <span class="hljs-string">&quot;张三的简历.pdf&quot;</span>));<br>        resumeCollectionList.add(<span class="hljs-keyword">new</span> ResumeCollectionDO(<span class="hljs-number">2L</span>, <span class="hljs-string">&quot;李四的简历.html&quot;</span>));<br>        resumeCollectionList.add(<span class="hljs-keyword">new</span> ResumeCollectionDO(<span class="hljs-number">3L</span>, <span class="hljs-string">&quot;王五的简历.doc&quot;</span>));<br>        <span class="hljs-comment">// 模拟数据库查询耗时</span><br>        TimeUnit.SECONDS.sleep(<span class="hljs-number">3</span>);<br><br>        log.info(<span class="hljs-string">&quot;提交任务到消息队列:&#123;&#125;&quot;</span>, resumeCollectionList.stream().map(ResumeCollectionDO::getName).collect(Collectors.joining(<span class="hljs-string">&quot;,&quot;</span>)));<br><br>        <span class="hljs-keyword">for</span> (ResumeCollectionDO resumeCollectionDO : resumeCollectionList) &#123;<br>            <span class="hljs-comment">// 上传简历异步解析，得到异步结果id</span><br>            Long asyncPredictId = asyncResumeParser.asyncParse(resumeCollectionDO);<br><br>            <span class="hljs-comment">// 把任务插入数据库</span><br>            <span class="hljs-comment">// 略...</span><br><br>            <span class="hljs-comment">// 把任务丢到Redis Message Queue</span><br>            ResumeCollectionDTO resumeCollectionDTO = <span class="hljs-keyword">new</span> ResumeCollectionDTO();<br>            BeanUtils.copyProperties(resumeCollectionDO, resumeCollectionDTO);<br>            resumeCollectionDTO.setAsyncPredictId(asyncPredictId);<br>            redisService.pushQueue(RedisKeyConst.RESUME_PARSE_TASK_QUEUE, resumeCollectionDTO);<br>        &#125;<br><br>    &#125;<br><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 项目重启后先尝试删除之前的锁（如果存在），防止死锁等待</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> event the event to respond to</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onApplicationEvent</span><span class="hljs-params">(ContextRefreshedEvent event)</span> </span>&#123;<br>        redisService.releaseLock(RedisKeyConst.RESUME_PULL_TASK_LOCK, MACHINE_ID);<br>    &#125;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="模拟第三方服务（异步）"><a href="#模拟第三方服务（异步）" class="headerlink" title="模拟第三方服务（异步）"></a>模拟第三方服务（异步）</h2><figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 第三方提供给的简历解析服务</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> qiyu</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Service</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AsyncResumeParser</span> </span>&#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> ObjectMapper objectMapper;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 模拟分配异步任务结果id，不用深究，没啥意义，反正每个任务都会得到一个id，稍后根据id返回最终解析结果</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> AtomicLong ASYNC_RESULT_ID = <span class="hljs-keyword">new</span> AtomicLong(<span class="hljs-number">1000</span>);<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 解析结果</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;Long, String&gt; results = <span class="hljs-keyword">new</span> HashMap&lt;&gt;();<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 模拟第三方服务异步解析，返回解析结果</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> resumeCollectionDO</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Long <span class="hljs-title">asyncParse</span><span class="hljs-params">(ResumeCollectionDO resumeCollectionDO)</span> </span>&#123;<br>        <span class="hljs-keyword">long</span> asyncPredictId = ASYNC_RESULT_ID.getAndIncrement();<br>        <span class="hljs-keyword">try</span> &#123;<br>            String resultJson = objectMapper.writeValueAsString(resumeCollectionDO);<br>            results.put(asyncPredictId, resultJson);<br>            <span class="hljs-keyword">return</span> asyncPredictId;<br>        &#125; <span class="hljs-keyword">catch</span> (JsonProcessingException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> -<span class="hljs-number">1L</span>;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据异步id返回解析结果，但此时未必已经解析成功</span><br><span class="hljs-comment">     * &lt;p&gt;</span><br><span class="hljs-comment">     * 解析状态</span><br><span class="hljs-comment">     * 0 初始化</span><br><span class="hljs-comment">     * 1 处理中</span><br><span class="hljs-comment">     * 2 调用成功</span><br><span class="hljs-comment">     * 3 调用失败</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> asyncPredictId</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> PredictResult <span class="hljs-title">getResult</span><span class="hljs-params">(Long asyncPredictId)</span> <span class="hljs-keyword">throws</span> ParseErrorException, InterruptedException </span>&#123;<br>        <span class="hljs-comment">// 随机模拟异步解析的状态</span><br>        <span class="hljs-keyword">int</span> value = ThreadLocalRandom.current().nextInt(<span class="hljs-number">100</span>);<br>        <span class="hljs-keyword">if</span> (value &gt;= <span class="hljs-number">85</span>) &#123;<br>            <span class="hljs-comment">// 模拟解析完成</span><br>            TimeUnit.SECONDS.sleep(<span class="hljs-number">1</span>);<br>            String resultJson = results.get(asyncPredictId);<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PredictResult(resultJson, <span class="hljs-number">2</span>);<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (value &lt;= <span class="hljs-number">5</span>) &#123;<br>            <span class="hljs-comment">// 模拟解析异常</span><br>            TimeUnit.SECONDS.sleep(<span class="hljs-number">1</span>);<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ParseErrorException(<span class="hljs-string">&quot;简历解析异常&quot;</span>);<br>        &#125;<br>        <span class="hljs-comment">// 如果时间过短，返回status=1，表示解析中</span><br>        TimeUnit.SECONDS.sleep(<span class="hljs-number">1</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PredictResult(<span class="hljs-string">&quot;&quot;</span>, <span class="hljs-number">1</span>);<br>    &#125;<br><br>&#125;<br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 解析异常</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> qiyu</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ParseErrorException</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Exception</span> </span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Constructs a new exception with &#123;<span class="hljs-doctag">@code</span> null&#125; as its detail message.</span><br><span class="hljs-comment">     * The cause is not initialized, and may subsequently be initialized by a</span><br><span class="hljs-comment">     * call to &#123;<span class="hljs-doctag">@link</span> #initCause&#125;.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ParseErrorException</span><span class="hljs-params">()</span> </span>&#123;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Constructs a new exception with the specified detail message.  The</span><br><span class="hljs-comment">     * cause is not initialized, and may subsequently be initialized by</span><br><span class="hljs-comment">     * a call to &#123;<span class="hljs-doctag">@link</span> #initCause&#125;.</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> message the detail message. The detail message is saved for</span><br><span class="hljs-comment">     *                later retrieval by the &#123;<span class="hljs-doctag">@link</span> #getMessage()&#125; method.</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ParseErrorException</span><span class="hljs-params">(String message)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(message);<br>    &#125;<br>&#125;<br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 第三方返回值</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> qiyu</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@NoArgsConstructor</span><br><span class="hljs-meta">@AllArgsConstructor</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PredictResult</span> </span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 解析结果</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> String resultJson;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 解析状态</span><br><span class="hljs-comment">     * 0 初始化</span><br><span class="hljs-comment">     * 1 处理中</span><br><span class="hljs-comment">     * 2 调用成功</span><br><span class="hljs-comment">     * 3 调用失败</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> Integer status;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="模拟异常"><a href="#模拟异常" class="headerlink" title="模拟异常"></a>模拟异常</h2><p><strong>在项目运行过程中，</strong>启动这个测试类的方法，即可观察不一样的现象。</p>
+<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@SpringBootTest</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RedisDistributedLockApplicationTests</span> </span>&#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> RedisService redisService;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 作为失败案例（因为不存在777L这个解析任务，AsyncResumeParse.results会返回null）</span><br><span class="hljs-comment">     * 观察RedisMessageQueueConsumer的处理方式</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">contextLoads</span><span class="hljs-params">()</span> </span>&#123;<br>        ResumeCollectionDTO resumeCollectionDTO = <span class="hljs-keyword">new</span> ResumeCollectionDTO();<br>        resumeCollectionDTO.setId(<span class="hljs-number">666L</span>);<br>        resumeCollectionDTO.setAsyncPredictId(<span class="hljs-number">777L</span>);<br>        resumeCollectionDTO.setName(<span class="hljs-string">&quot;测试1号&quot;</span>);<br><br>        redisService.pushQueue(RedisKeyConst.RESUME_PARSE_TASK_QUEUE, resumeCollectionDTO);<br><br>    &#125;<br><br>&#125;<br></code></pre></div></td></tr></table></figure>
+
+<h2 id="pom-xml"><a href="#pom-xml" class="headerlink" title="pom.xml"></a>pom.xml</h2><figure class="highlight yaml"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs yaml"><span class="hljs-attr">server:</span><br>  <span class="hljs-attr">port:</span> <span class="hljs-number">8080</span><br><br><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">redis:</span><br>    <span class="hljs-attr">host:</span> <span class="hljs-comment"># </span><br>    <span class="hljs-attr">password:</span> <span class="hljs-comment"># </span><br>    <span class="hljs-attr">database:</span> <span class="hljs-number">2</span><br></code></pre></div></td></tr></table></figure>
+
+
+
+
+
+<h1 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h1><p>啥都不说了，都在<del>jiu</del>代码里了。大家自己拷贝到本地，动手玩一下，加深对Redis锁和Redis消息队列的理解。</p>
+<div id="dplayer0" class="dplayer hexo-tag-dplayer-mark" style="margin-bottom: 20px;"></div><script>(function(){var player = new DPlayer({"container":document.getElementById("dplayer0"),"theme":"#FADFA3","loop":true,"video":{"url":"https://cloud.video.taobao.com/play/u/432628/p/1/d/hd/e/6/t/1/286252615441.mp4?auth_key=YXBwX2tleT04MDAwMDAwMTImYXV0aF9pbmZvPXsidGltZXN0YW1wRW5jcnlwdGVkIjoiMWUyYjkyMTY4NzMzYmMxMDQ2M2QyNDI5MDlhZWRjZDMifSZkdXJhdGlvbj0mdGltZXN0YW1wPTE2MzI0NTA3Mzc="}});window.dplayers||(window.dplayers=[]);window.dplayers.push(player);})()</script>
+
+
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604496815462-e6a559e8-27da-492f-b720-cf3f01e62429-20210923221905040.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>只有一个定时任务能去数据库拉取任务，到时多节点部署大致是下面这样（redis一般是独立部署的，和节点代码无关）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606026519366-b528e8be-3cfc-4a9a-a574-8a6ae401b41f-20210923221915282.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h1 id="后话"><a href="#后话" class="headerlink" title="后话"></a>后话</h1><p>上面展示的代码其实存在很多问题，我们会在下一篇指出并讨论解决方案。</p>
+<p>本文仅提供思路，开阔大家的眼界，<strong>千万别在自己项目中使用！！！！</strong>我当年被这个坑惨了，花里胡哨的，尤其Consumer里一大堆的sleep()，是非常low的！！</p>
+<p><strong>对于异步调用的结果，不要循环等待，</strong>而应该分为几步：</p>
+<ol>
+<li><p>调用异步接口，得到异步结果唯一id</p>
+</li>
+<li><p>将结果id保存到任务表中，作为一个任务</p>
+</li>
+<li><p>启动定时任务，根据id拉取最终结果（如果还没有结果，跳过当前任务，等下一个定时任务处理）</p>
+</li>
+</ol>
+<p>分布式定时任务可以考虑xxl-job或elastic-job，分布式锁推荐使用<a target="_blank" rel="noopener" href="https://github.com/redisson/redisson/wiki/8.-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%92%8C%E5%90%8C%E6%AD%A5%E5%99%A8">redisson</a>。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">浅谈Redis分布式锁(下)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/">
+                        <span class="hidden-mobile">浅谈Redis分布式锁(上)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments" lazyload>
+                
+                  
+                
+                
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        
+      </a>
+    </span>
+    
+  </div>
+
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <!-- Baidu Analytics -->
+    <script defer>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

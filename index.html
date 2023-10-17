@@ -1,138 +1,984 @@
+
+
 <!DOCTYPE html>
-<html>
-    <head>
-        <link href="https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/css/jetbrains-mono.min.css" rel="stylesheet">
-<title>low gravity</title>
-<meta charset="UTF-8">
-<meta name="description" content="">
-<meta name="keywords" content="">
-<meta name="author" content="ryan">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta property="og:type" content="website">
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="ryan">
+  <meta name="keywords" content="">
+  <meta property="og:type" content="website">
 <meta property="og:title" content="low gravity">
 <meta property="og:url" content="http://example.com/index.html">
 <meta property="og:site_name" content="low gravity">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="ryan">
-<meta name="twitter:card" content="summary">
-<link rel="shortcut icon" href="">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>low gravity</title>
 
-<link rel="stylesheet" href="/css/common.css">
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
+</head>
+
+
+<body>
+  <header style="height: 40vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>low gravity</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202207090050037.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="We used to look up at the sky">
+              
+            </span>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      <div class="container nopadding-x-md">
+        <div class="py-5" id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
+                
+
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2022/06/18/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF20%E8%AE%B2%E5%9F%BA%E7%A1%80%E6%8A%80%E6%9C%AF%E7%AF%87/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202207082336212.png" srcset="/img/loading.gif" lazyload alt="检索技术20讲 基础技术篇">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/06/18/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF20%E8%AE%B2%E5%9F%BA%E7%A1%80%E6%8A%80%E6%9C%AF%E7%AF%87/" target="_self">
+          检索技术20讲 基础技术篇
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/06/18/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF20%E8%AE%B2%E5%9F%BA%E7%A1%80%E6%8A%80%E6%9C%AF%E7%AF%87/" target="_self">
+          
+          
+            
+          
+          
+极客时间 检索技术20讲 学习文档
+
+何为检索一句话概括检索技术：它是更底层的通用技术，它研究的是如何将我们所需要的数据高效地取出来
+检索相关知识全景图
+
+基础知识1.线性结构检索基本概念
+数组和链表分别代表了连续空间和不连续空间的最基础的存储方式，它们是线性表（Linear List）的典型代表。其他所有的数据结构，比如栈、队列、二叉树、B+ 树等，都不外乎是这两者的结合和变化。以栈为例，它本
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-06-18 20:09" pubdate>
+              2022-06-18
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">数据结构与算法</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%90%9C%E7%B4%A2/">搜索</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2022/202210291341565.png" srcset="/img/loading.gif" lazyload alt="IK Aanlysis 文档">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/" target="_self">
+          IK Aanlysis 文档
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/" target="_self">
+          
+          
+            
+          
+          IK Aanlysis 文档1.源码分析
+我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的 
+core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegem
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-06-12 15:22" pubdate>
+              2022-06-12
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%88%86%E8%AF%8D%E5%99%A8/">分词器</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2022/202210291350435.png" srcset="/img/loading.gif" lazyload alt="analysis">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/" target="_self">
+          analysis
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/" target="_self">
+          
+          
+            
+          
+          analysisanalysis, 中文意思分析,指的是es在文档发送之前对文档正文的执行过程,以添加到inverted index, 这一过程包含一下几个步骤:
+
+使用字符过滤器过滤字符,由char filter完成
+分词,将input按指定的规则分割为多个token, 由tokanizer完成
+token过滤, 将上一步的tokens按一定规则进行处理, 由token filter完成
+存入索
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-05-29 14:09" pubdate>
+              2022-05-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%88%86%E8%AF%8D%E5%99%A8/">分词器</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2022/05/10/%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E6%B2%BB%E7%90%86%E6%96%B9%E6%A1%88/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202302192156679.png" srcset="/img/loading.gif" lazyload alt="缓存一致性治理方案">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/05/10/%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E6%B2%BB%E7%90%86%E6%96%B9%E6%A1%88/" target="_self">
+          缓存一致性治理方案
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/05/10/%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E6%B2%BB%E7%90%86%E6%96%B9%E6%A1%88/" target="_self">
+          
+          
+            
+          
+          缓存一致性治理方案引入缓存最简单的场景是, 业务在起步阶段, 流量很小, 读写请求直接操作数据库即可, 这时候的架构是这样的
+
+随着业务量的增长,  请求量越来越多, 每次请求都直接打到数据库的话, 会出现性能问题, 这时候, 缓存出现了 
+
+常用的缓存中间件是Redis(还有其他优秀的中间件,但我没接触过), 加入缓存之后, 随之而来的一个问题是, 数据如何放入缓存 
+db的数据直接全量刷入缓存
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-05-10 21:54" pubdate>
+              2022-05-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E7%BC%93%E5%AD%98/">缓存</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+            
+              <a href="/tags/%E7%BC%93%E5%AD%98/">缓存</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/08/29/rabbitmq%20delay%20queue/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202305232212983.png" srcset="/img/loading.gif" lazyload alt="rabbitmq delay queue">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/08/29/rabbitmq%20delay%20queue/" target="_self">
+          rabbitmq delay queue
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/08/29/rabbitmq%20delay%20queue/" target="_self">
+          
+          
+            
+          
+          一、说明在上一篇中，介绍了RabbitMQ中的死信队列是什么，何时使用以及如何使用RabbitMQ的死信队列。相信通过上一篇的学习，对于死信队列已经有了更多的了解，这一篇的内容也跟死信队列息息相关，如果你还不了解死信队列，那么建议你先进行上一篇文章的阅读。
+这一篇里，我们将继续介绍RabbitMQ的高级特性，通过本篇的学习，你将收获：
+
+什么是延时队列
+延时队列使用场景
+RabbitMQ中的TTL
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-08-29 00:54" pubdate>
+              2021-08-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/rabbitmq/">rabbitmq</a>
+            
+              <a href="/tags/%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97/">延时队列</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/08/28/rabbitmq%20dead%20queue/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202110222055333.png" srcset="/img/loading.gif" lazyload alt="rabbitmq dead queue">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/08/28/rabbitmq%20dead%20queue/" target="_self">
+          rabbitmq dead queue
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/08/28/rabbitmq%20dead%20queue/" target="_self">
+          
+          
+            
+          
+          一、说明RabbitMQ是流行的开源消息队列系统，使用erlang语言开发，由于其社区活跃度高，维护更新较快，性能稳定，深得很多企业的欢心（当然，也包括我现在所在公司【手动滑稽】）。
+为了保证订单业务的消息数据不丢失，需要使用到RabbitMQ的死信队列机制，当消息消费发生异常时，将消息投入死信队列中。但由于对死信队列的概念及配置不熟悉，导致曾一度陷入百度的汪洋大海，无法自拔，很多文章都看起来可行
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-08-28 00:54" pubdate>
+              2021-08-28
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/rabbitmq/">rabbitmq</a>
+            
+              <a href="/tags/%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97/">死信队列</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2021/03/04/%E5%A4%A7%E7%99%BD%E8%AF%9D%E8%81%8A%E9%80%8FJVM/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281401487.png" srcset="/img/loading.gif" lazyload alt="大白话聊透JVM">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/03/04/%E5%A4%A7%E7%99%BD%E8%AF%9D%E8%81%8A%E9%80%8FJVM/" target="_self">
+          大白话聊透JVM
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/03/04/%E5%A4%A7%E7%99%BD%E8%AF%9D%E8%81%8A%E9%80%8FJVM/" target="_self">
+          
+          
+            
+          
+          
+转载自掘金：说出你的愿望吧丷
+原文地址：https://juejin.im/post/5e1505d0f265da5d5d744050#heading-28
+
+前言如果在文中用词或者理解方面出现问题，欢迎指出。此文旨在提及和而不深究，但会尽量效率地把知识点都抛出来
+一、JVM的基本介绍JVM 是 Java Virtual Machine 的缩写，它是一个虚构出来的计算机，一种规范。通过在实际的计
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-03-04 14:09" pubdate>
+              2021-03-04
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JavaSE/">JavaSE</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/" target="_self">
+          <img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281202917.png" srcset="/img/loading.gif" lazyload alt="浅谈Java GC">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/" target="_self">
+          浅谈Java GC
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/" target="_self">
+          
+          
+            
+          
+          JVM 垃圾回收写在前面本节常见面试题问题答案在文中都有提到
+
+如何判断对象是否死亡（两种方法）。
+简单的介绍一下强引用、软引用、弱引用、虚引用（虚引用与软引用和弱引用的区别、使用软引用能带来的好处）。
+如何判断一个常量是废弃常量
+如何判断一个类是无用的类
+垃圾收集有哪些算法，各自的特点？
+HotSpot 为什么要分为新生代和老年代？
+常见的垃圾回收器有哪些？
+介绍一下 CMS,G1 收集器。
+M
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-11-22 23:21" pubdate>
+              2020-11-22
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JavaSE/">JavaSE</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+              <a href="/tags/GC/">GC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/" target="_self">
+          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145722.png" srcset="/img/loading.gif" lazyload alt="浅谈Redis分布式锁(下)">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/" target="_self">
+          浅谈Redis分布式锁(下)
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/" target="_self">
+          
+          
+            
+          
+          自定义Redis分布式锁的弊端在上一篇我们自定义了一个Redis分布式锁，用来解决多节点定时任务的拉取问题（避免任务重复执行）：
+
+但仍然存在很多问题：
+
+加锁操作不是原子性的（setnx和expire两步操作不是原子性的，中间宕机会导致死锁）
+
+1234567891011public boolean tryLock(String lockKey, String value, long expir
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-10-25 02:14" pubdate>
+              2020-10-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/10/17/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%AD)/" target="_self">
+          <img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145606.png" srcset="/img/loading.gif" lazyload alt="浅谈Redis分布式锁(中)">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2020/10/17/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%AD)/" target="_self">
+          浅谈Redis分布式锁(中)
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/10/17/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%AD)/" target="_self">
+          
+          
+            
+          
+          Demo构思在我看来，同样需要使用锁，动机可能完全相反：
+
+在保证线程安全的前提下，尽量让所有线程都执行成功
+在保证线程安全的前提下，只让一个线程执行成功
+
+前者适用于秒杀等场景。作为商家，当然希望在不发生线程安全问题的前提下，让每一个订单都生效，直到商品售罄。此时分布式锁的写法可以是“不断重试”或“阻塞等待”，即：递归或while true循环尝试获取、阻塞等待。
+
+而后者适用于分布式系统或多节
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-10-17 23:01" pubdate>
+              2020-10-17
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="page-number" href="/page/4/#board">4</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+  <!-- 备案信息 -->
+  <div class="beian">
+    <span>
+      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+        
+      </a>
+    </span>
+    
+  </div>
 
 
   
-<link rel="stylesheet" href="/css/index.css">
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
 
 
 
 
 
 
-    <meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
-    <body>
-        <div class="home">
-    <img class="avatar" src=""/>
-    <div class="nav-bar">
-    
-</div>
-    <div class="articles-list">
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2022/06/18/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF20%E8%AE%B2%E5%9F%BA%E7%A1%80%E6%8A%80%E6%9C%AF%E7%AF%87/" class="article-preview-top-title-link"><span class="article-preview-top-title">检索技术20讲 基础技术篇</span></a>
-                <span class="article-preview-top-date">2022-5-18</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/" class="article-preview-top-title-link"><span class="article-preview-top-title">IK Aanlysis 文档</span></a>
-                <span class="article-preview-top-date">2022-5-12</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/" class="article-preview-top-title-link"><span class="article-preview-top-title">analysis</span></a>
-                <span class="article-preview-top-date">2022-4-29</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2022/05/10/%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E6%B2%BB%E7%90%86%E6%96%B9%E6%A1%88/" class="article-preview-top-title-link"><span class="article-preview-top-title">缓存一致性治理方案</span></a>
-                <span class="article-preview-top-date">2022-4-10</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2021/08/29/rabbitmq%20delay%20queue/" class="article-preview-top-title-link"><span class="article-preview-top-title">rabbitmq delay queue</span></a>
-                <span class="article-preview-top-date">2021-7-29</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2021/08/28/rabbitmq%20dead%20queue/" class="article-preview-top-title-link"><span class="article-preview-top-title">rabbitmq dead queue</span></a>
-                <span class="article-preview-top-date">2021-7-28</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2021/05/08/%E9%9D%A2%E8%AF%95%E9%A2%98/" class="article-preview-top-title-link"><span class="article-preview-top-title">面试题</span></a>
-                <span class="article-preview-top-date">2021-4-8</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2021/03/04/%E5%A4%A7%E7%99%BD%E8%AF%9D%E8%81%8A%E9%80%8FJVM/" class="article-preview-top-title-link"><span class="article-preview-top-title">大白话聊透JVM</span></a>
-                <span class="article-preview-top-date">2021-2-4</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/" class="article-preview-top-title-link"><span class="article-preview-top-title">浅谈Java GC</span></a>
-                <span class="article-preview-top-date">2020-10-22</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-        <div class="article-preview">
-            <div class="article-preview-top">
-                <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/" class="article-preview-top-title-link"><span class="article-preview-top-title">浅谈Redis分布式锁(下)</span></a>
-                <span class="article-preview-top-date">2020-9-25</span>
-            </div>
-            <p class="article-preview-content"></p>
-        </div>
-    
-</div>
-    <div class="page-switcher">
-    <a class="page-switcher-number" href="/">1</a>
-    
-        <a class="page-switcher-number" href="/page/2">2</a>
-    
-        <a class="page-switcher-number" href="/page/3">3</a>
-    
-        <a class="page-switcher-number" href="/page/4">4</a>
-    
-</div>
-</div>
-        <footer class="footer">Powered By <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> With Theme <a target="_blank" rel="noopener" href="https://github.com/EvanLuo42/oliver">Oliver</a></footer>
-        <footer class="footer"></footer>
-    </body>
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <!-- Baidu Analytics -->
+    <script defer>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
 </html>
