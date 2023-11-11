@@ -718,7 +718,7 @@ M
 
 加锁操作不是原子性的（setnx和expire两步操作不是原子性的，中间宕机会导致死锁）
 
-1234567891011public boolean tryLock(String lockKey, String value, long expir
+public boolean tryLock(String lockKey, String value, long expireTime, TimeUn
         </a>
       </p>
 
@@ -871,16 +871,6 @@ M
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

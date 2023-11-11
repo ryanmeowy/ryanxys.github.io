@@ -217,7 +217,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.3k 字
+      undefined 字
     </span>
   
 
@@ -226,7 +226,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      10 分钟
+      NaN 分钟
     </span>
   
 
@@ -285,7 +285,72 @@
 <h5 id="5-匹配定义词性"><a href="#5-匹配定义词性" class="headerlink" title="5.匹配定义词性"></a>5.匹配定义词性</h5><p>自定义的字典加载完成后,下一步就是使用词元匹配词典来确认词性,以品牌词典举例, 分词器在获取词元的时候会调用分词器主类IKSegmenter中的next()方法来获取下一个词元,并判断是否为停用词, <strong>我们可以在这里动一些手脚, 通过匹配词典,来判断当前词元的词性</strong></p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082130700.png" srcset="/img/loading.gif" lazyload alt="image-20220508213052634"></p>
 <p>isBrand()方法调用DictSegmenter中的match()方法,品牌词已经加载至一个字典树之内，所以整个过程也就是一个从树根层层往下走的一个层层递归的方式,首字符匹配到一个节点后,判断下面是否还有节点,有就继续往下匹配;匹配的结果一共三种UNMATCH（未匹配），MATCH（匹配）， PREFIX（前缀匹配）。</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 匹配词段</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> charArray</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> begin</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> length</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> searchHit</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> Hit </span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">Hit <span class="hljs-title">match</span><span class="hljs-params">(<span class="hljs-keyword">char</span>[] charArray , <span class="hljs-keyword">int</span> begin , <span class="hljs-keyword">int</span> length , Hit searchHit)</span></span>&#123;<br>	<br>	<span class="hljs-keyword">if</span>(searchHit == <span class="hljs-keyword">null</span>)&#123;<br>		<span class="hljs-comment">//如果hit为空，新建</span><br>		searchHit= <span class="hljs-keyword">new</span> Hit();<br>		<span class="hljs-comment">//设置hit的其实文本位置</span><br>		searchHit.setBegin(begin);<br>	&#125;<span class="hljs-keyword">else</span>&#123;<br>		<span class="hljs-comment">//否则要将HIT状态重置</span><br>		searchHit.setUnmatch();<br>	&#125;<br>	<span class="hljs-comment">//设置hit的当前处理位置</span><br>	searchHit.setEnd(begin);<br><br>       Character keyChar = Character.valueOf(charArray[begin]);<br>	DictSegment ds = <span class="hljs-keyword">null</span>;<br>	<br>	<span class="hljs-comment">//引用实例变量为本地变量，避免查询时遇到更新的同步问题</span><br>	DictSegment[] segmentArray = <span class="hljs-keyword">this</span>.childrenArray;<br>	Map&lt;Character , DictSegment&gt; segmentMap = <span class="hljs-keyword">this</span>.childrenMap;		<br>	<br>	<span class="hljs-comment">//STEP1 在节点中查找keyChar对应的DictSegment</span><br>	<span class="hljs-keyword">if</span>(segmentArray != <span class="hljs-keyword">null</span>)&#123;<br>		<span class="hljs-comment">//在数组中查找</span><br>		DictSegment keySegment = <span class="hljs-keyword">new</span> DictSegment(keyChar);<br>		<span class="hljs-keyword">int</span> position = Arrays.binarySearch(segmentArray, <span class="hljs-number">0</span> , <span class="hljs-keyword">this</span>.storeSize , keySegment);<br>		<span class="hljs-keyword">if</span>(position &gt;= <span class="hljs-number">0</span>)&#123;<br>			ds = segmentArray[position];<br>		&#125;<br><br>	&#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(segmentMap != <span class="hljs-keyword">null</span>)&#123;<br>		<span class="hljs-comment">//在map中查找</span><br>		ds = (DictSegment)segmentMap.get(keyChar);<br>	&#125;<br>	<br>	<span class="hljs-comment">//STEP2 找到DictSegment，判断词的匹配状态，是否继续递归，还是返回结果</span><br>	<span class="hljs-keyword">if</span>(ds != <span class="hljs-keyword">null</span>)&#123;			<br>		<span class="hljs-keyword">if</span>(length &gt; <span class="hljs-number">1</span>)&#123;<br>			<span class="hljs-comment">//词未匹配完，继续往下搜索</span><br>			<span class="hljs-keyword">return</span> ds.match(charArray, begin + <span class="hljs-number">1</span> , length - <span class="hljs-number">1</span> , searchHit);<br>		&#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (length == <span class="hljs-number">1</span>)&#123;<br>			<span class="hljs-comment">//搜索最后一个char</span><br>			<span class="hljs-keyword">if</span>(ds.nodeState == <span class="hljs-number">1</span>)&#123;<br>				<span class="hljs-comment">//添加HIT状态为完全匹配</span><br>				searchHit.setMatch();<br>			&#125;<br>			<span class="hljs-keyword">if</span>(ds.hasNextNode())&#123;<br>				<span class="hljs-comment">//添加HIT状态为前缀匹配</span><br>				searchHit.setPrefix();<br>				<span class="hljs-comment">//记录当前位置的DictSegment</span><br>				searchHit.setMatchedDictSegment(ds);<br>			&#125;<br>			<span class="hljs-keyword">return</span> searchHit;<br>		&#125;<br>	&#125;<br>	<span class="hljs-comment">//STEP3 没有找到DictSegment， 将HIT设置为不匹配</span><br>	<span class="hljs-keyword">return</span> searchHit;		<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * 匹配词段
+ * @param charArray
+ * @param begin
+ * @param length
+ * @param searchHit
+ * @return Hit 
+ */</span>
+<span class="token class-name">Hit</span> <span class="token function">match</span><span class="token punctuation">(</span><span class="token keyword">char</span><span class="token punctuation">[</span><span class="token punctuation">]</span> charArray <span class="token punctuation">,</span> <span class="token keyword">int</span> begin <span class="token punctuation">,</span> <span class="token keyword">int</span> length <span class="token punctuation">,</span> <span class="token class-name">Hit</span> searchHit<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+	
+	<span class="token keyword">if</span><span class="token punctuation">(</span>searchHit <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+		<span class="token comment">//如果hit为空，新建</span>
+		searchHit<span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Hit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token comment">//设置hit的其实文本位置</span>
+		searchHit<span class="token punctuation">.</span><span class="token function">setBegin</span><span class="token punctuation">(</span>begin<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span><span class="token keyword">else</span><span class="token punctuation">&#123;</span>
+		<span class="token comment">//否则要将HIT状态重置</span>
+		searchHit<span class="token punctuation">.</span><span class="token function">setUnmatch</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">//设置hit的当前处理位置</span>
+	searchHit<span class="token punctuation">.</span><span class="token function">setEnd</span><span class="token punctuation">(</span>begin<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+       <span class="token class-name">Character</span> keyChar <span class="token operator">=</span> <span class="token class-name">Character</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>charArray<span class="token punctuation">[</span>begin<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token class-name">DictSegment</span> ds <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+	
+	<span class="token comment">//引用实例变量为本地变量，避免查询时遇到更新的同步问题</span>
+	<span class="token class-name">DictSegment</span><span class="token punctuation">[</span><span class="token punctuation">]</span> segmentArray <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>childrenArray<span class="token punctuation">;</span>
+	<span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Character</span> <span class="token punctuation">,</span> <span class="token class-name">DictSegment</span><span class="token punctuation">></span></span> segmentMap <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>childrenMap<span class="token punctuation">;</span>		
+	
+	<span class="token comment">//STEP1 在节点中查找keyChar对应的DictSegment</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>segmentArray <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+		<span class="token comment">//在数组中查找</span>
+		<span class="token class-name">DictSegment</span> keySegment <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DictSegment</span><span class="token punctuation">(</span>keyChar<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">int</span> position <span class="token operator">=</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">binarySearch</span><span class="token punctuation">(</span>segmentArray<span class="token punctuation">,</span> <span class="token number">0</span> <span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>storeSize <span class="token punctuation">,</span> keySegment<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span>position <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+			ds <span class="token operator">=</span> segmentArray<span class="token punctuation">[</span>position<span class="token punctuation">]</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+
+	<span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>segmentMap <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+		<span class="token comment">//在map中查找</span>
+		ds <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">DictSegment</span><span class="token punctuation">)</span>segmentMap<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>keyChar<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+	
+	<span class="token comment">//STEP2 找到DictSegment，判断词的匹配状态，是否继续递归，还是返回结果</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span>ds <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>			
+		<span class="token keyword">if</span><span class="token punctuation">(</span>length <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+			<span class="token comment">//词未匹配完，继续往下搜索</span>
+			<span class="token keyword">return</span> ds<span class="token punctuation">.</span><span class="token function">match</span><span class="token punctuation">(</span>charArray<span class="token punctuation">,</span> begin <span class="token operator">+</span> <span class="token number">1</span> <span class="token punctuation">,</span> length <span class="token operator">-</span> <span class="token number">1</span> <span class="token punctuation">,</span> searchHit<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span><span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>length <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+			<span class="token comment">//搜索最后一个char</span>
+			<span class="token keyword">if</span><span class="token punctuation">(</span>ds<span class="token punctuation">.</span>nodeState <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+				<span class="token comment">//添加HIT状态为完全匹配</span>
+				searchHit<span class="token punctuation">.</span><span class="token function">setMatch</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token keyword">if</span><span class="token punctuation">(</span>ds<span class="token punctuation">.</span><span class="token function">hasNextNode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+				<span class="token comment">//添加HIT状态为前缀匹配</span>
+				searchHit<span class="token punctuation">.</span><span class="token function">setPrefix</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token comment">//记录当前位置的DictSegment</span>
+				searchHit<span class="token punctuation">.</span><span class="token function">setMatchedDictSegment</span><span class="token punctuation">(</span>ds<span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token keyword">return</span> searchHit<span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">//STEP3 没有找到DictSegment， 将HIT设置为不匹配</span>
+	<span class="token keyword">return</span> searchHit<span class="token punctuation">;</span>		
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>匹配成功则将当前词元的type设置为brand,没有匹配上则继续匹配其他词典,直至结束.</p>
 <h5 id="6基于规则的歧义判断"><a href="#6基于规则的歧义判断" class="headerlink" title="6基于规则的歧义判断"></a>6基于规则的歧义判断</h5><!--todo-->
@@ -437,16 +502,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

@@ -709,7 +709,12 @@ UDP 在传送数据之前不需要先建立连接，远程主机在收到 UDP �
           
           1. 基础1.1. 正确使用 equals 方法Object的equals方法容易抛空指针异常，应使用常量或确定有值的对象来调用 equals。 
 举个例子：
-1234567// 不能使用一个值为null的引用类型变量来调用非静态方法，否则会抛出异常String str = null;if (str.equals(&quot;SnailClimb&quot;)) &#123;  ...&#125;
+// 不能使用一个值为null的引用类型变量来调用非静态方法，否则会抛出异常
+String str = null;
+if (str.equals("SnailClimb")) &#123;
+  ...
+&#125; else &#123;
+
         </a>
       </p>
 
@@ -855,16 +860,6 @@ UDP 在传送数据之前不需要先建立连接，远程主机在收到 UDP �
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

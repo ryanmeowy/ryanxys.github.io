@@ -231,7 +231,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.6k 字
+      undefined 字
     </span>
   
 
@@ -240,7 +240,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      27 分钟
+      NaN 分钟
     </span>
   
 
@@ -281,7 +281,38 @@
 <p>表中有1106条数据：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1584877002375-f8dd6ff0-eff5-485b-a2e7-277a049ffdaa-20210923151103929.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>经过《实用小算法》的学习，我们很容易写出以下代码：</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs reasonml"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 查询行业分类及其子分类</span><br><span class="hljs-comment"> */</span><br>@Test<br>public void test<span class="hljs-constructor">Cascade()</span> &#123;<br><br>    <span class="hljs-comment">// 查询数据库，得到所有行业类别</span><br>    List&lt;SysPosition&gt; sysPositionList = sysPositionMapper.select<span class="hljs-constructor">All()</span>;<br><br>    long start = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br><br>    Map&lt;String, SysPosition&gt; sysPositionMap = <span class="hljs-keyword">new</span> HashMap&lt;&gt;<span class="hljs-literal">()</span>;<br>    List&lt;SysPosition&gt; result = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;<span class="hljs-literal">()</span>;<br><br>    <span class="hljs-comment">// 第一步：List转Map</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        sysPositionMap.put(sysPosition.get<span class="hljs-constructor">Code()</span>, sysPosition);<br>    &#125;<br><br>    <span class="hljs-comment">// 第二步：遍历List，利用Map完成嵌套</span><br>    <span class="hljs-keyword">for</span> (SysPosition sysPosition : sysPositionList) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;-1&quot;</span>.equals(sysPosition.get<span class="hljs-constructor">ParentCode()</span>)) &#123;<br>            result.add(sysPosition);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            SysPosition parent = sysPositionMap.get(sysPosition.get<span class="hljs-constructor">ParentCode()</span>);<br>            parent.get<span class="hljs-constructor">Children()</span>.add(sysPosition);<br>        &#125;<br>    &#125;<br><br>    long <span class="hljs-keyword">end</span> = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>current<span class="hljs-constructor">TimeMillis()</span>;<br>    <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">System</span>.</span></span>out.println(<span class="hljs-string">&quot;耗时：&quot;</span> + (<span class="hljs-keyword">end</span> - start));<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">&#x2F;**
+ * 查询行业分类及其子分类
+ *&#x2F;
+@Test
+public void testCascade() &#123;
+
+    &#x2F;&#x2F; 查询数据库，得到所有行业类别
+    List&lt;SysPosition&gt; sysPositionList &#x3D; sysPositionMapper.selectAll();
+
+    long start &#x3D; System.currentTimeMillis();
+
+    Map&lt;String, SysPosition&gt; sysPositionMap &#x3D; new HashMap&lt;&gt;();
+    List&lt;SysPosition&gt; result &#x3D; new ArrayList&lt;&gt;();
+
+    &#x2F;&#x2F; 第一步：List转Map
+    for (SysPosition sysPosition : sysPositionList) &#123;
+        sysPositionMap.put(sysPosition.getCode(), sysPosition);
+    &#125;
+
+    &#x2F;&#x2F; 第二步：遍历List，利用Map完成嵌套
+    for (SysPosition sysPosition : sysPositionList) &#123;
+        if (&quot;-1&quot;.equals(sysPosition.getParentCode())) &#123;
+            result.add(sysPosition);
+        &#125; else &#123;
+            SysPosition parent &#x3D; sysPositionMap.get(sysPosition.getParentCode());
+            parent.getChildren().add(sysPosition);
+        &#125;
+    &#125;
+
+    long end &#x3D; System.currentTimeMillis();
+    System.out.println(&quot;耗时：&quot; + (end - start));
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>在《实用小算法》中，我们分析过效率：List转Map这种方式会有2N次循环，也就是会循环2212次。</p>
 <p>大家猜上面程序耗时多少？</p>
@@ -392,10 +423,19 @@
 <li>Navicat图形界面</li>
 </ul>
 <p>利用SQL语句添加索引：</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs pgsql"><span class="hljs-comment">-- 1.添加PRIMARY KEY（主键索引） </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">PRIMARY KEY</span> (`<span class="hljs-keyword">column</span>`) ;<br><span class="hljs-comment">-- 2.添加UNIQUE(唯一索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">UNIQUE</span> (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 3.添加INDEX(普通索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 4.添加FULLTEXT(全文索引) </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> FULLTEXT (`<span class="hljs-keyword">column</span>`);<br><span class="hljs-comment">-- 5.添加联合索引 </span><br><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> `<span class="hljs-built_in">table_name</span>` <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (`column1`, `column2`, `column3`);<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">-- 1.添加PRIMARY KEY（主键索引） 
+ALTER TABLE &#96;table_name&#96; ADD PRIMARY KEY (&#96;column&#96;) ;
+-- 2.添加UNIQUE(唯一索引) 
+ALTER TABLE &#96;table_name&#96; ADD UNIQUE (&#96;column&#96;);
+-- 3.添加INDEX(普通索引) 
+ALTER TABLE &#96;table_name&#96; ADD INDEX index_name (&#96;column&#96;);
+-- 4.添加FULLTEXT(全文索引) 
+ALTER TABLE &#96;table_name&#96; ADD FULLTEXT (&#96;column&#96;);
+-- 5.添加联合索引 
+ALTER TABLE &#96;table_name&#96; ADD INDEX index_name (&#96;column1&#96;, &#96;column2&#96;, &#96;column3&#96;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>在本案例中，可以写：</p>
-<figure class="highlight autohotkey"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs autohotkey">ALTER TABLE `moneywithdraw` ADD INDEX idx_auditor_id (`auditor_id`)<span class="hljs-comment">;</span><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">ALTER TABLE &#96;moneywithdraw&#96; ADD INDEX idx_auditor_id (&#96;auditor_id&#96;);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>利用Navicat图形界面创建<strong>单列索引：</strong></p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521376561-1c62b92e-60ae-4d06-ad73-6cfa4c69101b-20210923151251589.png" srcset="/img/loading.gif" lazyload alt="img"></p>
@@ -689,16 +729,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

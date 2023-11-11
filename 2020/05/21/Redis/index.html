@@ -222,7 +222,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.1k 字
+      undefined 字
     </span>
   
 
@@ -231,7 +231,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      19 分钟
+      NaN 分钟
     </span>
   
 
@@ -345,7 +345,9 @@
 <li>当AOF持久化处于激活状态，服务器执行完写命令之后，写命令将会被追加append到aof_buf缓冲区的末尾</li>
 <li>在服务器每结束一个事件循环之前，将会调用flushAppendOnlyFile函数决定是否要将aof_buf的内容保存到AOF文件中，可以通过配置appendfsync来决定。</li>
 </ol>
-<figure class="highlight properties"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs properties"><span class="hljs-attr">always</span> <span class="hljs-string">##aof_buf内容写入并同步到AOF文件</span><br><span class="hljs-attr">everysec</span> <span class="hljs-string">##将aof_buf中内容写入到AOF文件，如果上次同步AOF文件时间距离现在超过1秒，则再次对AOF文件进行同步</span><br><span class="hljs-attr">no</span> <span class="hljs-string">##将aof_buf内容写入AOF文件，但是并不对AOF文件进行同步，同步时间由操作系统决定</span><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-properties" data-language="properties"><code class="language-properties"><span class="token attr-name">always</span> <span class="token attr-value">##aof_buf内容写入并同步到AOF文件</span>
+<span class="token attr-name">everysec</span> <span class="token attr-value">##将aof_buf中内容写入到AOF文件，如果上次同步AOF文件时间距离现在超过1秒，则再次对AOF文件进行同步</span>
+<span class="token attr-name">no</span> <span class="token attr-value">##将aof_buf内容写入AOF文件，但是并不对AOF文件进行同步，同步时间由操作系统决定</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 <p>如果不设置，默认选项将会是everysec，因为always来说虽然最安全（只会丢失一次事件循环的写命令），但是性能较差，而everysec模式只不过会可能丢失1秒钟的数据，而no模式的效率和everysec相仿，但是会丢失上次同步AOF文件之后的所有写命令数据。</p>
 <p>##<strong>怎么实现Redis的高可用？</strong></p>
@@ -551,16 +553,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

@@ -231,7 +231,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      12k 字
+      undefined 字
     </span>
   
 
@@ -240,7 +240,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      37 分钟
+      NaN 分钟
     </span>
   
 
@@ -295,25 +295,59 @@
 <blockquote>
 <p><strong>🐛 修正（参见：<a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide/issues/552">issue552</a>）</strong>：“Hotspot 遍历所有对象时，按照年龄从小到大对其所占用的大小进行累积，当累积的某个年龄大小超过了 survivor 区的一半时，取这个年龄和 MaxTenuringThreshold 中更小的一个值，作为新的晋升年龄阈值”。</p>
 <p><strong>动态年龄计算的代码如下</strong></p>
-<figure class="highlight c++"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c++"><span class="hljs-function">uint <span class="hljs-title">ageTable::compute_tenuring_threshold</span><span class="hljs-params">(<span class="hljs-keyword">size_t</span> survivor_capacity)</span> </span>&#123;<br> <span class="hljs-comment">//survivor_capacity是survivor空间的大小</span><br> <span class="hljs-keyword">size_t</span> desired_survivor_size = (<span class="hljs-keyword">size_t</span>)((((<span class="hljs-keyword">double</span>)survivor_capacity)*TargetSurvivorRatio)/<span class="hljs-number">100</span>);<br> <span class="hljs-keyword">size_t</span> total = <span class="hljs-number">0</span>;<br> uint age = <span class="hljs-number">1</span>;<br> <span class="hljs-keyword">while</span> (age &lt; table_size) &#123;<br>     <span class="hljs-comment">//sizes数组是每个年龄段对象大小</span><br>     total += sizes[age];<br>     <span class="hljs-keyword">if</span> (total &gt; desired_survivor_size) &#123;<br>         <span class="hljs-keyword">break</span>;<br>     &#125;<br>     age++;<br> &#125;<br> uint result = age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;<br> ...<br>&#125;<br><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">uint ageTable::compute_tenuring_threshold(size_t survivor_capacity) &#123;
+ &#x2F;&#x2F;survivor_capacity是survivor空间的大小
+ size_t desired_survivor_size &#x3D; (size_t)((((double)survivor_capacity)*TargetSurvivorRatio)&#x2F;100);
+ size_t total &#x3D; 0;
+ uint age &#x3D; 1;
+ while (age &lt; table_size) &#123;
+     &#x2F;&#x2F;sizes数组是每个年龄段对象大小
+     total +&#x3D; sizes[age];
+     if (total &gt; desired_survivor_size) &#123;
+         break;
+     &#125;
+     age++;
+ &#125;
+ uint result &#x3D; age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;
+ ...
+&#125;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 </blockquote>
 <p>经过这次 GC 后，Eden 区和”From”区已经被清空。这个时候，”From”和”To”会交换他们的角色，也就是新的”To”就是上次 GC 前的“From”，新的”From”就是上次 GC 前的”To”。不管怎样，都会保证名为 To 的 Survivor 区域是空的。Minor GC 会一直重复这样的过程，直到“To”区被填满，”To”区被填满之后，会将所有对象移动到老年代中。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157739.png" srcset="/img/loading.gif" lazyload alt="堆内存常见分配策略 "></p>
 <h3 id="1-1-对象优先在-eden-区分配"><a href="#1-1-对象优先在-eden-区分配" class="headerlink" title="1.1 对象优先在 eden 区分配"></a>1.1 对象优先在 eden 区分配</h3><p>目前主流的垃圾收集器都会采用分代回收算法，因此需要将堆内存分为新生代和老年代，这样我们就可以根据各个年代的特点选择合适的垃圾收集算法。</p>
 <p>大多数情况下，对象在新生代中 eden 区分配。当 eden 区没有足够空间进行分配时，虚拟机将发起一次 Minor GC.下面我们来进行实际测试以下。</p>
 <p><strong>测试：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GCTest</span> </span>&#123;<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>		<span class="hljs-keyword">byte</span>[] allocation1, allocation2;<br>		allocation1 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">30900</span>*<span class="hljs-number">1024</span>];<br>		<span class="hljs-comment">//allocation2 = new byte[900*1024];</span><br>	&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">GCTest</span> <span class="token punctuation">&#123;</span>
+
+	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> allocation1<span class="token punctuation">,</span> allocation2<span class="token punctuation">;</span>
+		allocation1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">30900</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+		<span class="token comment">//allocation2 = new byte[900*1024];</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>通过以下方式运行：<br><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157760.png" srcset="/img/loading.gif" lazyload></p>
 <p>添加的参数：<code>-XX:+PrintGCDetails</code><br><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157707.png" srcset="/img/loading.gif" lazyload></p>
 <p>运行结果 (红色字体描述有误，应该是对应于 JDK1.7 的永久代)：</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157710.jpg" srcset="/img/loading.gif" lazyload></p>
 <p>从上图我们可以看出 eden 区内存几乎已经被分配完全（即使程序什么也不做，新生代也会使用 2000 多 k 内存）。假如我们再为 allocation2 分配内存会出现什么情况呢？</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java">allocation2 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">900</span>*<span class="hljs-number">1024</span>];<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">allocation2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">900</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157052.jpg" srcset="/img/loading.gif" lazyload></p>
 <p><strong>简单解释一下为什么会出现这种情况：</strong> 因为给 allocation2 分配内存的时候 eden 区内存几乎已经被分配完了，我们刚刚讲了当 Eden 区没有足够空间进行分配时，虚拟机将发起一次 Minor GC.GC 期间虚拟机又发现 allocation1 无法存入 Survivor 空间，所以只好通过 <strong>分配担保机制</strong> 把新生代的对象提前转移到老年代中去，老年代上的空间足够存放 allocation1，所以不会出现 Full GC。执行 Minor GC 后，后面分配的对象如果能够存在 eden 区的话，还是会在 eden 区分配内存。可以执行如下代码验证：</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GCTest</span> </span>&#123;<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>		<span class="hljs-keyword">byte</span>[] allocation1, allocation2,allocation3,allocation4,allocation5;<br>		allocation1 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">32000</span>*<span class="hljs-number">1024</span>];<br>		allocation2 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1000</span>*<span class="hljs-number">1024</span>];<br>		allocation3 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1000</span>*<span class="hljs-number">1024</span>];<br>		allocation4 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1000</span>*<span class="hljs-number">1024</span>];<br>		allocation5 = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1000</span>*<span class="hljs-number">1024</span>];<br>	&#125;<br>&#125;<br><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">GCTest</span> <span class="token punctuation">&#123;</span>
+
+	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> allocation1<span class="token punctuation">,</span> allocation2<span class="token punctuation">,</span>allocation3<span class="token punctuation">,</span>allocation4<span class="token punctuation">,</span>allocation5<span class="token punctuation">;</span>
+		allocation1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">32000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+		allocation2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+		allocation3 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+		allocation4 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+		allocation5 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="1-2-大对象直接进入老年代"><a href="#1-2-大对象直接进入老年代" class="headerlink" title="1.2 大对象直接进入老年代"></a>1.2 大对象直接进入老年代</h3><p>大对象就是需要大量连续内存空间的对象（比如：字符串、数组）。</p>
 <p><strong>为什么要这样呢？</strong></p>
@@ -326,7 +360,23 @@
 <p>jdk8官方文档引用 ：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html">https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html</a> 。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157058.png" srcset="/img/loading.gif" lazyload></p>
 <p><strong>动态年龄计算的代码如下：</strong></p>
-<figure class="highlight c++"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c++"><span class="hljs-function">uint <span class="hljs-title">ageTable::compute_tenuring_threshold</span><span class="hljs-params">(<span class="hljs-keyword">size_t</span> survivor_capacity)</span> </span>&#123;<br><span class="hljs-comment">//survivor_capacity是survivor空间的大小</span><br><span class="hljs-keyword">size_t</span> desired_survivor_size = (<span class="hljs-keyword">size_t</span>)((((<span class="hljs-keyword">double</span>)survivor_capacity)*TargetSurvivorRatio)/<span class="hljs-number">100</span>);<br><span class="hljs-keyword">size_t</span> total = <span class="hljs-number">0</span>;<br>uint age = <span class="hljs-number">1</span>;<br><span class="hljs-keyword">while</span> (age &lt; table_size) &#123;<br>  <span class="hljs-comment">//sizes数组是每个年龄段对象大小</span><br>  total += sizes[age];<br>  <span class="hljs-keyword">if</span> (total &gt; desired_survivor_size) &#123;<br>      <span class="hljs-keyword">break</span>;<br>  &#125;<br>  age++;<br>&#125;<br>uint result = age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;<br>...<br>&#125;<br><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">uint ageTable::compute_tenuring_threshold(size_t survivor_capacity) &#123;
+&#x2F;&#x2F;survivor_capacity是survivor空间的大小
+size_t desired_survivor_size &#x3D; (size_t)((((double)survivor_capacity)*TargetSurvivorRatio)&#x2F;100);
+size_t total &#x3D; 0;
+uint age &#x3D; 1;
+while (age &lt; table_size) &#123;
+  &#x2F;&#x2F;sizes数组是每个年龄段对象大小
+  total +&#x3D; sizes[age];
+  if (total &gt; desired_survivor_size) &#123;
+      break;
+  &#125;
+  age++;
+&#125;
+uint result &#x3D; age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;
+...
+&#125;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>额外补充说明(<a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide/issues/672">issue672</a>)：<strong>关于默认的晋升年龄是 15，这个说法的来源大部分都是《深入理解 Java 虚拟机》这本书。</strong><br>如果你去 Oracle 的官网阅读<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html">相关的虚拟机参数</a>，你会发现<code>-XX:MaxTenuringThreshold=threshold</code>这里有个说明</p>
 <p><strong>Sets the maximum tenuring threshold for use in adaptive GC sizing. The largest value is 15. The default value is 15 for the parallel (throughput) collector, and 6 for the CMS collector.默认晋升年龄并不都是 15，这个是要区分垃圾收集器的，CMS 就是 6.</strong></p>
@@ -350,7 +400,18 @@
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157156.png" srcset="/img/loading.gif" lazyload></p>
 <h3 id="2-1-引用计数法"><a href="#2-1-引用计数法" class="headerlink" title="2.1 引用计数法"></a>2.1 引用计数法</h3><p>给对象中添加一个引用计数器，每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
 <p><strong>这个方法实现简单，效率高，但是目前主流的虚拟机中并没有选择这个算法来管理内存，其最主要的原因是它很难解决对象之间相互循环引用的问题。</strong> 所谓对象之间的相互引用问题，如下面代码所示：除了对象 objA 和 objB 相互引用着对方之外，这两个对象之间再无任何引用。但是他们因为互相引用对方，导致它们的引用计数器都不为 0，于是引用计数算法无法通知 GC 回收器回收他们。</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ReferenceCountingGc</span> </span>&#123;<br>    Object instance = <span class="hljs-keyword">null</span>;<br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>		ReferenceCountingGc objA = <span class="hljs-keyword">new</span> ReferenceCountingGc();<br>		ReferenceCountingGc objB = <span class="hljs-keyword">new</span> ReferenceCountingGc();<br>		objA.instance = objB;<br>		objB.instance = objA;<br>		objA = <span class="hljs-keyword">null</span>;<br>		objB = <span class="hljs-keyword">null</span>;<br><br>	&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ReferenceCountingGc</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Object</span> instance <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token class-name">ReferenceCountingGc</span> objA <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReferenceCountingGc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token class-name">ReferenceCountingGc</span> objB <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReferenceCountingGc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		objA<span class="token punctuation">.</span>instance <span class="token operator">=</span> objB<span class="token punctuation">;</span>
+		objB<span class="token punctuation">.</span>instance <span class="token operator">=</span> objA<span class="token punctuation">;</span>
+		objA <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+		objB <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="2-2-可达性分析算法"><a href="#2-2-可达性分析算法" class="headerlink" title="2.2 可达性分析算法"></a>2.2 可达性分析算法</h3><p>这个算法的基本思想就是通过一系列的称为 <strong>“GC Roots”</strong> 的对象作为起点，从这些节点开始向下搜索，节点所走过的路径称为引用链，当一个对象到 GC Roots 没有任何引用链相连的话，则证明此对象是不可用的。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157162.png" srcset="/img/loading.gif" lazyload alt="可达性分析算法 "></p>
@@ -434,14 +495,24 @@
 </li>
 </ul>
 <h3 id="4-3-Parallel-Scavenge-收集器"><a href="#4-3-Parallel-Scavenge-收集器" class="headerlink" title="4.3 Parallel Scavenge 收集器"></a>4.3 Parallel Scavenge 收集器</h3><p>Parallel Scavenge 收集器也是使用标记-复制算法的多线程收集器，它看上去几乎和 ParNew 都一样。 <strong>那么它有什么特别之处呢？</strong></p>
-<figure class="highlight markdown"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs markdown">-XX:+UseParallelGC<br><br><span class="hljs-code">    使用 Parallel 收集器+ 老年代串行</span><br><span class="hljs-code"></span><br>-XX:+UseParallelOldGC<br><br><span class="hljs-code">    使用 Parallel 收集器+ 老年代并行</span><br><span class="hljs-code"></span><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">-XX:+UseParallelGC
+
+    使用 Parallel 收集器+ 老年代串行
+
+-XX:+UseParallelOldGC
+
+    使用 Parallel 收集器+ 老年代并行
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><strong>Parallel Scavenge 收集器关注点是吞吐量（高效率的利用 CPU）。CMS 等垃圾收集器的关注点更多的是用户线程的停顿时间（提高用户体验）。所谓吞吐量就是 CPU 中用于运行用户代码的时间与 CPU 总消耗时间的比值。</strong> Parallel Scavenge 收集器提供了很多参数供用户找到最合适的停顿时间或最大吞吐量，如果对于收集器运作不太了解，手工优化存在困难的时候，使用 Parallel Scavenge 收集器配合自适应调节策略，把内存管理优化交给虚拟机去完成也是一个不错的选择。</p>
 <p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157818.png" srcset="/img/loading.gif" lazyload alt="Parallel Scavenge 收集器 "></p>
 <p><strong>这是 JDK1.8 默认收集器</strong></p>
 <p>使用 java -XX:+PrintCommandLineFlags -version 命令查看</p>
-<figure class="highlight mipsasm"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs mipsasm">-XX:InitialHeapSize=<span class="hljs-number">262921408</span> -XX:MaxHeapSize=<span class="hljs-number">4206742528</span> -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC<br><span class="hljs-keyword">java </span>version <span class="hljs-string">&quot;1.8.0_211&quot;</span><br><span class="hljs-keyword">Java(TM) </span>SE Runtime Environment (<span class="hljs-keyword">build </span><span class="hljs-number">1</span>.<span class="hljs-number">8</span>.<span class="hljs-number">0</span>_211-<span class="hljs-keyword">b12)</span><br><span class="hljs-keyword"></span><span class="hljs-keyword">Java </span>HotSpot(TM) <span class="hljs-number">64</span>-<span class="hljs-keyword">Bit </span>Server VM (<span class="hljs-keyword">build </span><span class="hljs-number">25</span>.<span class="hljs-number">211</span>-<span class="hljs-keyword">b12, </span>mixed mode)<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">-XX:InitialHeapSize&#x3D;262921408 -XX:MaxHeapSize&#x3D;4206742528 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC
+java version &quot;1.8.0_211&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_211-b12)
+Java HotSpot(TM) 64-Bit Server VM (build 25.211-b12, mixed mode)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>JDK1.8 默认使用的是 Parallel Scavenge + Parallel Old，如果指定了-XX:+UseParallelGC 参数，则默认指定了-XX:+UseParallelOldGC，可以使用-XX:-UseParallelOldGC 来禁用该功能</p>
 <h3 id="4-4-Serial-Old-收集器"><a href="#4-4-Serial-Old-收集器" class="headerlink" title="4.4.Serial Old 收集器"></a>4.4.Serial Old 收集器</h3><p><strong>Serial 收集器的老年代版本</strong>，它同样是一个单线程收集器。它主要有两大用途：一种用途是在 JDK1.5 以及以前的版本中与 Parallel Scavenge 收集器搭配使用，另一种用途是作为 CMS 收集器的后备方案。</p>
@@ -634,16 +705,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

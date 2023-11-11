@@ -16,12 +16,12 @@
   <meta name="description" content="">
   <meta name="author" content="ryan">
   <meta name="keywords" content="">
-  <meta name="description" content="课件地址      redis命令大全 12345678redis-server &#x2F;配置文件位置     #启动redis redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379redis-cli shutdown   #单实例关闭redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭select db #切换到该数据库">
+  <meta name="description" content="课件地址      redis命令大全 redis-server &#x2F;配置文件位置     #启动redis  redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379 redis-cli shutdown   #单实例关闭 redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭 select db #切换到该数据库">
 <meta property="og:type" content="article">
 <meta property="og:title" content="redis常用命令">
 <meta property="og:url" content="http://example.com/2020/05/21/redis%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/index.html">
 <meta property="og:site_name" content="low gravity">
-<meta property="og:description" content="课件地址      redis命令大全 12345678redis-server &#x2F;配置文件位置     #启动redis redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379redis-cli shutdown   #单实例关闭redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭select db #切换到该数据库">
+<meta property="og:description" content="课件地址      redis命令大全 redis-server &#x2F;配置文件位置     #启动redis  redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379 redis-cli shutdown   #单实例关闭 redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭 select db #切换到该数据库">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-05-21T15:21:43.000Z">
 <meta property="article:modified_time" content="2021-09-28T05:11:23.986Z">
@@ -210,7 +210,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.9k 字
+      undefined 字
     </span>
   
 
@@ -219,7 +219,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      12 分钟
+      NaN 分钟
     </span>
   
 
@@ -252,18 +252,101 @@
             
             <div class="markdown-body">
               <p><a target="_blank" rel="noopener" href="https://1drv.ms/u/s!AuIKtprkDa8kjCfpQcXgXISfDleN?e=jKW0qf">课件地址</a>      <a target="_blank" rel="noopener" href="http://redisdoc.com/">redis命令大全</a></p>
-<figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">redis-server /配置文件位置     #启动redis <br>redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379<br>redis-cli shutdown   #单实例关闭<br>redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭<br>select db #切换到该数据库 0 - 15 <br>dbsize #查看当前库key的数量<br>flushdb #清空当当前库<br>flushall #清空16个库 慎用！<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">redis-server &#x2F;配置文件位置     #启动redis 
+redis-cli -p 6379     #切换到redis控制台 redis默认端口 6379
+redis-cli shutdown   #单实例关闭
+redis-cli -p 6379 shutdown    #多实例关闭，指定端口关闭
+select db #切换到该数据库 0 - 15 
+dbsize #查看当前库key的数量
+flushdb #清空当当前库
+flushall #清空16个库 慎用！<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h2 id="Redis-键（key）"><a href="#Redis-键（key）" class="headerlink" title="Redis 键（key）"></a><strong>Redis 键（key）</strong></h2><figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">keys *  #查看所有keys <br>exists key  #判断key是否存在<br>move key db  #将key移动到db  当前库就没有了<br>expire key second  # 为key设置过期时间 单位秒<br>ttl key  #查看该key 还有多少秒过期  -1表示永不过期   -2表示已过期（过期后该key被移除）<br>type key #查看该key类型<br>del key #删除该key<br></code></pre></div></td></tr></table></figure>
+<h2 id="Redis-键（key）"><a href="#Redis-键（key）" class="headerlink" title="Redis 键（key）"></a><strong>Redis 键（key）</strong></h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">keys *  #查看所有keys 
+exists key  #判断key是否存在
+move key db  #将key移动到db  当前库就没有了
+expire key second  # 为key设置过期时间 单位秒
+ttl key  #查看该key 还有多少秒过期  -1表示永不过期   -2表示已过期（过期后该key被移除）
+type key #查看该key类型
+del key #删除该key<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h2 id="Redis-String"><a href="#Redis-String" class="headerlink" title="Redis String"></a><strong>Redis String</strong></h2><figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">set key #设置该key的value<br>get key #获取该key的value<br>del key #删除该key<br>append key value #在该key后面添加value<br>strlen key #获取该key长度<br>incr key  #该key的值 加1  该key的值必须是数字 <br>decr key  #该key的值 减1  该key的值必须是数字 <br>incrby key num # 该key的值加 num 该key的值必须是数字 <br>decrby key num # 该key的值减 num 该key的值必须是数字 <br>getrange key start end # 获取start和end区间的值， 0  -1 为获取全部<br>setrange key offset value  # 设置该key从offset开始的值为value <br>setex key second value # set with expire 设置该key的值为value 存活时间为second <br>setnx key value # set if not exist 如果该key不存在，设置该key的值为value<br>mset key value key value ...  #一次存入多个键值对<br>mget key key key ... #一次取出多个key的value<br>msetnx key value key value # 一次存入多个键值对  key必须是未存在#个key已存在，则整个命令失败<br></code></pre></div></td></tr></table></figure>
+<h2 id="Redis-String"><a href="#Redis-String" class="headerlink" title="Redis String"></a><strong>Redis String</strong></h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">set key #设置该key的value
+get key #获取该key的value
+del key #删除该key
+append key value #在该key后面添加value
+strlen key #获取该key长度
+incr key  #该key的值 加1  该key的值必须是数字 
+decr key  #该key的值 减1  该key的值必须是数字 
+incrby key num # 该key的值加 num 该key的值必须是数字 
+decrby key num # 该key的值减 num 该key的值必须是数字 
+getrange key start end # 获取start和end区间的值， 0  -1 为获取全部
+setrange key offset value  # 设置该key从offset开始的值为value 
+setex key second value # set with expire 设置该key的值为value 存活时间为second 
+setnx key value # set if not exist 如果该key不存在，设置该key的值为value
+mset key value key value ...  #一次存入多个键值对
+mget key key key ... #一次取出多个key的value
+msetnx key value key value # 一次存入多个键值对  key必须是未存在#个key已存在，则整个命令失败<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h2 id="Redis-List-列表-有序可重"><a href="#Redis-List-列表-有序可重" class="headerlink" title="Redis List(列表  有序可重)"></a><strong>Redis List</strong>(列表  有序可重)</h2><figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">lpush key value value value  # 存入一个list value之间用空格分开 往左端加 若key已存在 则添加元素<br>rpush key value value value  # 存入一个list value之间用空格分开 往右端加 若key已存在 则添加元素<br>lrange key statr stop  # 取出key中value 从start开始 stop结束  0 -1 表示取出全部<br>lpop key  # 从该key的list左边 单次出栈<br>rpop key  # 从该key的lits右边 单次出栈<br>lindex key index # 按index获取list中的值 从0开始 <br>llen key  # 获取该key的list的长度<br>lrem key count value  #删除该key的list中count个值为value的元素<br>ltrim key start stop  #截取key的list中 从start 到 stop的元素 ，重新赋值给key<br>rpoplpush source destination  # 获取source最右端元素，移动到destination最左端 <br>lset key index value  # 将该key的list的第index位元素的值设置为value<br>linsert key before|after pivot value #在key对应的list的  pivot元素前(befroe)或后(after)  插入值为value的元素<br><span class="hljs-meta"> </span><br><span class="hljs-meta">#</span><span class="bash"> REDIS LIST是一个字符串了链表，left、right都可以插入添加</span><br><span class="hljs-meta">#</span><span class="bash"> 如果键不存在，创建新的链表</span> <br><span class="hljs-meta">#</span><span class="bash"> 如果键已存在，新增内容 lpush往左端加 rpush往右端加</span><br><span class="hljs-meta">#</span><span class="bash"> 如果值全部移除，对应的键也就消失了</span><br><span class="hljs-meta">#</span><span class="bash"> 链表的操作 头尾效率都极高 ，但是对中间元素操作的效率很惨淡</span><br><br></code></pre></div></td></tr></table></figure>
+<h2 id="Redis-List-列表-有序可重"><a href="#Redis-List-列表-有序可重" class="headerlink" title="Redis List(列表  有序可重)"></a><strong>Redis List</strong>(列表  有序可重)</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">lpush key value value value  # 存入一个list value之间用空格分开 往左端加 若key已存在 则添加元素
+rpush key value value value  # 存入一个list value之间用空格分开 往右端加 若key已存在 则添加元素
+lrange key statr stop  # 取出key中value 从start开始 stop结束  0 -1 表示取出全部
+lpop key  # 从该key的list左边 单次出栈
+rpop key  # 从该key的lits右边 单次出栈
+lindex key index # 按index获取list中的值 从0开始 
+llen key  # 获取该key的list的长度
+lrem key count value  #删除该key的list中count个值为value的元素
+ltrim key start stop  #截取key的list中 从start 到 stop的元素 ，重新赋值给key
+rpoplpush source destination  # 获取source最右端元素，移动到destination最左端 
+lset key index value  # 将该key的list的第index位元素的值设置为value
+linsert key before|after pivot value #在key对应的list的  pivot元素前(befroe)或后(after)  插入值为value的元素
+ 
+# REDIS LIST是一个字符串了链表，left、right都可以插入添加
+# 如果键不存在，创建新的链表 
+# 如果键已存在，新增内容 lpush往左端加 rpush往右端加
+# 如果值全部移除，对应的键也就消失了
+# 链表的操作 头尾效率都极高 ，但是对中间元素操作的效率很惨淡
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h2 id="Redis-Set-集合-无序不可重"><a href="#Redis-Set-集合-无序不可重" class="headerlink" title="Redis Set(集合  无序不可重)"></a><strong>Redis Set(集合  无序不可重)</strong></h2><figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">sadd key member member .. # 添加键为key 值为member 的set  若key已存在 则添加元素  元素不能重复 <br>smembers key # 查看该key的所有元素<br>sismember key member # 产看该key中是否有member元素 有返回 1 无返回 0<br>scard key #获取集合里的元素个数<br>srem key value #删除key对应的集合中值为value的元素<br>srandmember key count #从key集合中随机获取count个元素<br>spop key  #从key集合中随机出栈1个元素<br>smove key1 key2 key1中某个值    # 将key1中的某个值赋给key2<br>sdiff key1 key2   # 已key1为全集 求key2相对key1的差集<br>sinter key1 key2  # 求key1 key2的交集 <br>sunion key1 key2  # 求key1 key2的并集 （自动去重）<br></code></pre></div></td></tr></table></figure>
+<h2 id="Redis-Set-集合-无序不可重"><a href="#Redis-Set-集合-无序不可重" class="headerlink" title="Redis Set(集合  无序不可重)"></a><strong>Redis Set(集合  无序不可重)</strong></h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">sadd key member member .. # 添加键为key 值为member 的set  若key已存在 则添加元素  元素不能重复 
+smembers key # 查看该key的所有元素
+sismember key member # 产看该key中是否有member元素 有返回 1 无返回 0
+scard key #获取集合里的元素个数
+srem key value #删除key对应的集合中值为value的元素
+srandmember key count #从key集合中随机获取count个元素
+spop key  #从key集合中随机出栈1个元素
+smove key1 key2 key1中某个值    # 将key1中的某个值赋给key2
+sdiff key1 key2   # 已key1为全集 求key2相对key1的差集
+sinter key1 key2  # 求key1 key2的交集 
+sunion key1 key2  # 求key1 key2的并集 （自动去重）<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h2 id="Redis-Hash-hash的value是以键值对的形式存储的-key-value-key-value"><a href="#Redis-Hash-hash的value是以键值对的形式存储的-key-value-key-value" class="headerlink" title="Redis Hash(hash的value是以键值对的形式存储的    key  value(key  value)  )"></a><strong>Redis Hash</strong>(hash的value是以键值对的形式存储的    key  value(key  value)  )</h2><figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell">hset key Vkey Vvalue   #添加键为key 值为Vkey Vvalue 的hash （ hash的格式为 key value(key value) ）<br>hget key Vkey  #获取键为key的hash的 value key 为Vkey的 value<br>hmset key Vkey Vvalue Vkey Vvalue ...  # 添加键为key的hash的 多个value <br>hmget key Vkey Vkey Vkey ...  #获取键为key的hash的多个value的 valueKey为Vkey的 value<br>hgetall key  #获取键为key的hash的所有value （键值对形式）<br>hdel key Vkey  #删除键为key的hash的value的 键为Vkey的 value <br>hlen key  #获取键为key的hash的长度 <br>hexists key Vkey  #判断键为key的hash中是否存在 键为Vkey的 value 存在返回1 不存在返回0<br>hkeys key  #获取键为key的 hash中 所有value的 key<br>hvals key #获取键为key的hash中 所有value 的value<br>hincrby key Vkey num   # 给key对应的value的 value key所对应的 value value 加num（整数）（Vkey对应的value必须数integer）<br>hincrbyfloat key Vkey float   # 给key对应的value的 value key所对应的 value value 加float （小数）<br>hsetnx key Vkey Vvalue   #给key对应的hash数据添加新的value键值对 （Vkey Vvalue） Vkey不能已存在<br></code></pre></div></td></tr></table></figure>
-<h2 id="Redis-Zset-sorted-set-有序不可重集合"><a href="#Redis-Zset-sorted-set-有序不可重集合" class="headerlink" title="Redis Zset (sorted set) 有序不可重集合"></a><strong>Redis Zset (sorted set)</strong> 有序不可重集合</h2><figure class="highlight shell"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs shell"><span class="hljs-meta">#</span><span class="bash"> 在<span class="hljs-built_in">set</span>基础上，加一个score值。<span class="hljs-built_in">set</span>是k1 v1 v2 v3， zset是k1 score1 v1 score2 v2</span><br>zadd key score value score value ....  #添加键为key 索引为score 值为value的Zset数据 <br>zrange key min max  #获取min max闭区间内该key对应的所有value (min 和 max 为value对应的下标 从0开始) 0 -1表示全部<br>zrangebyscore key startScore stopScore  #获取 startScore stopScore闭区间内该key对应的所有value<br><span class="hljs-meta">#</span><span class="bash"><span class="hljs-comment"># 在命令最后加上 withscores可以显示每个vvalue对应的score</span></span> <br><span class="hljs-meta">#</span><span class="bash"><span class="hljs-comment"># 在startScore 或是 stopScore前加 &quot;(&quot; 表示开区间  如 startScore (stopScore 等于 [startScore stopScore) ，&quot;(&quot;后的索引对应的value将被排除在结果中</span></span> <br><span class="hljs-meta">#</span><span class="bash"><span class="hljs-comment"># stopScore为 &quot;+inf&quot; 表示获取 startScore到 end 闭区间内的所有value</span></span><br>zrangebyscore key startScore stopScore limit start step #分页显示[startScope stopScore]内结果集，start为开始索引 step为步进 <br>zrem key value  #删除该key对应的zset集合中的对应value<br>zcard key #获取该集合中的元素个数<br>zcount key startScore stopScore #获取 [startScope stopScore] 闭区间内元素个数<br>zrank key value #获取该value在该集合中的下标 (0开始)<br>zscore key value #获取该value在该集合下对应的score<br>zrevrank key value #获取该value在该集合中的逆下标 <br>zrevrange key min max # #逆序获取min max闭区间内该key对应的所有value(min 和 max 为value对应的下标 从0开始)  0 -1表示全部<br>zrevrangebyscore key stopScore startScore #获取  stopScore startScore 闭区间内的所有value <br></code></pre></div></td></tr></table></figure>
+<h2 id="Redis-Hash-hash的value是以键值对的形式存储的-key-value-key-value"><a href="#Redis-Hash-hash的value是以键值对的形式存储的-key-value-key-value" class="headerlink" title="Redis Hash(hash的value是以键值对的形式存储的    key  value(key  value)  )"></a><strong>Redis Hash</strong>(hash的value是以键值对的形式存储的    key  value(key  value)  )</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">hset key Vkey Vvalue   #添加键为key 值为Vkey Vvalue 的hash （ hash的格式为 key value(key value) ）
+hget key Vkey  #获取键为key的hash的 value key 为Vkey的 value
+hmset key Vkey Vvalue Vkey Vvalue ...  # 添加键为key的hash的 多个value 
+hmget key Vkey Vkey Vkey ...  #获取键为key的hash的多个value的 valueKey为Vkey的 value
+hgetall key  #获取键为key的hash的所有value （键值对形式）
+hdel key Vkey  #删除键为key的hash的value的 键为Vkey的 value 
+hlen key  #获取键为key的hash的长度 
+hexists key Vkey  #判断键为key的hash中是否存在 键为Vkey的 value 存在返回1 不存在返回0
+hkeys key  #获取键为key的 hash中 所有value的 key
+hvals key #获取键为key的hash中 所有value 的value
+hincrby key Vkey num   # 给key对应的value的 value key所对应的 value value 加num（整数）（Vkey对应的value必须数integer）
+hincrbyfloat key Vkey float   # 给key对应的value的 value key所对应的 value value 加float （小数）
+hsetnx key Vkey Vvalue   #给key对应的hash数据添加新的value键值对 （Vkey Vvalue） Vkey不能已存在<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="Redis-Zset-sorted-set-有序不可重集合"><a href="#Redis-Zset-sorted-set-有序不可重集合" class="headerlink" title="Redis Zset (sorted set) 有序不可重集合"></a><strong>Redis Zset (sorted set)</strong> 有序不可重集合</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell"># 在set基础上，加一个score值。set是k1 v1 v2 v3， zset是k1 score1 v1 score2 v2
+zadd key score value score value ....  #添加键为key 索引为score 值为value的Zset数据 
+zrange key min max  #获取min max闭区间内该key对应的所有value (min 和 max 为value对应的下标 从0开始) 0 -1表示全部
+zrangebyscore key startScore stopScore  #获取 startScore stopScore闭区间内该key对应的所有value
+## 在命令最后加上 withscores可以显示每个vvalue对应的score 
+## 在startScore 或是 stopScore前加 &quot;(&quot; 表示开区间  如 startScore (stopScore 等于 [startScore stopScore) ，&quot;(&quot;后的索引对应的value将被排除在结果中 
+## stopScore为 &quot;+inf&quot; 表示获取 startScore到 end 闭区间内的所有value
+zrangebyscore key startScore stopScore limit start step #分页显示[startScope stopScore]内结果集，start为开始索引 step为步进 
+zrem key value  #删除该key对应的zset集合中的对应value
+zcard key #获取该集合中的元素个数
+zcount key startScore stopScore #获取 [startScope stopScore] 闭区间内元素个数
+zrank key value #获取该value在该集合中的下标 (0开始)
+zscore key value #获取该value在该集合下对应的score
+zrevrank key value #获取该value在该集合中的逆下标 
+zrevrange key min max # #逆序获取min max闭区间内该key对应的所有value(min 和 max 为value对应的下标 从0开始)  0 -1表示全部
+zrevrangebyscore key stopScore startScore #获取  stopScore startScore 闭区间内的所有value <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 
 
@@ -417,16 +500,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

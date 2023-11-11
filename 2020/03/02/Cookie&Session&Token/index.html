@@ -221,7 +221,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.8k 字
+      undefined 字
     </span>
   
 
@@ -230,7 +230,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      18 分钟
+      NaN 分钟
     </span>
   
 
@@ -298,7 +298,11 @@
 <p>2、session 粘连</p>
 </blockquote>
 <p>这种方式是让每个客户端请求只打到固定的一台机器上，比如浏览器登录请求打到 A 机器后，后续所有的添加购物车请求也都打到 A 机器上，Nginx 的 sticky 模块可以支持这种方式，支持按 ip 或 cookie 粘连等等，如按 ip 粘连方式如下</p>
-<figure class="highlight roboconf"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs roboconf">upstream tomcats &#123;<br>  <span class="hljs-attribute">ip_hash;</span><br><span class="hljs-attribute">  server 10.1.1.107</span>:88;<br>  <span class="hljs-attribute">server 10.1.1.132</span>:80;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">upstream tomcats &#123;
+  ip_hash;
+  server 10.1.1.107:88;
+  server 10.1.1.132:80;
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101207746" srcset="/img/loading.gif" lazyload alt="图片">img</p>
 <p>这样的话每个 client 请求到达 Nginx 后，只要它的 ip 不变，根据 ip hash 算出来的值会打到固定的机器上，也就不存在 session 找不到的问题了，当然不难看出这种方式缺点也是很明显，对应的机器挂了怎么办？</p>
@@ -351,7 +355,7 @@
 <h3 id="误解-Cookie-相比-token-更不安全，比如-CSRF-攻击"><a href="#误解-Cookie-相比-token-更不安全，比如-CSRF-攻击" class="headerlink" title="误解: Cookie 相比 token 更不安全，比如 CSRF 攻击"></a>误解: Cookie 相比 token 更不安全，比如 CSRF 攻击</h3><p>首先我们需要解释下 CSRF 攻击是怎么回事</p>
 <p>攻击者通过一些技术手段欺骗用户的浏览器去访问一个自己曾经认证过的网站并运行一些操作（如发邮件，发消息，甚至财产操作如转账和购买商品）。由于浏览器曾经认证过（cookie 里带来 sessionId 等身份认证的信息），所以被访问的网站会认为是真正的用户操作而去运行。</p>
 <p>比如用户登录了某银行网站（假设为 **<a target="_blank" rel="noopener" href="http://www.examplebank.com/**%EF%BC%8C%E5%B9%B6%E4%B8%94%E8%BD%AC%E8%B4%A6%E5%9C%B0%E5%9D%80%E4%B8%BA">http://www.examplebank.com/**，并且转账地址为</a> <strong><a target="_blank" rel="noopener" href="http://www.examplebank.com/withdraw?amount=1000&amp;transferTo=PayeeName">http://www.examplebank.com/withdraw?amount=1000&amp;transferTo=PayeeName</a></strong>），登录后 cookie 里会包含登录用户的 sessionid，攻击者可以在另一个网站上放置如下代码</p>
-<figure class="highlight dts"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs dts"><span class="hljs-params">&lt;img src=&quot;http://www.examplebank.com/withdraw?account=Alice<span class="hljs-variable">&amp;amount</span>=<span class="hljs-number">1000</span><span class="hljs-variable">&amp;for</span>=Badman&quot;&gt;</span><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">&lt;img src&#x3D;&quot;http:&#x2F;&#x2F;www.examplebank.com&#x2F;withdraw?account&#x3D;Alice&amp;amount&#x3D;1000&amp;for&#x3D;Badman&quot;&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>那么如果正常的用户误点了上面这张图片，由于相同域名的请求会自动带上 cookie，而 cookie 里带有正常登录用户的 sessionid，类似上面这样的转账操作在 server 就会成功，会造成极大的安全风险</p>
 <p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101238289" srcset="/img/loading.gif" lazyload alt="图片">csrf 示意图</p>
@@ -511,16 +515,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>

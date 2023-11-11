@@ -214,7 +214,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      10k 字
+      undefined 字
     </span>
   
 
@@ -223,7 +223,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      32 分钟
+      NaN 分钟
     </span>
   
 
@@ -280,36 +280,203 @@
 <p>有了死信交换机和路由key后，接下来，就像配置业务队列一样，配置死信队列，然后绑定在死信交换机上。也就是说，死信队列并不是什么特殊的队列，只不过是绑定在死信交换机上的队列。死信交换机也不是什么特殊的交换机，只不过是用来接受死信的交换机，所以可以为任何类型【Direct、Fanout、Topic】。一般来说，会为每个业务队列分配一个独有的路由key，并对应的配置一个死信队列进行监听，也就是说，一般会为每个重要的业务队列配置一个死信队列。</p>
 <p>有了前文这些陈述后，接下来就是惊险刺激的实战环节，这里省略了RabbitMQ环境的部署和搭建环节。</p>
 <p>先创建一个Springboot项目。然后在pom文件中添加 <code>spring-boot-starter-amqp</code> 和 <code>spring-boot-starter-web</code> 的依赖，接下来创建一个Config类，这里是关键：</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs JAVA"><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RabbitMQConfig</span> </span>&#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String BUSINESS_EXCHANGE_NAME = <span class="hljs-string">&quot;dead.letter.demo.simple.business.exchange&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String BUSINESS_QUEUEA_NAME = <span class="hljs-string">&quot;dead.letter.demo.simple.business.queuea&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String BUSINESS_QUEUEB_NAME = <span class="hljs-string">&quot;dead.letter.demo.simple.business.queueb&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEAD_LETTER_EXCHANGE = <span class="hljs-string">&quot;dead.letter.demo.simple.deadletter.exchange&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEAD_LETTER_QUEUEA_ROUTING_KEY = <span class="hljs-string">&quot;dead.letter.demo.simple.deadletter.queuea.routingkey&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEAD_LETTER_QUEUEB_ROUTING_KEY = <span class="hljs-string">&quot;dead.letter.demo.simple.deadletter.queueb.routingkey&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEAD_LETTER_QUEUEA_NAME = <span class="hljs-string">&quot;dead.letter.demo.simple.deadletter.queuea&quot;</span>;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String DEAD_LETTER_QUEUEB_NAME = <span class="hljs-string">&quot;dead.letter.demo.simple.deadletter.queueb&quot;</span>;<br><br>    <span class="hljs-comment">// 声明业务Exchange</span><br>    <span class="hljs-meta">@Bean(&quot;businessExchange&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> FanoutExchange <span class="hljs-title">businessExchange</span><span class="hljs-params">()</span></span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FanoutExchange(BUSINESS_EXCHANGE_NAME);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明死信Exchange</span><br>    <span class="hljs-meta">@Bean(&quot;deadLetterExchange&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> DirectExchange <span class="hljs-title">deadLetterExchange</span><span class="hljs-params">()</span></span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DirectExchange(DEAD_LETTER_EXCHANGE);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明业务队列A</span><br>    <span class="hljs-meta">@Bean(&quot;businessQueueA&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Queue <span class="hljs-title">businessQueueA</span><span class="hljs-params">()</span></span>&#123;<br>        Map&lt;String, Object&gt; args = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<span class="hljs-number">2</span>);<br><span class="hljs-comment">//       x-dead-letter-exchange    这里声明当前队列绑定的死信交换机</span><br>        args.put(<span class="hljs-string">&quot;x-dead-letter-exchange&quot;</span>, DEAD_LETTER_EXCHANGE);<br><span class="hljs-comment">//       x-dead-letter-routing-key  这里声明当前队列的死信路由key</span><br>        args.put(<span class="hljs-string">&quot;x-dead-letter-routing-key&quot;</span>, DEAD_LETTER_QUEUEA_ROUTING_KEY);<br>        <span class="hljs-keyword">return</span> QueueBuilder.durable(BUSINESS_QUEUEA_NAME).withArguments(args).build();<br>    &#125;<br><br>    <span class="hljs-comment">// 声明业务队列B</span><br>    <span class="hljs-meta">@Bean(&quot;businessQueueB&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Queue <span class="hljs-title">businessQueueB</span><span class="hljs-params">()</span></span>&#123;<br>        Map&lt;String, Object&gt; args = <span class="hljs-keyword">new</span> HashMap&lt;&gt;(<span class="hljs-number">2</span>);<br><span class="hljs-comment">//       x-dead-letter-exchange    这里声明当前队列绑定的死信交换机</span><br>        args.put(<span class="hljs-string">&quot;x-dead-letter-exchange&quot;</span>, DEAD_LETTER_EXCHANGE);<br><span class="hljs-comment">//       x-dead-letter-routing-key  这里声明当前队列的死信路由key</span><br>        args.put(<span class="hljs-string">&quot;x-dead-letter-routing-key&quot;</span>, DEAD_LETTER_QUEUEB_ROUTING_KEY);<br>        <span class="hljs-keyword">return</span> QueueBuilder.durable(BUSINESS_QUEUEB_NAME).withArguments(args).build();<br>    &#125;<br><br>    <span class="hljs-comment">// 声明死信队列A</span><br>    <span class="hljs-meta">@Bean(&quot;deadLetterQueueA&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Queue <span class="hljs-title">deadLetterQueueA</span><span class="hljs-params">()</span></span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Queue(DEAD_LETTER_QUEUEA_NAME);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明死信队列B</span><br>    <span class="hljs-meta">@Bean(&quot;deadLetterQueueB&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Queue <span class="hljs-title">deadLetterQueueB</span><span class="hljs-params">()</span></span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Queue(DEAD_LETTER_QUEUEB_NAME);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明业务队列A绑定关系</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Binding <span class="hljs-title">businessBindingA</span><span class="hljs-params">(<span class="hljs-meta">@Qualifier(&quot;businessQueueA&quot;)</span> Queue queue,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-meta">@Qualifier(&quot;businessExchange&quot;)</span> FanoutExchange exchange)</span></span>&#123;<br>        <span class="hljs-keyword">return</span> BindingBuilder.bind(queue).to(exchange);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明业务队列B绑定关系</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Binding <span class="hljs-title">businessBindingB</span><span class="hljs-params">(<span class="hljs-meta">@Qualifier(&quot;businessQueueB&quot;)</span> Queue queue,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-meta">@Qualifier(&quot;businessExchange&quot;)</span> FanoutExchange exchange)</span></span>&#123;<br>        <span class="hljs-keyword">return</span> BindingBuilder.bind(queue).to(exchange);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明死信队列A绑定关系</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Binding <span class="hljs-title">deadLetterBindingA</span><span class="hljs-params">(<span class="hljs-meta">@Qualifier(&quot;deadLetterQueueA&quot;)</span> Queue queue,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-meta">@Qualifier(&quot;deadLetterExchange&quot;)</span> DirectExchange exchange)</span></span>&#123;<br>        <span class="hljs-keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEA_ROUTING_KEY);<br>    &#125;<br><br>    <span class="hljs-comment">// 声明死信队列B绑定关系</span><br>    <span class="hljs-meta">@Bean</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> Binding <span class="hljs-title">deadLetterBindingB</span><span class="hljs-params">(<span class="hljs-meta">@Qualifier(&quot;deadLetterQueueB&quot;)</span> Queue queue,</span></span><br><span class="hljs-params"><span class="hljs-function">                                      <span class="hljs-meta">@Qualifier(&quot;deadLetterExchange&quot;)</span> DirectExchange exchange)</span></span>&#123;<br>        <span class="hljs-keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEB_ROUTING_KEY);<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-JAVA" data-language="JAVA"><code class="language-JAVA">@Configuration
+public class RabbitMQConfig &#123;
+
+    public static final String BUSINESS_EXCHANGE_NAME &#x3D; &quot;dead.letter.demo.simple.business.exchange&quot;;
+    public static final String BUSINESS_QUEUEA_NAME &#x3D; &quot;dead.letter.demo.simple.business.queuea&quot;;
+    public static final String BUSINESS_QUEUEB_NAME &#x3D; &quot;dead.letter.demo.simple.business.queueb&quot;;
+    public static final String DEAD_LETTER_EXCHANGE &#x3D; &quot;dead.letter.demo.simple.deadletter.exchange&quot;;
+    public static final String DEAD_LETTER_QUEUEA_ROUTING_KEY &#x3D; &quot;dead.letter.demo.simple.deadletter.queuea.routingkey&quot;;
+    public static final String DEAD_LETTER_QUEUEB_ROUTING_KEY &#x3D; &quot;dead.letter.demo.simple.deadletter.queueb.routingkey&quot;;
+    public static final String DEAD_LETTER_QUEUEA_NAME &#x3D; &quot;dead.letter.demo.simple.deadletter.queuea&quot;;
+    public static final String DEAD_LETTER_QUEUEB_NAME &#x3D; &quot;dead.letter.demo.simple.deadletter.queueb&quot;;
+
+    &#x2F;&#x2F; 声明业务Exchange
+    @Bean(&quot;businessExchange&quot;)
+    public FanoutExchange businessExchange()&#123;
+        return new FanoutExchange(BUSINESS_EXCHANGE_NAME);
+    &#125;
+
+    &#x2F;&#x2F; 声明死信Exchange
+    @Bean(&quot;deadLetterExchange&quot;)
+    public DirectExchange deadLetterExchange()&#123;
+        return new DirectExchange(DEAD_LETTER_EXCHANGE);
+    &#125;
+
+    &#x2F;&#x2F; 声明业务队列A
+    @Bean(&quot;businessQueueA&quot;)
+    public Queue businessQueueA()&#123;
+        Map&lt;String, Object&gt; args &#x3D; new HashMap&lt;&gt;(2);
+&#x2F;&#x2F;       x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put(&quot;x-dead-letter-exchange&quot;, DEAD_LETTER_EXCHANGE);
+&#x2F;&#x2F;       x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put(&quot;x-dead-letter-routing-key&quot;, DEAD_LETTER_QUEUEA_ROUTING_KEY);
+        return QueueBuilder.durable(BUSINESS_QUEUEA_NAME).withArguments(args).build();
+    &#125;
+
+    &#x2F;&#x2F; 声明业务队列B
+    @Bean(&quot;businessQueueB&quot;)
+    public Queue businessQueueB()&#123;
+        Map&lt;String, Object&gt; args &#x3D; new HashMap&lt;&gt;(2);
+&#x2F;&#x2F;       x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put(&quot;x-dead-letter-exchange&quot;, DEAD_LETTER_EXCHANGE);
+&#x2F;&#x2F;       x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put(&quot;x-dead-letter-routing-key&quot;, DEAD_LETTER_QUEUEB_ROUTING_KEY);
+        return QueueBuilder.durable(BUSINESS_QUEUEB_NAME).withArguments(args).build();
+    &#125;
+
+    &#x2F;&#x2F; 声明死信队列A
+    @Bean(&quot;deadLetterQueueA&quot;)
+    public Queue deadLetterQueueA()&#123;
+        return new Queue(DEAD_LETTER_QUEUEA_NAME);
+    &#125;
+
+    &#x2F;&#x2F; 声明死信队列B
+    @Bean(&quot;deadLetterQueueB&quot;)
+    public Queue deadLetterQueueB()&#123;
+        return new Queue(DEAD_LETTER_QUEUEB_NAME);
+    &#125;
+
+    &#x2F;&#x2F; 声明业务队列A绑定关系
+    @Bean
+    public Binding businessBindingA(@Qualifier(&quot;businessQueueA&quot;) Queue queue,
+                                    @Qualifier(&quot;businessExchange&quot;) FanoutExchange exchange)&#123;
+        return BindingBuilder.bind(queue).to(exchange);
+    &#125;
+
+    &#x2F;&#x2F; 声明业务队列B绑定关系
+    @Bean
+    public Binding businessBindingB(@Qualifier(&quot;businessQueueB&quot;) Queue queue,
+                                    @Qualifier(&quot;businessExchange&quot;) FanoutExchange exchange)&#123;
+        return BindingBuilder.bind(queue).to(exchange);
+    &#125;
+
+    &#x2F;&#x2F; 声明死信队列A绑定关系
+    @Bean
+    public Binding deadLetterBindingA(@Qualifier(&quot;deadLetterQueueA&quot;) Queue queue,
+                                    @Qualifier(&quot;deadLetterExchange&quot;) DirectExchange exchange)&#123;
+        return BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEA_ROUTING_KEY);
+    &#125;
+
+    &#x2F;&#x2F; 声明死信队列B绑定关系
+    @Bean
+    public Binding deadLetterBindingB(@Qualifier(&quot;deadLetterQueueB&quot;) Queue queue,
+                                      @Qualifier(&quot;deadLetterExchange&quot;) DirectExchange exchange)&#123;
+        return BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEB_ROUTING_KEY);
+    &#125;
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>这里声明了两个Exchange，一个是业务Exchange，另一个是死信Exchange，业务Exchange下绑定了两个业务队列，业务队列都配置了同一个死信Exchange，并分别配置了路由key，在死信Exchange下绑定了两个死信队列，设置的路由key分别为业务队列里配置的路由key。</p>
 <p>下面是配置文件application.yml：</p>
-<figure class="highlight yml"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs YML"><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">rabbitmq:</span><br>    <span class="hljs-attr">host:</span> <span class="hljs-string">localhost</span><br>    <span class="hljs-attr">password:</span> <span class="hljs-string">guest</span><br>    <span class="hljs-attr">username:</span> <span class="hljs-string">guest</span><br>    <span class="hljs-attr">listener:</span><br>      <span class="hljs-attr">type:</span> <span class="hljs-string">simple</span><br>      <span class="hljs-attr">simple:</span><br>          <span class="hljs-attr">default-requeue-rejected:</span> <span class="hljs-literal">false</span><br>          <span class="hljs-attr">acknowledge-mode:</span> <span class="hljs-string">manual</span><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-YML" data-language="YML"><code class="language-YML">spring:
+  rabbitmq:
+    host: localhost
+    password: guest
+    username: guest
+    listener:
+      type: simple
+      simple:
+          default-requeue-rejected: false
+          acknowledge-mode: manual<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>这里记得将<code>default-requeue-rejected</code>属性设置为false。</p>
 <p>接下来，是业务队列的消费代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs JAVA"><span class="hljs-meta">@Slf4j</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BusinessMessageReceiver</span> </span>&#123;<br><br>    <span class="hljs-meta">@RabbitListener(queues = BUSINESS_QUEUEA_NAME)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">receiveA</span><span class="hljs-params">(Message message, Channel channel)</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        String msg = <span class="hljs-keyword">new</span> String(message.getBody());<br>        log.info(<span class="hljs-string">&quot;收到业务消息A：&#123;&#125;&quot;</span>, msg);<br>        <span class="hljs-keyword">boolean</span> ack = <span class="hljs-keyword">true</span>;<br>        Exception exception = <span class="hljs-keyword">null</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">if</span> (msg.contains(<span class="hljs-string">&quot;deadletter&quot;</span>))&#123;<br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">&quot;dead letter exception&quot;</span>);<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e)&#123;<br>            ack = <span class="hljs-keyword">false</span>;<br>            exception = e;<br>        &#125;<br>        <span class="hljs-keyword">if</span> (!ack)&#123;<br>            log.error(<span class="hljs-string">&quot;消息消费发生异常，error msg:&#123;&#125;&quot;</span>, exception.getMessage(), exception);<br>            channel.basicNack(message.getMessageProperties().getDeliveryTag(), <span class="hljs-keyword">false</span>, <span class="hljs-keyword">false</span>);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="hljs-keyword">false</span>);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-meta">@RabbitListener(queues = BUSINESS_QUEUEB_NAME)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">receiveB</span><span class="hljs-params">(Message message, Channel channel)</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        System.out.println(<span class="hljs-string">&quot;收到业务消息B：&quot;</span> + <span class="hljs-keyword">new</span> String(message.getBody()));<br>        channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="hljs-keyword">false</span>);<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-JAVA" data-language="JAVA"><code class="language-JAVA">@Slf4j
+@Component
+public class BusinessMessageReceiver &#123;
+
+    @RabbitListener(queues &#x3D; BUSINESS_QUEUEA_NAME)
+    public void receiveA(Message message, Channel channel) throws IOException &#123;
+        String msg &#x3D; new String(message.getBody());
+        log.info(&quot;收到业务消息A：&#123;&#125;&quot;, msg);
+        boolean ack &#x3D; true;
+        Exception exception &#x3D; null;
+        try &#123;
+            if (msg.contains(&quot;deadletter&quot;))&#123;
+                throw new RuntimeException(&quot;dead letter exception&quot;);
+            &#125;
+        &#125; catch (Exception e)&#123;
+            ack &#x3D; false;
+            exception &#x3D; e;
+        &#125;
+        if (!ack)&#123;
+            log.error(&quot;消息消费发生异常，error msg:&#123;&#125;&quot;, exception.getMessage(), exception);
+            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
+        &#125; else &#123;
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+        &#125;
+    &#125;
+
+    @RabbitListener(queues &#x3D; BUSINESS_QUEUEB_NAME)
+    public void receiveB(Message message, Channel channel) throws IOException &#123;
+        System.out.println(&quot;收到业务消息B：&quot; + new String(message.getBody()));
+        channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+    &#125;
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>然后配置死信队列的消费者：</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs JAVA"><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DeadLetterMessageReceiver</span> </span>&#123;<br><br><br>    <span class="hljs-meta">@RabbitListener(queues = DEAD_LETTER_QUEUEA_NAME)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">receiveA</span><span class="hljs-params">(Message message, Channel channel)</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        System.out.println(<span class="hljs-string">&quot;收到死信消息A：&quot;</span> + <span class="hljs-keyword">new</span> String(message.getBody()));<br>        channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="hljs-keyword">false</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@RabbitListener(queues = DEAD_LETTER_QUEUEB_NAME)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">receiveB</span><span class="hljs-params">(Message message, Channel channel)</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;<br>        System.out.println(<span class="hljs-string">&quot;收到死信消息B：&quot;</span> + <span class="hljs-keyword">new</span> String(message.getBody()));<br>        channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="hljs-keyword">false</span>);<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-JAVA" data-language="JAVA"><code class="language-JAVA">@Component
+public class DeadLetterMessageReceiver &#123;
+
+
+    @RabbitListener(queues &#x3D; DEAD_LETTER_QUEUEA_NAME)
+    public void receiveA(Message message, Channel channel) throws IOException &#123;
+        System.out.println(&quot;收到死信消息A：&quot; + new String(message.getBody()));
+        channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+    &#125;
+
+    @RabbitListener(queues &#x3D; DEAD_LETTER_QUEUEB_NAME)
+    public void receiveB(Message message, Channel channel) throws IOException &#123;
+        System.out.println(&quot;收到死信消息B：&quot; + new String(message.getBody()));
+        channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+    &#125;
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>最后，为了方便测试，写一个简单的消息生产者，并通过controller层来生产消息。</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs JAVA"><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BusinessMessageSender</span> </span>&#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> RabbitTemplate rabbitTemplate;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sendMsg</span><span class="hljs-params">(String msg)</span></span>&#123;<br>        rabbitTemplate.convertSendAndReceive(BUSINESS_EXCHANGE_NAME, <span class="hljs-string">&quot;&quot;</span>, msg);<br>    &#125;<br>&#125;<br><span class="hljs-meta">@RequestMapping(&quot;rabbitmq&quot;)</span><br><span class="hljs-meta">@RestController</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RabbitMQMsgController</span> </span>&#123;<br><br>    <span class="hljs-meta">@Autowired</span><br>    <span class="hljs-keyword">private</span> BusinessMessageSender sender;<br><br>    <span class="hljs-meta">@RequestMapping(&quot;sendmsg&quot;)</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sendMsg</span><span class="hljs-params">(String msg)</span></span>&#123;<br>        sender.sendMsg(msg);<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-JAVA" data-language="JAVA"><code class="language-JAVA">@Component
+public class BusinessMessageSender &#123;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    public void sendMsg(String msg)&#123;
+        rabbitTemplate.convertSendAndReceive(BUSINESS_EXCHANGE_NAME, &quot;&quot;, msg);
+    &#125;
+&#125;
+@RequestMapping(&quot;rabbitmq&quot;)
+@RestController
+public class RabbitMQMsgController &#123;
+
+    @Autowired
+    private BusinessMessageSender sender;
+
+    @RequestMapping(&quot;sendmsg&quot;)
+    public void sendMsg(String msg)&#123;
+        sender.sendMsg(msg);
+    &#125;
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>一切准备就绪，启动！</p>
 <p>可以从RabbitMQ的管理后台中看到一共有四个队列，除默认的Exchange外还有声明的两个Exchange。</p>
 <p><a target="_blank" rel="noopener" href="https://img2020.cnblogs.com/blog/1043143/202010/1043143-20201029140506771-319482381.jpg"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250041954.jpg" srcset="/img/loading.gif" lazyload alt="img"></a><br><a target="_blank" rel="noopener" href="https://img2020.cnblogs.com/blog/1043143/202010/1043143-20201029140536938-1122765461.jpg"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250041939.jpg" srcset="/img/loading.gif" lazyload alt="img"></a></p>
 <p>接下来，访问一下url，来测试一下：</p>
-<figure class="highlight http"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs http">http://localhost:8080/rabbitmq/sendmsg?msg=msg<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-http" data-language="http"><code class="language-http"><span class="token header-name keyword">http:</span>//localhost:8080/rabbitmq/sendmsg?msg=msg<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>日志：</p>
-<figure class="highlight css"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs css">收到业务消息<span class="hljs-selector-tag">A</span>：msg<br>收到业务消息<span class="hljs-selector-tag">B</span>：msg<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">收到业务消息A：msg
+收到业务消息B：msg<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
 <p>表示两个Consumer都正常收到了消息。这代表正常消费的消息，ack后正常返回。然后我们再来测试nck的消息。</p>
-<figure class="highlight http"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs http">http://localhost:8080/rabbitmq/sendmsg?msg=deadletter<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-http" data-language="http"><code class="language-http"><span class="token header-name keyword">http:</span>//localhost:8080/rabbitmq/sendmsg?msg=deadletter<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>这将会触发业务队列A的NCK，按照预期，消息被NCK后，会抛到死信队列中，因此死信队列将会出现这个消息，日志如下：</p>
-<figure class="highlight php"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs php">收到业务消息A：deadletter<br>消息消费发生异常，<span class="hljs-built_in">error</span> msg:dead letter <span class="hljs-built_in">exception</span><br>java.lang.<span class="hljs-built_in">RuntimeException</span>: dead letter <span class="hljs-built_in">exception</span><br>...<br><br>收到死信消息A：deadletter<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">收到业务消息A：deadletter
+消息消费发生异常，error msg:dead letter exception
+java.lang.RuntimeException: dead letter exception
+...
+
+收到死信消息A：deadletter<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>可以看到，死信队列的Consumer接受到了这个消息，所以流程到此为止就打通了。</p>
 <h3 id="五、死信消息的变化"><a href="#五、死信消息的变化" class="headerlink" title="五、死信消息的变化"></a>五、死信消息的变化</h3><p>那么“死信”被丢到死信队列中后，会发生什么变化呢？</p>
@@ -318,10 +485,10 @@
 <p>如果原有消息的路由key是<code>testA</code>，被发送到业务Exchage中，然后被投递到业务队列QueueA中，如果该队列没有配置参数<code>x-dead-letter-routing-key</code>，则该消息成为死信后，将保留原有的路由key<code>testA</code>，如果配置了该参数，并且值设置为<code>testB</code>，那么该消息成为死信后，路由key将会被替换为<code>testB</code>，然后被抛到死信交换机中。</p>
 <p>另外，由于被抛到了死信交换机，所以消息的Exchange Name也会被替换为死信交换机的名称。</p>
 <p>消息的Header中，也会添加很多奇奇怪怪的字段，修改一下上面的代码，在死信队列的消费者中添加一行日志输出：</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs pgsql"><span class="hljs-keyword">log</span>.<span class="hljs-keyword">info</span>(&quot;死信消息properties：&#123;&#125;&quot;, message.getMessageProperties());<br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-none"><code class="language-none">log.info(&quot;死信消息properties：&#123;&#125;&quot;, message.getMessageProperties());<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>然后重新运行一次，即可得到死信消息Header中被添加的信息：</p>
-<figure class="highlight properties"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs properties"><span class="hljs-meta">死信消息properties：MessageProperties</span> <span class="hljs-string">[headers=&#123;x-first-death-exchange=dead.letter.demo.simple.business.exchange, x-death=[&#123;reason=rejected, count=1, exchange=dead.letter.demo.simple.business.exchange, time=Sun Jul 14 16:48:16 CST 2019, routing-keys=[], queue=dead.letter.demo.simple.business.queuea&#125;], x-first-death-reason=rejected, x-first-death-queue=dead.letter.demo.simple.business.queuea&#125;, correlationId=1, replyTo=amq.rabbitmq.reply-to.g2dkABZyYWJiaXRAREVTS1RPUC1DUlZGUzBOAAAPQAAAAAAB.bLbsdR1DnuRSwiKKmtdOGw==, contentType=text/plain, contentEncoding=UTF-8, contentLength=0, receivedDeliveryMode=PERSISTENT, priority=0, redelivered=false, receivedExchange=dead.letter.demo.simple.deadletter.exchange, receivedRoutingKey=dead.letter.demo.simple.deadletter.queuea.routingkey, deliveryTag=1, consumerTag=amq.ctag-NSp18SUPoCNvQcoYoS2lPg, consumerQueue=dead.letter.demo.simple.deadletter.queuea]</span><br></code></pre></div></td></tr></table></figure>
+<pre class="line-numbers language-properties" data-language="properties"><code class="language-properties"><span class="token attr-name">死信消息properties：MessageProperties</span> <span class="token attr-value">[headers=&#123;x-first-death-exchange=dead.letter.demo.simple.business.exchange, x-death=[&#123;reason=rejected, count=1, exchange=dead.letter.demo.simple.business.exchange, time=Sun Jul 14 16:48:16 CST 2019, routing-keys=[], queue=dead.letter.demo.simple.business.queuea&#125;], x-first-death-reason=rejected, x-first-death-queue=dead.letter.demo.simple.business.queuea&#125;, correlationId=1, replyTo=amq.rabbitmq.reply-to.g2dkABZyYWJiaXRAREVTS1RPUC1DUlZGUzBOAAAPQAAAAAAB.bLbsdR1DnuRSwiKKmtdOGw==, contentType=text/plain, contentEncoding=UTF-8, contentLength=0, receivedDeliveryMode=PERSISTENT, priority=0, redelivered=false, receivedExchange=dead.letter.demo.simple.deadletter.exchange, receivedRoutingKey=dead.letter.demo.simple.deadletter.queuea.routingkey, deliveryTag=1, consumerTag=amq.ctag-NSp18SUPoCNvQcoYoS2lPg, consumerQueue=dead.letter.demo.simple.deadletter.queuea]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>Header中看起来有很多信息，实际上并不多，只是值比较长而已。下面就简单说明一下Header中的值：</p>
 <table>
@@ -508,16 +675,6 @@
   
 
   
-  <!-- 备案信息 -->
-  <div class="beian">
-    <span>
-      <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-        
-      </a>
-    </span>
-    
-  </div>
-
 
   
 </footer>
