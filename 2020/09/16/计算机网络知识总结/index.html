@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="1. 计算机网络概述1.1. 基本术语 结点 （node） ：网络中的结点可以是计算机，集线器，交换机或路由器等。 链路（link ） : 从一个结点到另一个结点的一段物理线路。中间没有任何其他交点。 主机（host） ：连接在因特网上的计算机。 ISP（Internet Service Provider） ：因特网服务提供者（提供商）。    IXP（Internet eXchange Poin">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="1. 计算机网络概述1.1. 基本术语 结点 （node） ：网络中的结点可以是计算机，集线器，交换机或路由器等。 链路（link ） : 从一个结点到另一个结点的一段物理线路。中间没有任何其他交点。 主机（host） ：连接在因特网上的计算机。 ISP（Internet Service Provider） ：因特网服务提供者（提供商）。    IXP（Internet eXchange Poin">
 <meta property="og:type" content="article">
 <meta property="og:title" content="计算机网络概述">
 <meta property="og:url" content="http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="1. 计算机网络概述1.1. 基本术语 结点 （node） ：网络中的结点可以是计算机，集线器，交换机或路由器等。 链路（link ） : 从一个结点到另一个结点的一段物理线路。中间没有任何其他交点。 主机（host） ：连接在因特网上的计算机。 ISP（Internet Service Provider） ：因特网服务提供者（提供商）。    IXP（Internet eXchange Poin">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135211.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135226.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135238.png">
@@ -50,241 +40,166 @@
 <meta property="article:modified_time" content="2021-09-28T05:43:20.110Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="计算机网络">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135211.png">
-  
-  <title>计算机网络概述 - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>计算机网络概述</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&text=计算机网络概述"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&is_video=false&description=计算机网络概述"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=计算机网络概述&body=Check out this article: http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&name=计算机网络概述&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&t=计算机网络概述"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135922.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="计算机网络概述">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-09-16 23:21" pubdate>
-        2020年9月16日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">1. 计算机网络概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">1.1.</span> <span class="toc-text">1.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">1.2.</span> <span class="toc-text">1.2. 重要知识点总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%89%A9%E7%90%86%E5%B1%82%EF%BC%88Physical-Layer%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">2. 物理层（Physical Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">2.1.</span> <span class="toc-text">2.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">2.2.</span> <span class="toc-text">2.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%A1%A5%E5%85%85"><span class="toc-number">2.3.</span> <span class="toc-text">2.3. 补充</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E7%89%A9%E7%90%86%E5%B1%82%E4%B8%BB%E8%A6%81%E5%81%9A%E5%95%A5%EF%BC%9F"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.3.1. 物理层主要做啥？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-%E5%87%A0%E7%A7%8D%E5%B8%B8%E7%94%A8%E7%9A%84%E4%BF%A1%E9%81%93%E5%A4%8D%E7%94%A8%E6%8A%80%E6%9C%AF"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.3.2. 几种常用的信道复用技术</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-3-%E5%87%A0%E7%A7%8D%E5%B8%B8%E7%94%A8%E7%9A%84%E5%AE%BD%E5%B8%A6%E6%8E%A5%E5%85%A5%E6%8A%80%E6%9C%AF%EF%BC%8C%E4%B8%BB%E8%A6%81%E6%98%AF-ADSL-%E5%92%8C-FTTx"><span class="toc-number">2.3.3.</span> <span class="toc-text">2.3.3. 几种常用的宽带接入技术，主要是 ADSL 和 FTTx</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%EF%BC%88Data-Link-Layer%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">3. 数据链路层（Data Link Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">3.1.</span> <span class="toc-text">3.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">3.2.</span> <span class="toc-text">3.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%A1%A5%E5%85%85"><span class="toc-number">3.3.</span> <span class="toc-text">3.3. 补充</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%88Network-Layer%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">4. 网络层（Network Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">4.1.</span> <span class="toc-text">4.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">4.2.</span> <span class="toc-text">4.2. 重要知识点总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%BC%A0%E8%BE%93%E5%B1%82%EF%BC%88Transport-Layer%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">5. 传输层（Transport Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">5.1.</span> <span class="toc-text">5.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">5.2.</span> <span class="toc-text">5.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%A1%A5%E5%85%85%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">5.3. 补充（重要）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%BA%94%E7%94%A8%E5%B1%82%EF%BC%88Application-Layer%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">6. 应用层（Application Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">6.1.</span> <span class="toc-text">6.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">6.2.</span> <span class="toc-text">6.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%A1%A5%E5%85%85%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="toc-number">6.3.</span> <span class="toc-text">6.3. 补充（重要）</span></a></li></ol></li></ol>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        计算机网络概述
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-09-16T15:21:43.000Z" class="dt-published" itemprop="datePublished">2020-09-16</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%9F%E7%90%86/">计算机原理</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">计算机网络概述</h1>
-            
-            <div class="markdown-body">
-              <h2 id="1-计算机网络概述"><a href="#1-计算机网络概述" class="headerlink" title="1. 计算机网络概述"></a>1. 计算机网络概述</h2><h3 id="1-1-基本术语"><a href="#1-1-基本术语" class="headerlink" title="1.1. 基本术语"></a>1.1. 基本术语</h3><ol>
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="1-计算机网络概述"><a href="#1-计算机网络概述" class="headerlink" title="1. 计算机网络概述"></a>1. 计算机网络概述</h2><h3 id="1-1-基本术语"><a href="#1-1-基本术语" class="headerlink" title="1.1. 基本术语"></a>1.1. 基本术语</h3><ol>
 <li><strong>结点 （node）</strong> ：网络中的结点可以是计算机，集线器，交换机或路由器等。</li>
 <li><strong>链路（link ）</strong> : 从一个结点到另一个结点的一段物理线路。中间没有任何其他交点。</li>
 <li><strong>主机（host）</strong> ：连接在因特网上的计算机。</li>
 <li><strong>ISP（Internet Service Provider）</strong> ：因特网服务提供者（提供商）。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135211.png" srcset="/img/loading.gif" lazyload alt="ISP (Internet Service Provider) Definition"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135211.png" alt="ISP (Internet Service Provider) Definition"></p>
 <ol start="5">
 <li><strong>IXP（Internet eXchange Point）</strong> ： 互联网交换点 IXP 的主要作用就是允许两个网络直接相连并交换分组，而不需要再通过第三个网络来转发分组。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135226.png" srcset="/img/loading.gif" lazyload alt="IXP Traffic Levels During the Stratos Skydive — RIPE Labs"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135226.png" alt="IXP Traffic Levels During the Stratos Skydive — RIPE Labs"></p>
 <p style="text-align:center;font-size:13px;color:gray">https://labs.ripe.net/Members/fergalc/ixp-traffic-during-stratos-skydive</p>
 
 <ol start="6">
@@ -293,39 +208,39 @@
 <li><strong>城域网 MAN（Metropolitan Area Network）</strong>：用来将多个局域网进行互连。</li>
 <li><strong>局域网 LAN（Local Area Network）</strong> ： 学校或企业大多拥有多个互连的局域网。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135238.png" srcset="/img/loading.gif" lazyload alt="MAN &amp; WMAN | Red de área metropolitana, Redes informaticas, Par trenzado"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135238.png" alt="MAN &amp; WMAN | Red de área metropolitana, Redes informaticas, Par trenzado"></p>
 <p style="text-align:center;font-size:13px;color:gray">http://conexionesmanwman.blogspot.com/</p>
 
 <ol start="10">
 <li><strong>个人区域网 PAN（Personal Area Network）</strong> ：在个人工作的地方把属于个人使用的电子设备用无线技术连接起来的网络 。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135249.png" srcset="/img/loading.gif" lazyload alt="Advantages and disadvantages of personal area network (PAN) - IT Release"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135249.png" alt="Advantages and disadvantages of personal area network (PAN) - IT Release"></p>
 <p style="text-align:center;font-size:13px;color:gray">https://www.itrelease.com/2018/07/advantages-and-disadvantages-of-personal-area-network-pan/</p>
 
 <ol start="12">
 <li><strong>分组（packet ）</strong> ：因特网中传送的数据单元。由首部 header 和数据段组成。分组又称为包，首部可称为包头。</li>
 <li><strong>存储转发（store and forward ）</strong> ：路由器收到一个分组，先检查分组是否正确，并过滤掉冲突包错误。确定包正确后，取出目的地址，通过查找表找到想要发送的输出端口地址，然后将该包发送出去。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135301.gif" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135301.gif"></p>
 <ol start="14">
-<li><strong>带宽（bandwidth）</strong> ：在计算机网络中，表示在单位时间内从网络中的某一点到另一点所能通过的“最高数据率”。常用来表示网络的通信线路所能传送数据的能力。单位是“比特每秒”，记为 b/s。</li>
+<li><strong>带宽（bandwidth）</strong> ：在计算机网络中，表示在单位时间内从网络中的某一点到另一点所能通过的“最高数据率”。常用来表示网络的通信线路所能传送数据的能力。单位是“比特每秒”，记为 b&#x2F;s。</li>
 <li><strong>吞吐量（throughput ）</strong> ：表示在单位时间内通过某个网络（或信道、接口）的数据量。吞吐量更经常地用于对现实世界中的网络的一种测量，以便知道实际上到底有多少数据量能够通过网络。吞吐量受网络的带宽或网络的额定速率的限制。</li>
 </ol>
 <h3 id="1-2-重要知识点总结"><a href="#1-2-重要知识点总结" class="headerlink" title="1.2. 重要知识点总结"></a>1.2. 重要知识点总结</h3><ol>
 <li><strong>计算机网络（简称网络）把许多计算机连接在一起，而互联网把许多网络连接在一起，是网络的网络。</strong></li>
-<li>小写字母 i 开头的 internet（互联网）是通用名词，它泛指由多个计算机网络相互连接而成的网络。在这些网络之间的通信协议（即通信规则）可以是任意的。大写字母 I 开头的 Internet（互联网）是专用名词，它指全球最大的，开放的，由众多网络相互连接而成的特定的互联网，并采用 TCP/IP 协议作为通信规则，其前身为 ARPANET。Internet 的推荐译名为因特网，现在一般流行称为互联网。</li>
+<li>小写字母 i 开头的 internet（互联网）是通用名词，它泛指由多个计算机网络相互连接而成的网络。在这些网络之间的通信协议（即通信规则）可以是任意的。大写字母 I 开头的 Internet（互联网）是专用名词，它指全球最大的，开放的，由众多网络相互连接而成的特定的互联网，并采用 TCP&#x2F;IP 协议作为通信规则，其前身为 ARPANET。Internet 的推荐译名为因特网，现在一般流行称为互联网。</li>
 <li>路由器是实现分组交换的关键构件，其任务是转发收到的分组，这是网络核心部分最重要的功能。分组交换采用存储转发技术，表示把一个报文（要发送的整块数据）分为几个分组后再进行传送。在发送报文之前，先把较长的报文划分成为一个个更小的等长数据段。在每个数据端的前面加上一些由必要的控制信息组成的首部后，就构成了一个分组。分组又称为包。分组是在互联网中传送的数据单元，正是由于分组的头部包含了诸如目的地址和源地址等重要控制信息，每一个分组才能在互联网中独立的选择传输路径，并正确地交付到分组传输的终点。</li>
 <li>互联网按工作方式可划分为边缘部分和核心部分。主机在网络的边缘部分，其作用是进行信息处理。由大量网络和连接这些网络的路由器组成核心部分，其作用是提供连通性和交换。</li>
-<li>计算机通信是计算机中进程（即运行着的程序）之间的通信。计算机网络采用的通信方式是客户-服务器方式（C/S 方式）和对等连接方式（P2P 方式）。</li>
+<li>计算机通信是计算机中进程（即运行着的程序）之间的通信。计算机网络采用的通信方式是客户-服务器方式（C&#x2F;S 方式）和对等连接方式（P2P 方式）。</li>
 <li>客户和服务器都是指通信中所涉及的应用进程。客户是服务请求方，服务器是服务提供方。</li>
 <li>按照作用范围的不同，计算机网络分为广域网 WAN，城域网 MAN，局域网 LAN，个人区域网 PAN。</li>
 <li><strong>计算机网络最常用的性能指标是：速率，带宽，吞吐量，时延（发送时延，处理时延，排队时延），时延带宽积，往返时间和信道利用率。</strong></li>
 <li>网络协议即协议，是为进行网络中的数据交换而建立的规则。计算机网络的各层以及其协议集合，称为网络的体系结构。</li>
 <li><strong>五层体系结构由应用层，运输层，网络层（网际层），数据链路层，物理层组成。运输层最主要的协议是 TCP 和 UDP 协议，网络层最重要的协议是 IP 协议。</strong></li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135313.png" srcset="/img/loading.gif" lazyload alt="s"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135313.png" alt="s"></p>
 <p>下面的内容会介绍计算机网络的五层体系结构：<strong>物理层+数据链路层+网络层（网际层）+运输层+应用层</strong>。</p>
-<h2 id="2-物理层（Physical-Layer）"><a href="#2-物理层（Physical-Layer）" class="headerlink" title="2. 物理层（Physical Layer）"></a>2. 物理层（Physical Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135327.png" srcset="/img/loading.gif" lazyload alt="物理层"></p>
+<h2 id="2-物理层（Physical-Layer）"><a href="#2-物理层（Physical-Layer）" class="headerlink" title="2. 物理层（Physical Layer）"></a>2. 物理层（Physical Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135327.png" alt="物理层"></p>
 <h3 id="2-1-基本术语"><a href="#2-1-基本术语" class="headerlink" title="2.1. 基本术语"></a>2.1. 基本术语</h3><ol>
 <li><strong>数据（data）</strong> :运送消息的实体。</li>
 <li><strong>信号（signal）</strong> ：数据的电气的或电磁的表现。或者说信号是适合在传输介质上传输的对象。</li>
@@ -334,21 +249,21 @@
 <li><strong>半双工（half duplex ）</strong> ：通信的双方都可以发送信息，但不能双方同时发送(当然也就不能同时接收)。</li>
 <li><strong>全双工（full duplex）</strong> : 通信的双方可以同时发送和接收信息。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135336.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135336.png"></p>
 <ol start="7">
 <li><strong>失真</strong>：失去真实性，主要是指接受到的信号和发送的信号不同，有磨损和衰减。影响失真程度的因素：1.码元传输速率 2.信号传输距离 3.噪声干扰 4.传输媒体质量</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135349.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135349.png"></p>
 <ol start="8">
 <li><strong>奈氏准则</strong> : 在任何信道中，码元的传输的效率是有上限的，传输速率超过此上限，就会出现严重的码间串扰问题，使接收端对码元的判决（即识别）成为不可能。</li>
 <li><strong>香农定理</strong> ：在带宽受限且有噪声的信道中，为了不产生误差，信息的数据传输速率有上限值。</li>
 <li><strong>基带信号（baseband signal）</strong> : 来自信源的信号。指没有经过调制的数字信号或模拟信号。</li>
 <li><strong>带通（频带）信号（bandpass signal）</strong> ：把基带信号经过载波调制后，把信号的频率范围搬移到较高的频段以便在信道中传输（即仅在一段频率范围内能够通过信道），这里调制过后的信号就是带通信号。</li>
 <li><strong>调制（modulation ）</strong> : 对信号源的信息进行处理后加到载波信号上，使其变为适合在信道传输的形式的过程。</li>
-<li><strong>信噪比（signal-to-noise ratio ）</strong> : 指信号的平均功率和噪声的平均功率之比，记为 S/N。信噪比（dB）=10*log10（S/N）。</li>
+<li><strong>信噪比（signal-to-noise ratio ）</strong> : 指信号的平均功率和噪声的平均功率之比，记为 S&#x2F;N。信噪比（dB）&#x3D;10*log10（S&#x2F;N）。</li>
 <li><strong>信道复用（channel multiplexing ）</strong> ：指多个用户共享同一个信道。（并不一定是同时）。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135359.png" srcset="/img/loading.gif" lazyload alt="信道复用技术"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135359.png" alt="信道复用技术"></p>
 <ol start="15">
 <li><strong>比特率（bit rate ）</strong> ：单位时间（每秒）内传送的比特数。</li>
 <li><strong>波特率（baud rate）</strong> ：单位时间载波调制状态改变的次数。针对数据信号对载波的调制速率。</li>
@@ -377,7 +292,7 @@
 <li><strong>波分复用( WDM)</strong> ：波分复用就是光的频分复用。</li>
 </ol>
 <h4 id="2-3-3-几种常用的宽带接入技术，主要是-ADSL-和-FTTx"><a href="#2-3-3-几种常用的宽带接入技术，主要是-ADSL-和-FTTx" class="headerlink" title="2.3.3. 几种常用的宽带接入技术，主要是 ADSL 和 FTTx"></a>2.3.3. 几种常用的宽带接入技术，主要是 ADSL 和 FTTx</h4><p>用户到互联网的宽带接入方法有非对称数字用户线 ADSL（用数字技术对现有的模拟电话线进行改造，而不需要重新布线。ASDL 的快速版本是甚高速数字用户线 VDSL。），光纤同轴混合网 HFC（是在目前覆盖范围很广的有线电视网的基础上开发的一种居民宽带接入网）和 FTTx（即光纤到······）。</p>
-<h2 id="3-数据链路层（Data-Link-Layer）"><a href="#3-数据链路层（Data-Link-Layer）" class="headerlink" title="3. 数据链路层（Data Link Layer）"></a>3. 数据链路层（Data Link Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135410.png" srcset="/img/loading.gif" lazyload alt="数据链路层"></p>
+<h2 id="3-数据链路层（Data-Link-Layer）"><a href="#3-数据链路层（Data-Link-Layer）" class="headerlink" title="3. 数据链路层（Data Link Layer）"></a>3. 数据链路层（Data Link Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135410.png" alt="数据链路层"></p>
 <h3 id="3-1-基本术语"><a href="#3-1-基本术语" class="headerlink" title="3.1. 基本术语"></a>3.1. 基本术语</h3><ol>
 <li><strong>链路（link）</strong> ：一个结点到相邻结点的一段物理链路。</li>
 <li><strong>数据链路（data link）</strong> ：把实现控制数据运输的协议的硬件和软件加到链路上就构成了数据链路。</li>
@@ -385,10 +300,10 @@
 <li><strong>帧（frame）</strong> ：一个数据链路层的传输单元，由一个数据链路层首部和其携带的封包所组成协议数据单元。</li>
 <li><strong>MTU（Maximum Transfer Uint ）</strong> ：最大传送单元。帧的数据部分的的长度上限。</li>
 <li><strong>误码率 BER（Bit Error Rate ）</strong> ：在一段时间内，传输错误的比特占所传输比特总数的比率。</li>
-<li><strong>PPP（Point-to-Point Protocol ）</strong> ：点对点协议。即用户计算机和 ISP 进行通信时所使用的数据链路层协议。以下是 PPP 帧的示意图：<br><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135422.png" srcset="/img/loading.gif" lazyload alt="PPP"></li>
+<li><strong>PPP（Point-to-Point Protocol ）</strong> ：点对点协议。即用户计算机和 ISP 进行通信时所使用的数据链路层协议。以下是 PPP 帧的示意图：<br><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135422.png" alt="PPP"></li>
 <li><strong>MAC 地址（Media Access Control 或者 Medium Access Control）</strong> ：意译为媒体访问控制，或称为物理地址、硬件地址，用来定义网络设备的位置。在 OSI 模型中，第三层网络层负责 IP 地址，第二层数据链路层则负责 MAC 地址。因此一个主机会有一个 MAC 地址，而每个网络位置会有一个专属于它的 IP 地址 。地址是识别某个系统的重要标识符，“名字指出我们所要寻找的资源，地址指出资源所在的地方，路由告诉我们如何到达该处。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135436.png" srcset="/img/loading.gif" lazyload alt="ARP (Address Resolution Protocol) explained"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135436.png" alt="ARP (Address Resolution Protocol) explained"></p>
 <ol start="9">
 <li><strong>网桥（bridge）</strong> ：一种用于数据链路层实现中继，连接两个或多个局域网的网络互连设备。</li>
 <li><strong>交换机（switch ）</strong> ：广义的来说，交换机指的是一种通信系统中完成信息交换的设备。这里工作在数据链路层的交换机指的是交换式集线器，其实质是一个多接口的网桥</li>
@@ -403,20 +318,20 @@
 <li><strong>局域网的优点是：具有广播功能，从一个站点可方便地访问全网；便于系统的扩展和逐渐演变；提高了系统的可靠性，可用性和生存性。</strong></li>
 <li>计算机与外接局域网通信需要通过通信适配器（或网络适配器），它又称为网络接口卡或网卡。<strong>计算器的硬件地址就在适配器的 ROM 中</strong>。</li>
 <li>以太网采用的无连接的工作方式，对发送的数据帧不进行编号，也不要求对方发回确认。目的站收到有差错帧就把它丢掉，其他什么也不做</li>
-<li>以太网采用的协议是具有冲突检测的<strong>载波监听多点接入 CSMA/CD</strong>。协议的特点是：<strong>发送前先监听，边发送边监听，一旦发现总线上出现了碰撞，就立即停止发送。然后按照退避算法等待一段随机时间后再次发送。</strong> 因此，每一个站点在自己发送数据之后的一小段时间内，存在这遭遇碰撞的可能性。以太网上的各站点平等的争用以太网信道</li>
+<li>以太网采用的协议是具有冲突检测的<strong>载波监听多点接入 CSMA&#x2F;CD</strong>。协议的特点是：<strong>发送前先监听，边发送边监听，一旦发现总线上出现了碰撞，就立即停止发送。然后按照退避算法等待一段随机时间后再次发送。</strong> 因此，每一个站点在自己发送数据之后的一小段时间内，存在这遭遇碰撞的可能性。以太网上的各站点平等的争用以太网信道</li>
 <li>以太网的适配器具有过滤功能，它只接收单播帧，广播帧和多播帧。</li>
 <li>使用集线器可以在物理层扩展以太网（扩展后的以太网仍然是一个网络）</li>
 </ol>
 <h3 id="3-3-补充"><a href="#3-3-补充" class="headerlink" title="3.3. 补充"></a>3.3. 补充</h3><ol>
-<li>数据链路层的点对点信道和广播信道的特点，以及这两种信道所使用的协议（PPP 协议以及 CSMA/CD 协议）的特点</li>
+<li>数据链路层的点对点信道和广播信道的特点，以及这两种信道所使用的协议（PPP 协议以及 CSMA&#x2F;CD 协议）的特点</li>
 <li>数据链路层的三个基本问题：<strong>封装成帧</strong>，<strong>透明传输</strong>，<strong>差错检测</strong></li>
 <li>以太网的 MAC 层硬件地址</li>
 <li>适配器，转发器，集线器，网桥，以太网交换机的作用以及适用场合</li>
 </ol>
-<h2 id="4-网络层（Network-Layer）"><a href="#4-网络层（Network-Layer）" class="headerlink" title="4. 网络层（Network Layer）"></a>4. 网络层（Network Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135448.png" srcset="/img/loading.gif" lazyload alt="网络层"></p>
+<h2 id="4-网络层（Network-Layer）"><a href="#4-网络层（Network-Layer）" class="headerlink" title="4. 网络层（Network Layer）"></a>4. 网络层（Network Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135448.png" alt="网络层"></p>
 <h3 id="4-1-基本术语"><a href="#4-1-基本术语" class="headerlink" title="4.1. 基本术语"></a>4.1. 基本术语</h3><ol>
 <li><strong>虚电路（Virtual Circuit）</strong> : 在两个终端设备的逻辑或物理端口之间，通过建立的双向的透明传输通道。虚电路表示这只是一条逻辑上的连接，分组都沿着这条逻辑连接按照存储转发方式传送，而并不是真正建立了一条物理连接。</li>
-<li><strong>IP（Internet Protocol ）</strong> : 网际协议 IP 是 TCP/IP 体系中两个最主要的协议之一，是 TCP/IP 体系结构网际层的核心。配套的有 ARP，RARP，ICMP，IGMP。</li>
+<li><strong>IP（Internet Protocol ）</strong> : 网际协议 IP 是 TCP&#x2F;IP 体系中两个最主要的协议之一，是 TCP&#x2F;IP 体系结构网际层的核心。配套的有 ARP，RARP，ICMP，IGMP。</li>
 <li><strong>ARP（Address Resolution Protocol）</strong> : 地址解析协议。地址解析协议 ARP 把 IP 地址解析为硬件地址。</li>
 <li><strong>ICMP（Internet Control Message Protocol ）</strong> ：网际控制报文协议 （ICMP 允许主机或路由器报告差错情况和提供有关异常情况的报告）。</li>
 <li><strong>子网掩码（subnet mask ）</strong> ：它是一种用来指明一个 IP 地址的哪些位标识的是主机所在的子网以及哪些位标识的是主机的位掩码。子网掩码不能单独存在，它必须结合 IP 地址一起使用。</li>
@@ -425,18 +340,18 @@
 <li><strong>路由选择算法（Virtual Circuit）</strong> ：路由选择协议的核心部分。因特网采用自适应的，分层次的路由选择协议。</li>
 </ol>
 <h3 id="4-2-重要知识点总结"><a href="#4-2-重要知识点总结" class="headerlink" title="4.2. 重要知识点总结"></a>4.2. 重要知识点总结</h3><ol>
-<li><strong>TCP/IP 协议中的网络层向上只提供简单灵活的，无连接的，尽最大努力交付的数据报服务。网络层不提供服务质量的承诺，不保证分组交付的时限所传送的分组可能出错，丢失，重复和失序。进程之间通信的可靠性由运输层负责</strong></li>
+<li><strong>TCP&#x2F;IP 协议中的网络层向上只提供简单灵活的，无连接的，尽最大努力交付的数据报服务。网络层不提供服务质量的承诺，不保证分组交付的时限所传送的分组可能出错，丢失，重复和失序。进程之间通信的可靠性由运输层负责</strong></li>
 <li>在互联网的交付有两种，一是在本网络直接交付不用经过路由器，另一种是和其他网络的间接交付，至少经过一个路由器，但最后一次一定是直接交付</li>
 <li>分类的 IP 地址由网络号字段（指明网络）和主机号字段（指明主机）组成。网络号字段最前面的类别指明 IP 地址的类别。IP 地址是一种分等级的地址结构。IP 地址管理机构分配 IP 地址时只分配网络号，主机号由得到该网络号的单位自行分配。路由器根据目的主机所连接的网络号来转发分组。一个路由器至少连接到两个网络，所以一个路由器至少应当有两个不同的 IP 地址</li>
 <li>IP 数据报分为首部和数据两部分。首部的前一部分是固定长度，共 20 字节，是所有 IP 数据包必须具有的（源地址，目的地址，总长度等重要地段都固定在首部）。一些长度可变的可选字段固定在首部的后面。IP 首部中的生存时间给出了 IP 数据报在互联网中所能经过的最大路由器数。可防止 IP 数据报在互联网中无限制的兜圈子。</li>
 <li><strong>地址解析协议 ARP 把 IP 地址解析为硬件地址。ARP 的高速缓存可以大大减少网络上的通信量。因为这样可以使主机下次再与同样地址的主机通信时，可以直接从高速缓存中找到所需要的硬件地址而不需要再去广播方式发送 ARP 请求分组</strong></li>
-<li>无分类域间路由选择 CIDR 是解决目前 IP 地址紧缺的一个好办法。CIDR 记法把 IP 地址后面加上斜线“/”，然后写上前缀所所占的位数。前缀（或网络前缀用来指明网络），前缀后面的部分是后缀，用来指明主机。CIDR 把前缀都相同的连续的 IP 地址组成一个“CIDR 地址块”，IP 地址分配都以 CIDR 地址块为单位。</li>
+<li>无分类域间路由选择 CIDR 是解决目前 IP 地址紧缺的一个好办法。CIDR 记法把 IP 地址后面加上斜线“&#x2F;”，然后写上前缀所所占的位数。前缀（或网络前缀用来指明网络），前缀后面的部分是后缀，用来指明主机。CIDR 把前缀都相同的连续的 IP 地址组成一个“CIDR 地址块”，IP 地址分配都以 CIDR 地址块为单位。</li>
 <li>网际控制报文协议是 IP 层的协议。ICMP 报文作为 IP 数据报的数据，加上首部后组成 IP 数据报发送出去。使用 ICMP 数据报并不是为了实现可靠传输。ICMP 允许主机或路由器报告差错情况和提供有关异常情况的报告。ICMP 报文的种类有两种 ICMP 差错报告报文和 ICMP 询问报文。</li>
 <li><strong>要解决 IP 地址耗尽的问题，最根本的办法是采用具有更大地址空间的新版本 IP 协议-IPv6。</strong> IPv6 所带来的变化有 ① 更大的地址空间（采用 128 位地址）② 灵活的首部格式 ③ 改进的选项 ④ 支持即插即用 ⑤ 支持资源的预分配 ⑥IPv6 的首部改为 8 字节对齐。</li>
 <li><strong>虚拟专用网络 VPN 利用公用的互联网作为本机构专用网之间的通信载体。VPN 内使用互联网的专用地址。一个 VPN 至少要有一个路由器具有合法的全球 IP 地址，这样才能和本系统的另一个 VPN 通过互联网进行通信。所有通过互联网传送的数据都需要加密。</strong></li>
 <li>MPLS 的特点是：① 支持面向连接的服务质量 ② 支持流量工程，平衡网络负载 ③ 有效的支持虚拟专用网 VPN。MPLS 在入口节点给每一个 IP 数据报打上固定长度的“标记”，然后根据标记在第二层（链路层）用硬件进行转发（在标记交换路由器中进行标记交换），因而转发速率大大加快。</li>
 </ol>
-<h2 id="5-传输层（Transport-Layer）"><a href="#5-传输层（Transport-Layer）" class="headerlink" title="5. 传输层（Transport Layer）"></a>5. 传输层（Transport Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135500.png" srcset="/img/loading.gif" lazyload alt="传输层"></p>
+<h2 id="5-传输层（Transport-Layer）"><a href="#5-传输层（Transport-Layer）" class="headerlink" title="5. 传输层（Transport Layer）"></a>5. 传输层（Transport Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135500.png" alt="传输层"></p>
 <h3 id="5-1-基本术语"><a href="#5-1-基本术语" class="headerlink" title="5.1. 基本术语"></a>5.1. 基本术语</h3><ol>
 <li><strong>进程（process）</strong> ：指计算机中正在运行的程序实体。</li>
 <li><strong>应用进程互相通信</strong> ：一台主机的进程和另一台主机中的一个进程交换数据的过程（另外注意通信真正的端点不是主机而是主机中的进程，也就是说端到端的通信是应用进程之间的通信）。</li>
@@ -444,7 +359,7 @@
 <li><strong>TCP（Transmission Control Protocol）</strong> ：传输控制协议。</li>
 <li><strong>UDP（User Datagram Protocol）</strong> ：用户数据报协议。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135511.png" srcset="/img/loading.gif" lazyload alt="TCP和UDP"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135511.png" alt="TCP和UDP"></p>
 <ol start="6">
 <li><strong>端口（port）</strong> ：端口的目的是为了确认对方机器是那个进程在于自己进行交互，比如 MSN 和 QQ 的端口不同，如果没有端口就可能出现 QQ 进程和 MSN 交互错误。端口又称协议端口号。</li>
 <li><strong>停止等待协议（stop-and-wait）</strong> ：指发送方每发送完一个分组就停止发送，等待对方确认，在收到确认之后在发送下一个分组。</li>
@@ -454,7 +369,7 @@
 <h3 id="5-2-重要知识点总结"><a href="#5-2-重要知识点总结" class="headerlink" title="5.2. 重要知识点总结"></a>5.2. 重要知识点总结</h3><ol>
 <li><strong>运输层提供应用进程之间的逻辑通信，也就是说，运输层之间的通信并不是真正在两个运输层之间直接传输数据。运输层向应用层屏蔽了下面网络的细节（如网络拓补，所采用的路由选择协议等），它使应用进程之间看起来好像两个运输层实体之间有一条端到端的逻辑通信信道。</strong></li>
 <li><strong>网络层为主机提供逻辑通信，而运输层为应用进程之间提供端到端的逻辑通信。</strong></li>
-<li>运输层的两个重要协议是用户数据报协议 UDP 和传输控制协议 TCP。按照 OSI 的术语，两个对等运输实体在通信时传送的数据单位叫做运输协议数据单元 TPDU（Transport Protocol Data Unit）。但在 TCP/IP 体系中，则根据所使用的协议是 TCP 或 UDP，分别称之为 TCP 报文段或 UDP 用户数据报。</li>
+<li>运输层的两个重要协议是用户数据报协议 UDP 和传输控制协议 TCP。按照 OSI 的术语，两个对等运输实体在通信时传送的数据单位叫做运输协议数据单元 TPDU（Transport Protocol Data Unit）。但在 TCP&#x2F;IP 体系中，则根据所使用的协议是 TCP 或 UDP，分别称之为 TCP 报文段或 UDP 用户数据报。</li>
 <li><strong>UDP 在传送数据之前不需要先建立连接，远地主机在收到 UDP 报文后，不需要给出任何确认。虽然 UDP 不提供可靠交付，但在某些情况下 UDP 确是一种最有效的工作方式。 TCP 提供面向连接的服务。在传送数据之前必须先建立连接，数据传送结束后要释放连接。TCP 不提供广播或多播服务。由于 TCP 要提供可靠的，面向连接的传输服务，这一难以避免增加了许多开销，如确认，流量控制，计时器以及连接管理等。这不仅使协议数据单元的首部增大很多，还要占用许多处理机资源。</strong></li>
 <li>硬件端口是不同硬件设备进行交互的接口，而软件端口是应用层各种协议进程与运输实体进行层间交互的一种地址。UDP 和 TCP 的首部格式中都有源端口和目的端口这两个重要字段。当运输层收到 IP 层交上来的运输层报文时，就能够 根据其首部中的目的端口号把数据交付应用层的目的应用层。（两个进程之间进行通信不光要知道对方 IP 地址而且要知道对方的端口号(为了找到对方计算机中的应用进程)）</li>
 <li>运输层用一个 16 位端口号标志一个端口。端口号只有本地意义，它只是为了标志计算机应用层中的各个进程在和运输层交互时的层间接口。在互联网的不同计算机中，相同的端口号是没有关联的。协议端口号简称端口。虽然通信的终点是应用进程，但只要把所发送的报文交到目的主机的某个合适端口，剩下的工作（最后交付目的进程）就由 TCP 和 UDP 来完成。</li>
@@ -482,49 +397,49 @@
 <li>TCP 的滑动窗口，流量控制，拥塞控制和连接管理</li>
 <li>TCP 的三次握手，四次挥手机制</li>
 </ol>
-<h2 id="6-应用层（Application-Layer）"><a href="#6-应用层（Application-Layer）" class="headerlink" title="6. 应用层（Application Layer）"></a>6. 应用层（Application Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135525.png" srcset="/img/loading.gif" lazyload alt="应用层"></p>
+<h2 id="6-应用层（Application-Layer）"><a href="#6-应用层（Application-Layer）" class="headerlink" title="6. 应用层（Application Layer）"></a>6. 应用层（Application Layer）</h2><p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135525.png" alt="应用层"></p>
 <h3 id="6-1-基本术语"><a href="#6-1-基本术语" class="headerlink" title="6.1. 基本术语"></a>6.1. 基本术语</h3><ol>
 <li><strong>域名系统（DNS）</strong> ：域名系统（DNS，Domain Name System）将人类可读的域名 (例如，<a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a>) 转换为机器可读的 IP 地址 (例如，220.181.38.148)。我们可以将其理解为专为互联网设计的电话薄。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135535.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135535.png"></p>
 <p style="text-align:right;font-size:12px">https://www.seobility.net/en/wiki/HTTP_headers</p>
 
 <ol start="2">
 <li><strong>文件传输协议（FTP）</strong> ：FTP 是 File TransferProtocol（文件传输协议）的英文简称，而中文简称为“文传协议”。用于 Internet 上的控制文件的双向传输。同时，它也是一个应用程序（Application）。基于不同的操作系统有不同的 FTP 应用程序，而所有这些应用程序都遵守同一种协议以传输文件。在 FTP 的使用当中，用户经常遇到两个概念：”下载”（Download）和”上传”（Upload）。 “下载”文件就是从远程主机拷贝文件至自己的计算机上；”上传”文件就是将文件从自己的计算机中拷贝至远程主机上。用 Internet 语言来说，用户可通过客户机程序向（从）远程主机上传（下载）文件。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135547.png" srcset="/img/loading.gif" lazyload alt="FTP工作过程"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135547.png" alt="FTP工作过程"></p>
 <ol start="3">
-<li><strong>简单文件传输协议（TFTP）</strong> ：TFTP（Trivial File Transfer Protocol,简单文件传输协议）是 TCP/IP 协议族中的一个用来在客户机与服务器之间进行简单文件传输的协议，提供不复杂、开销不大的文件传输服务。端口号为 69。</li>
-<li><strong>远程终端协议（TELNET）</strong> ：Telnet 协议是 TCP/IP 协议族中的一员，是 Internet 远程登陆服务的标准协议和主要方式。它为用户提供了在本地计算机上完成远程主机工作的能力。在终端使用者的电脑上使用 telnet 程序，用它连接到服务器。终端使用者可以在 telnet 程序中输入命令，这些命令会在服务器上运行，就像直接在服务器的控制台上输入一样。可以在本地就能控制服务器。要开始一个 telnet 会话，必须输入用户名和密码来登录服务器。Telnet 是常用的远程控制 Web 服务器的方法。</li>
+<li><strong>简单文件传输协议（TFTP）</strong> ：TFTP（Trivial File Transfer Protocol,简单文件传输协议）是 TCP&#x2F;IP 协议族中的一个用来在客户机与服务器之间进行简单文件传输的协议，提供不复杂、开销不大的文件传输服务。端口号为 69。</li>
+<li><strong>远程终端协议（TELNET）</strong> ：Telnet 协议是 TCP&#x2F;IP 协议族中的一员，是 Internet 远程登陆服务的标准协议和主要方式。它为用户提供了在本地计算机上完成远程主机工作的能力。在终端使用者的电脑上使用 telnet 程序，用它连接到服务器。终端使用者可以在 telnet 程序中输入命令，这些命令会在服务器上运行，就像直接在服务器的控制台上输入一样。可以在本地就能控制服务器。要开始一个 telnet 会话，必须输入用户名和密码来登录服务器。Telnet 是常用的远程控制 Web 服务器的方法。</li>
 <li><strong>万维网（WWW）</strong> ：WWW 是环球信息网的缩写，（亦作“Web”、“WWW”、“’W3’”，英文全称为“World Wide Web”），中文名字为“万维网”，”环球网”等，常简称为 Web。分为 Web 客户端和 Web 服务器程序。WWW 可以让 Web 客户端（常用浏览器）访问浏览 Web 服务器上的页面。是一个由许多互相链接的超文本组成的系统，通过互联网访问。在这个系统中，每个有用的事物，称为一样“资源”；并且由一个全局“统一资源标识符”（URI）标识；这些资源通过超文本传输协议（Hypertext Transfer Protocol）传送给用户，而后者通过点击链接来获得资源。万维网联盟（英语：World Wide Web Consortium，简称 W3C），又称 W3C 理事会。1994 年 10 月在麻省理工学院（MIT）计算机科学实验室成立。万维网联盟的创建者是万维网的发明者蒂姆·伯纳斯-李。万维网并不等同互联网，万维网只是互联网所能提供的服务其中之一，是靠着互联网运行的一项服务。</li>
 <li><strong>万维网的大致工作工程：</strong></li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135601.png" srcset="/img/loading.gif" lazyload alt="万维网的大致工作工程"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135601.png" alt="万维网的大致工作工程"></p>
 <ol start="7">
 <li><strong>统一资源定位符（URL）</strong> ：统一资源定位符是对可以从互联网上得到的资源的位置和访问方法的一种简洁的表示，是互联网上标准资源的地址。互联网上的每个文件都有一个唯一的 URL，它包含的信息指出文件的位置以及浏览器应该怎么处理它。</li>
 <li><strong>超文本传输协议（HTTP）</strong> ：超文本传输协议（HTTP，HyperText Transfer Protocol)是互联网上应用最为广泛的一种网络协议。所有的 WWW 文件都必须遵守这个标准。设计 HTTP 最初的目的是为了提供一种发布和接收 HTML 页面的方法。1960 年美国人 Ted Nelson 构思了一种通过计算机处理文本信息的方法，并称之为超文本（hypertext）,这成为了 HTTP 超文本传输协议标准架构的发展根基。</li>
 </ol>
 <p>HTTP 协议的本质就是一种浏览器与服务器之间约定好的通信格式。HTTP 的原理如下图所示：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135627.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135627.png"></p>
 <ol start="10">
 <li><strong>代理服务器（Proxy Server）</strong> ： 代理服务器（Proxy Server）是一种网络实体，它又称为万维网高速缓存。 代理服务器把最近的一些请求和响应暂存在本地磁盘中。当新请求到达时，若代理服务器发现这个请求与暂时存放的的请求相同，就返回暂存的响应，而不需要按 URL 的地址再次去互联网访问该资源。代理服务器可在客户端或服务器工作，也可以在中间系统工作。</li>
-<li><strong>简单邮件传输协议(SMTP)</strong> : SMTP（Simple Mail Transfer Protocol）即简单邮件传输协议,它是一组用于由源地址到目的地址传送邮件的规则，由它来控制信件的中转方式。 SMTP 协议属于 TCP/IP 协议簇，它帮助每台计算机在发送或中转信件时找到下一个目的地。 通过 SMTP 协议所指定的服务器,就可以把 E-mail 寄到收信人的服务器上了，整个过程只要几分钟。SMTP 服务器则是遵循 SMTP 协议的发送邮件服务器，用来发送或中转发出的电子邮件。</li>
+<li><strong>简单邮件传输协议(SMTP)</strong> : SMTP（Simple Mail Transfer Protocol）即简单邮件传输协议,它是一组用于由源地址到目的地址传送邮件的规则，由它来控制信件的中转方式。 SMTP 协议属于 TCP&#x2F;IP 协议簇，它帮助每台计算机在发送或中转信件时找到下一个目的地。 通过 SMTP 协议所指定的服务器,就可以把 E-mail 寄到收信人的服务器上了，整个过程只要几分钟。SMTP 服务器则是遵循 SMTP 协议的发送邮件服务器，用来发送或中转发出的电子邮件。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135644.png" srcset="/img/loading.gif" lazyload alt="一个电子邮件被发送的过程"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135644.png" alt="一个电子邮件被发送的过程"></p>
 <p style="text-align:right;font-size:12px">https://www.campaignmonitor.com/resources/knowledge-base/what-is-the-code-that-makes-bcc-or-cc-operate-in-an-email/<p>
 
 <ol start="11">
 <li><strong>搜索引擎</strong> :搜索引擎（Search Engine）是指根据一定的策略、运用特定的计算机程序从互联网上搜集信息，在对信息进行组织和处理后，为用户提供检索服务，将用户检索相关的信息展示给用户的系统。搜索引擎包括全文索引、目录索引、元搜索引擎、垂直搜索引擎、集合式搜索引擎、门户搜索引擎与免费链接列表等。</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135707.png" srcset="/img/loading.gif" lazyload alt="搜索引擎"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryanxys/pic/ryan/20210927135707.png" alt="搜索引擎"></p>
 <ol start="12">
 <li><strong>垂直搜索引擎</strong> ：垂直搜索引擎是针对某一个行业的专业搜索引擎，是搜索引擎的细分和延伸，是对网页库中的某类专门的信息进行一次整合，定向分字段抽取出需要的数据进行处理后再以某种形式返回给用户。垂直搜索是相对通用搜索引擎的信息量大、查询不准确、深度不够等提出来的新的搜索引擎服务模式，通过针对某一特定领域、某一特定人群或某一特定需求提供的有一定价值的信息和相关服务。其特点就是“专、精、深”，且具有行业色彩，相比较通用搜索引擎的海量信息无序化，垂直搜索引擎则显得更加专注、具体和深入。</li>
 <li><strong>全文索引</strong> :全文索引技术是目前搜索引擎的关键技术。试想在 1M 大小的文件中搜索一个词，可能需要几秒，在 100M 的文件中可能需要几十秒，如果在更大的文件中搜索那么就需要更大的系统开销，这样的开销是不现实的。所以在这样的矛盾下出现了全文索引技术，有时候有人叫倒排文档技术。</li>
-<li><strong>目录索引</strong> ：目录索引（ search index/directory)，顾名思义就是将网站分门别类地存放在相应的目录中，因此用户在查询信息时，可选择关键词搜索，也可按分类目录逐层查找。</li>
+<li><strong>目录索引</strong> ：目录索引（ search index&#x2F;directory)，顾名思义就是将网站分门别类地存放在相应的目录中，因此用户在查询信息时，可选择关键词搜索，也可按分类目录逐层查找。</li>
 </ol>
 <h3 id="6-2-重要知识点总结"><a href="#6-2-重要知识点总结" class="headerlink" title="6.2. 重要知识点总结"></a>6.2. 重要知识点总结</h3><ol>
 <li>文件传输协议（FTP）使用 TCP 可靠的运输服务。FTP 使用客户服务器方式。一个 FTP 服务器进程可以同时为多个用户提供服务。在进进行文件传输时，FTP 的客户和服务器之间要先建立两个并行的 TCP 连接:控制连接和数据连接。实际用于传输文件的是数据连接。</li>
-<li>万维网客户程序与服务器之间进行交互使用的协议是超文本传输协议 HTTP。HTTP 使用 TCP 连接进行可靠传输。但 HTTP 本身是无连接、无状态的。HTTP/1.1 协议使用了持续连接（分为非流水线方式和流水线方式）</li>
+<li>万维网客户程序与服务器之间进行交互使用的协议是超文本传输协议 HTTP。HTTP 使用 TCP 连接进行可靠传输。但 HTTP 本身是无连接、无状态的。HTTP&#x2F;1.1 协议使用了持续连接（分为非流水线方式和流水线方式）</li>
 <li>电子邮件把邮件发送到收件人使用的邮件服务器，并放在其中的收件人邮箱中，收件人可随时上网到自己使用的邮件服务器读取，相当于电子邮箱。</li>
 <li>一个电子邮件系统有三个重要组成构件：用户代理、邮件服务器、邮件协议（包括邮件发送协议，如 SMTP，和邮件读取协议，如 POP3 和 IMAP）。用户代理和邮件服务器都要运行这些协议。</li>
 </ol>
@@ -536,262 +451,139 @@
 <li>系统调用和应用编程接口概念</li>
 </ol>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%9F%E7%90%86/">计算机原理</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">浅谈Redis分布式锁(上)</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/">
-                        <span class="hidden-mobile">SQL优化(4)-索引与优化原理(下)</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">1. 计算机网络概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">1.1.</span> <span class="toc-text">1.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">1.2.</span> <span class="toc-text">1.2. 重要知识点总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%89%A9%E7%90%86%E5%B1%82%EF%BC%88Physical-Layer%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">2. 物理层（Physical Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">2.1.</span> <span class="toc-text">2.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">2.2.</span> <span class="toc-text">2.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%A1%A5%E5%85%85"><span class="toc-number">2.3.</span> <span class="toc-text">2.3. 补充</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E7%89%A9%E7%90%86%E5%B1%82%E4%B8%BB%E8%A6%81%E5%81%9A%E5%95%A5%EF%BC%9F"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.3.1. 物理层主要做啥？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-%E5%87%A0%E7%A7%8D%E5%B8%B8%E7%94%A8%E7%9A%84%E4%BF%A1%E9%81%93%E5%A4%8D%E7%94%A8%E6%8A%80%E6%9C%AF"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.3.2. 几种常用的信道复用技术</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-3-%E5%87%A0%E7%A7%8D%E5%B8%B8%E7%94%A8%E7%9A%84%E5%AE%BD%E5%B8%A6%E6%8E%A5%E5%85%A5%E6%8A%80%E6%9C%AF%EF%BC%8C%E4%B8%BB%E8%A6%81%E6%98%AF-ADSL-%E5%92%8C-FTTx"><span class="toc-number">2.3.3.</span> <span class="toc-text">2.3.3. 几种常用的宽带接入技术，主要是 ADSL 和 FTTx</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%EF%BC%88Data-Link-Layer%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">3. 数据链路层（Data Link Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">3.1.</span> <span class="toc-text">3.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">3.2.</span> <span class="toc-text">3.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%A1%A5%E5%85%85"><span class="toc-number">3.3.</span> <span class="toc-text">3.3. 补充</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%88Network-Layer%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">4. 网络层（Network Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">4.1.</span> <span class="toc-text">4.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">4.2.</span> <span class="toc-text">4.2. 重要知识点总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%BC%A0%E8%BE%93%E5%B1%82%EF%BC%88Transport-Layer%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">5. 传输层（Transport Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">5.1.</span> <span class="toc-text">5.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">5.2.</span> <span class="toc-text">5.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%A1%A5%E5%85%85%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">5.3. 补充（重要）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%BA%94%E7%94%A8%E5%B1%82%EF%BC%88Application-Layer%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">6. 应用层（Application Layer）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="toc-number">6.1.</span> <span class="toc-text">6.1. 基本术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%87%8D%E8%A6%81%E7%9F%A5%E8%AF%86%E7%82%B9%E6%80%BB%E7%BB%93"><span class="toc-number">6.2.</span> <span class="toc-text">6.2. 重要知识点总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%A1%A5%E5%85%85%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="toc-number">6.3.</span> <span class="toc-text">6.3. 补充（重要）</span></a></li></ol></li></ol>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&text=计算机网络概述"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&is_video=false&description=计算机网络概述"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=计算机网络概述&body=Check out this article: http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=计算机网络概述"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&name=计算机网络概述&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&t=计算机网络概述"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>

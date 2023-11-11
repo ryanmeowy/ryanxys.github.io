@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="JVM 垃圾回收写在前面本节常见面试题问题答案在文中都有提到  如何判断对象是否死亡（两种方法）。 简单的介绍一下强引用、软引用、弱引用、虚引用（虚引用与软引用和弱引用的区别、使用软引用能带来的好处）。 如何判断一个常量是废弃常量 如何判断一个类是无用的类 垃圾收集有哪些算法，各自的特点？ HotSpot 为什么要分为新生代和老年代？ 常见的垃圾回收器有哪些？ 介绍一下 CMS,G1 收集器。 M">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="JVM 垃圾回收写在前面本节常见面试题问题答案在文中都有提到  如何判断对象是否死亡（两种方法）。 简单的介绍一下强引用、软引用、弱引用、虚引用（虚引用与软引用和弱引用的区别、使用软引用能带来的好处）。 如何判断一个常量是废弃常量 如何判断一个类是无用的类 垃圾收集有哪些算法，各自的特点？ HotSpot 为什么要分为新生代和老年代？ 常见的垃圾回收器有哪些？ 介绍一下 CMS,G1 收集器。 M">
 <meta property="og:type" content="article">
 <meta property="og:title" content="浅谈Java GC">
 <meta property="og:url" content="http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="JVM 垃圾回收写在前面本节常见面试题问题答案在文中都有提到  如何判断对象是否死亡（两种方法）。 简单的介绍一下强引用、软引用、弱引用、虚引用（虚引用与软引用和弱引用的区别、使用软引用能带来的好处）。 如何判断一个常量是废弃常量 如何判断一个类是无用的类 垃圾收集有哪些算法，各自的特点？ HotSpot 为什么要分为新生代和老年代？ 常见的垃圾回收器有哪些？ 介绍一下 CMS,G1 收集器。 M">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157694.png">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157744.png">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157739.png">
@@ -48,231 +38,156 @@
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="GC">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157694.png">
-  
-  <title>浅谈Java GC - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>浅谈Java GC</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/03/04/%E5%A4%A7%E7%99%BD%E8%AF%9D%E8%81%8A%E9%80%8FJVM/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&text=浅谈Java GC"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&is_video=false&description=浅谈Java GC"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈Java GC&body=Check out this article: http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&name=浅谈Java GC&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&t=浅谈Java GC"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281202917.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="浅谈Java GC">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-11-22 23:21" pubdate>
-        2020年11月22日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-number">1.</span> <span class="toc-text">JVM 垃圾回收</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-number">1.1.</span> <span class="toc-text">写在前面</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E8%8A%82%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">1.1.1.</span> <span class="toc-text">本节常见面试题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E6%96%87%E5%AF%BC%E7%81%AB%E7%B4%A2"><span class="toc-number">1.1.2.</span> <span class="toc-text">本文导火索</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%8F%AD%E5%BC%80-JVM-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%B8%8E%E5%9B%9E%E6%94%B6%E7%9A%84%E7%A5%9E%E7%A7%98%E9%9D%A2%E7%BA%B1"><span class="toc-number">1.2.</span> <span class="toc-text">1 揭开 JVM 内存分配与回收的神秘面纱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AF%B9%E8%B1%A1%E4%BC%98%E5%85%88%E5%9C%A8-eden-%E5%8C%BA%E5%88%86%E9%85%8D"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 对象优先在 eden 区分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%A4%A7%E5%AF%B9%E8%B1%A1%E7%9B%B4%E6%8E%A5%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 大对象直接进入老年代</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E9%95%BF%E6%9C%9F%E5%AD%98%E6%B4%BB%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%B0%86%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 长期存活的对象将进入老年代</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%8A%A8%E6%80%81%E5%AF%B9%E8%B1%A1%E5%B9%B4%E9%BE%84%E5%88%A4%E5%AE%9A"><span class="toc-number">1.2.4.</span> <span class="toc-text">1.4 动态对象年龄判定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E4%B8%BB%E8%A6%81%E8%BF%9B%E8%A1%8C-gc-%E7%9A%84%E5%8C%BA%E5%9F%9F"><span class="toc-number">1.2.5.</span> <span class="toc-text">1.5 主要进行 gc 的区域</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AF%B9%E8%B1%A1%E5%B7%B2%E7%BB%8F%E6%AD%BB%E4%BA%A1%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">2 对象已经死亡？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E6%B3%95"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 引用计数法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E7%AE%97%E6%B3%95"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 可达性分析算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%86%8D%E8%B0%88%E5%BC%95%E7%94%A8"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 再谈引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%B8%8D%E5%8F%AF%E8%BE%BE%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%B9%B6%E9%9D%9E%E2%80%9C%E9%9D%9E%E6%AD%BB%E4%B8%8D%E5%8F%AF%E2%80%9D"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 不可达的对象并非“非死不可”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%B8%B8%E9%87%8F%E6%98%AF%E5%BA%9F%E5%BC%83%E5%B8%B8%E9%87%8F%EF%BC%9F"><span class="toc-number">1.3.5.</span> <span class="toc-text">2.5 如何判断一个常量是废弃常量？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%98%AF%E6%97%A0%E7%94%A8%E7%9A%84%E7%B1%BB"><span class="toc-number">1.3.6.</span> <span class="toc-text">2.6 如何判断一个类是无用的类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.</span> <span class="toc-text">3 垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 标记-清除算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 标记-复制算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 标记-整理算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 分代收集算法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.</span> <span class="toc-text">4 垃圾收集器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Serial-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 Serial 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-ParNew-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 ParNew 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Parallel-Scavenge-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 Parallel Scavenge 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Serial-Old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4.Serial Old 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-Parallel-Old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.5.</span> <span class="toc-text">4.5 Parallel Old 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-CMS-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.6.</span> <span class="toc-text">4.6 CMS 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-G1-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.7.</span> <span class="toc-text">4.7 G1 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-8-ZGC-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.8.</span> <span class="toc-text">4.8 ZGC 收集器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">1.6.</span> <span class="toc-text">参考</span></a></li></ol></li></ol>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        浅谈Java GC
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-11-22T15:21:43.000Z" class="dt-published" itemprop="datePublished">2020-11-22</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/JavaSE/">JavaSE</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/GC/" rel="tag">GC</a>, <a class="p-category" href="/tags/JVM/" rel="tag">JVM</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">浅谈Java GC</h1>
-            
-            <div class="markdown-body">
-              <h1 id="JVM-垃圾回收"><a href="#JVM-垃圾回收" class="headerlink" title="JVM 垃圾回收"></a>JVM 垃圾回收</h1><h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><h3 id="本节常见面试题"><a href="#本节常见面试题" class="headerlink" title="本节常见面试题"></a>本节常见面试题</h3><p>问题答案在文中都有提到</p>
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="JVM-垃圾回收"><a href="#JVM-垃圾回收" class="headerlink" title="JVM 垃圾回收"></a>JVM 垃圾回收</h1><h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><h3 id="本节常见面试题"><a href="#本节常见面试题" class="headerlink" title="本节常见面试题"></a>本节常见面试题</h3><p>问题答案在文中都有提到</p>
 <ul>
 <li>如何判断对象是否死亡（两种方法）。</li>
 <li>简单的介绍一下强引用、软引用、弱引用、虚引用（虚引用与软引用和弱引用的区别、使用软引用能带来的好处）。</li>
@@ -284,70 +199,36 @@
 <li>介绍一下 CMS,G1 收集器。</li>
 <li>Minor Gc 和 Full GC 有什么不同呢？</li>
 </ul>
-<h3 id="本文导火索"><a href="#本文导火索" class="headerlink" title="本文导火索"></a>本文导火索</h3><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157694.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="本文导火索"><a href="#本文导火索" class="headerlink" title="本文导火索"></a>本文导火索</h3><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157694.png"></p>
 <p>当需要排查各种内存溢出问题、当垃圾收集成为系统达到更高并发的瓶颈时，我们就需要对这些“自动化”的技术实施必要的监控和调节。</p>
 <h2 id="1-揭开-JVM-内存分配与回收的神秘面纱"><a href="#1-揭开-JVM-内存分配与回收的神秘面纱" class="headerlink" title="1 揭开 JVM 内存分配与回收的神秘面纱"></a>1 揭开 JVM 内存分配与回收的神秘面纱</h2><p>Java 的自动内存管理主要是针对对象内存的回收和对象内存的分配。同时，Java 自动内存管理最核心的功能是 <strong>堆</strong> 内存中对象的分配与回收。</p>
 <p>Java 堆是垃圾收集器管理的主要区域，因此也被称作<strong>GC 堆（Garbage Collected Heap）</strong>.从垃圾回收的角度，由于现在收集器基本都采用分代垃圾收集算法，所以 Java 堆还可以细分为：新生代和老年代：再细致一点有：Eden 空间、From Survivor、To Survivor 空间等。<strong>进一步划分的目的是更好地回收内存，或者更快地分配内存。</strong></p>
 <p><strong>堆空间的基本结构：</strong></p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157744.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157744.png"></p>
 <p>上图所示的 Eden 区、From Survivor0(“From”) 区、To Survivor1(“To”) 区都属于新生代，Old Memory 区属于老年代。</p>
 <p>大部分情况，对象都会首先在 Eden 区域分配，在一次新生代垃圾回收后，如果对象还存活，则会进入 s0 或者 s1，并且对象的年龄还会加 1(Eden 区-&gt;Survivor 区后对象的初始年龄变为 1)，当它的年龄增加到一定程度（默认为 15 岁），就会被晋升到老年代中。对象晋升到老年代的年龄阈值，可以通过参数 <code>-XX:MaxTenuringThreshold</code> 来设置。</p>
 <blockquote>
 <p><strong>🐛 修正（参见：<a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide/issues/552">issue552</a>）</strong>：“Hotspot 遍历所有对象时，按照年龄从小到大对其所占用的大小进行累积，当累积的某个年龄大小超过了 survivor 区的一半时，取这个年龄和 MaxTenuringThreshold 中更小的一个值，作为新的晋升年龄阈值”。</p>
 <p><strong>动态年龄计算的代码如下</strong></p>
-<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">uint ageTable::compute_tenuring_threshold(size_t survivor_capacity) &#123;
- &#x2F;&#x2F;survivor_capacity是survivor空间的大小
- size_t desired_survivor_size &#x3D; (size_t)((((double)survivor_capacity)*TargetSurvivorRatio)&#x2F;100);
- size_t total &#x3D; 0;
- uint age &#x3D; 1;
- while (age &lt; table_size) &#123;
-     &#x2F;&#x2F;sizes数组是每个年龄段对象大小
-     total +&#x3D; sizes[age];
-     if (total &gt; desired_survivor_size) &#123;
-         break;
-     &#125;
-     age++;
- &#125;
- uint result &#x3D; age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;
- ...
-&#125;
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">uint <span class="title">ageTable::compute_tenuring_threshold</span><span class="params">(<span class="type">size_t</span> survivor_capacity)</span> </span>&#123;</span><br><span class="line"> <span class="comment">//survivor_capacity是survivor空间的大小</span></span><br><span class="line"> <span class="type">size_t</span> desired_survivor_size = (<span class="type">size_t</span>)((((<span class="type">double</span>)survivor_capacity)*TargetSurvivorRatio)/<span class="number">100</span>);</span><br><span class="line"> <span class="type">size_t</span> total = <span class="number">0</span>;</span><br><span class="line"> uint age = <span class="number">1</span>;</span><br><span class="line"> <span class="keyword">while</span> (age &lt; table_size) &#123;</span><br><span class="line">     <span class="comment">//sizes数组是每个年龄段对象大小</span></span><br><span class="line">     total += sizes[age];</span><br><span class="line">     <span class="keyword">if</span> (total &gt; desired_survivor_size) &#123;</span><br><span class="line">         <span class="keyword">break</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     age++;</span><br><span class="line"> &#125;</span><br><span class="line"> uint result = age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;</span><br><span class="line"> ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 </blockquote>
 <p>经过这次 GC 后，Eden 区和”From”区已经被清空。这个时候，”From”和”To”会交换他们的角色，也就是新的”To”就是上次 GC 前的“From”，新的”From”就是上次 GC 前的”To”。不管怎样，都会保证名为 To 的 Survivor 区域是空的。Minor GC 会一直重复这样的过程，直到“To”区被填满，”To”区被填满之后，会将所有对象移动到老年代中。</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157739.png" srcset="/img/loading.gif" lazyload alt="堆内存常见分配策略 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157739.png" alt="堆内存常见分配策略 "></p>
 <h3 id="1-1-对象优先在-eden-区分配"><a href="#1-1-对象优先在-eden-区分配" class="headerlink" title="1.1 对象优先在 eden 区分配"></a>1.1 对象优先在 eden 区分配</h3><p>目前主流的垃圾收集器都会采用分代回收算法，因此需要将堆内存分为新生代和老年代，这样我们就可以根据各个年代的特点选择合适的垃圾收集算法。</p>
 <p>大多数情况下，对象在新生代中 eden 区分配。当 eden 区没有足够空间进行分配时，虚拟机将发起一次 Minor GC.下面我们来进行实际测试以下。</p>
 <p><strong>测试：</strong></p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">GCTest</span> <span class="token punctuation">&#123;</span>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GCTest</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">		<span class="type">byte</span>[] allocation1, allocation2;</span><br><span class="line">		allocation1 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">30900</span>*<span class="number">1024</span>];</span><br><span class="line">		<span class="comment">//allocation2 = new byte[900*1024];</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-		<span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> allocation1<span class="token punctuation">,</span> allocation2<span class="token punctuation">;</span>
-		allocation1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">30900</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-		<span class="token comment">//allocation2 = new byte[900*1024];</span>
-	<span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>通过以下方式运行：<br><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157760.png" srcset="/img/loading.gif" lazyload></p>
-<p>添加的参数：<code>-XX:+PrintGCDetails</code><br><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157707.png" srcset="/img/loading.gif" lazyload></p>
+<p>通过以下方式运行：<br><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157760.png"></p>
+<p>添加的参数：<code>-XX:+PrintGCDetails</code><br><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157707.png"></p>
 <p>运行结果 (红色字体描述有误，应该是对应于 JDK1.7 的永久代)：</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157710.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157710.jpg"></p>
 <p>从上图我们可以看出 eden 区内存几乎已经被分配完全（即使程序什么也不做，新生代也会使用 2000 多 k 内存）。假如我们再为 allocation2 分配内存会出现什么情况呢？</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java">allocation2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">900</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">allocation2 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">900</span>*<span class="number">1024</span>];</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157052.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157052.jpg"></p>
 <p><strong>简单解释一下为什么会出现这种情况：</strong> 因为给 allocation2 分配内存的时候 eden 区内存几乎已经被分配完了，我们刚刚讲了当 Eden 区没有足够空间进行分配时，虚拟机将发起一次 Minor GC.GC 期间虚拟机又发现 allocation1 无法存入 Survivor 空间，所以只好通过 <strong>分配担保机制</strong> 把新生代的对象提前转移到老年代中去，老年代上的空间足够存放 allocation1，所以不会出现 Full GC。执行 Minor GC 后，后面分配的对象如果能够存在 eden 区的话，还是会在 eden 区分配内存。可以执行如下代码验证：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">GCTest</span> <span class="token punctuation">&#123;</span>
-
-	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-		<span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> allocation1<span class="token punctuation">,</span> allocation2<span class="token punctuation">,</span>allocation3<span class="token punctuation">,</span>allocation4<span class="token punctuation">,</span>allocation5<span class="token punctuation">;</span>
-		allocation1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">32000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-		allocation2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-		allocation3 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-		allocation4 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-		allocation5 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">1000</span><span class="token operator">*</span><span class="token number">1024</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-	<span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span>
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GCTest</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">		<span class="type">byte</span>[] allocation1, allocation2,allocation3,allocation4,allocation5;</span><br><span class="line">		allocation1 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">32000</span>*<span class="number">1024</span>];</span><br><span class="line">		allocation2 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1000</span>*<span class="number">1024</span>];</span><br><span class="line">		allocation3 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1000</span>*<span class="number">1024</span>];</span><br><span class="line">		allocation4 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1000</span>*<span class="number">1024</span>];</span><br><span class="line">		allocation5 = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1000</span>*<span class="number">1024</span>];</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <h3 id="1-2-大对象直接进入老年代"><a href="#1-2-大对象直接进入老年代" class="headerlink" title="1.2 大对象直接进入老年代"></a>1.2 大对象直接进入老年代</h3><p>大对象就是需要大量连续内存空间的对象（比如：字符串、数组）。</p>
 <p><strong>为什么要这样呢？</strong></p>
@@ -358,63 +239,36 @@
 <blockquote>
 <p>修正（<a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide/issues/552">issue552</a>）：“Hotspot 遍历所有对象时，按照年龄从小到大对其所占用的大小进行累积，当累积的某个年龄大小超过了 survivor 区的 50% 时（默认值是 50%，可以通过 <code>-XX:TargetSurvivorRatio=percent</code> 来设置，参见 <a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide/issues/1199">issue1199</a> ），取这个年龄和 MaxTenuringThreshold 中更小的一个值，作为新的晋升年龄阈值”。</p>
 <p>jdk8官方文档引用 ：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html">https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html</a> 。</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157058.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157058.png"></p>
 <p><strong>动态年龄计算的代码如下：</strong></p>
-<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">uint ageTable::compute_tenuring_threshold(size_t survivor_capacity) &#123;
-&#x2F;&#x2F;survivor_capacity是survivor空间的大小
-size_t desired_survivor_size &#x3D; (size_t)((((double)survivor_capacity)*TargetSurvivorRatio)&#x2F;100);
-size_t total &#x3D; 0;
-uint age &#x3D; 1;
-while (age &lt; table_size) &#123;
-  &#x2F;&#x2F;sizes数组是每个年龄段对象大小
-  total +&#x3D; sizes[age];
-  if (total &gt; desired_survivor_size) &#123;
-      break;
-  &#125;
-  age++;
-&#125;
-uint result &#x3D; age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;
-...
-&#125;
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">uint <span class="title">ageTable::compute_tenuring_threshold</span><span class="params">(<span class="type">size_t</span> survivor_capacity)</span> </span>&#123;</span><br><span class="line"><span class="comment">//survivor_capacity是survivor空间的大小</span></span><br><span class="line"><span class="type">size_t</span> desired_survivor_size = (<span class="type">size_t</span>)((((<span class="type">double</span>)survivor_capacity)*TargetSurvivorRatio)/<span class="number">100</span>);</span><br><span class="line"><span class="type">size_t</span> total = <span class="number">0</span>;</span><br><span class="line">uint age = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">while</span> (age &lt; table_size) &#123;</span><br><span class="line">  <span class="comment">//sizes数组是每个年龄段对象大小</span></span><br><span class="line">  total += sizes[age];</span><br><span class="line">  <span class="keyword">if</span> (total &gt; desired_survivor_size) &#123;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  age++;</span><br><span class="line">&#125;</span><br><span class="line">uint result = age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>额外补充说明(<a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide/issues/672">issue672</a>)：<strong>关于默认的晋升年龄是 15，这个说法的来源大部分都是《深入理解 Java 虚拟机》这本书。</strong><br>如果你去 Oracle 的官网阅读<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html">相关的虚拟机参数</a>，你会发现<code>-XX:MaxTenuringThreshold=threshold</code>这里有个说明</p>
 <p><strong>Sets the maximum tenuring threshold for use in adaptive GC sizing. The largest value is 15. The default value is 15 for the parallel (throughput) collector, and 6 for the CMS collector.默认晋升年龄并不都是 15，这个是要区分垃圾收集器的，CMS 就是 6.</strong></p>
 </blockquote>
 <h3 id="1-5-主要进行-gc-的区域"><a href="#1-5-主要进行-gc-的区域" class="headerlink" title="1.5 主要进行 gc 的区域"></a>1.5 主要进行 gc 的区域</h3><p>周志明先生在《深入理解 Java 虚拟机》第二版中 P92 如是写道：</p>
 <blockquote>
-<p><del><em>“老年代 GC（Major GC/Full GC），指发生在老年代的 GC……”</em></del></p>
+<p><del><em>“老年代 GC（Major GC&#x2F;Full GC），指发生在老年代的 GC……”</em></del></p>
 </blockquote>
 <p>上面的说法已经在《深入理解 Java 虚拟机》第三版中被改正过来了。感谢 R 大的回答：</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157143.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157143.png"></p>
 <p><strong>总结：</strong></p>
 <p>针对 HotSpot VM 的实现，它里面的 GC 其实准确分类只有两大种：</p>
 <p>部分收集 (Partial GC)：</p>
 <ul>
-<li>新生代收集（Minor GC / Young GC）：只对新生代进行垃圾收集；</li>
-<li>老年代收集（Major GC / Old GC）：只对老年代进行垃圾收集。需要注意的是 Major GC 在有的语境中也用于指代整堆收集；</li>
+<li>新生代收集（Minor GC &#x2F; Young GC）：只对新生代进行垃圾收集；</li>
+<li>老年代收集（Major GC &#x2F; Old GC）：只对老年代进行垃圾收集。需要注意的是 Major GC 在有的语境中也用于指代整堆收集；</li>
 <li>混合收集（Mixed GC）：对整个新生代和部分老年代进行垃圾收集。</li>
 </ul>
 <p>整堆收集 (Full GC)：收集整个 Java 堆和方法区。</p>
 <h2 id="2-对象已经死亡？"><a href="#2-对象已经死亡？" class="headerlink" title="2 对象已经死亡？"></a>2 对象已经死亡？</h2><p>堆中几乎放着所有的对象实例，对堆垃圾回收前的第一步就是要判断哪些对象已经死亡（即不能再被任何途径使用的对象）。</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157156.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157156.png"></p>
 <h3 id="2-1-引用计数法"><a href="#2-1-引用计数法" class="headerlink" title="2.1 引用计数法"></a>2.1 引用计数法</h3><p>给对象中添加一个引用计数器，每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
 <p><strong>这个方法实现简单，效率高，但是目前主流的虚拟机中并没有选择这个算法来管理内存，其最主要的原因是它很难解决对象之间相互循环引用的问题。</strong> 所谓对象之间的相互引用问题，如下面代码所示：除了对象 objA 和 objB 相互引用着对方之外，这两个对象之间再无任何引用。但是他们因为互相引用对方，导致它们的引用计数器都不为 0，于是引用计数算法无法通知 GC 回收器回收他们。</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ReferenceCountingGc</span> <span class="token punctuation">&#123;</span>
-    <span class="token class-name">Object</span> instance <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
-	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-		<span class="token class-name">ReferenceCountingGc</span> objA <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReferenceCountingGc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token class-name">ReferenceCountingGc</span> objB <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ReferenceCountingGc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		objA<span class="token punctuation">.</span>instance <span class="token operator">=</span> objB<span class="token punctuation">;</span>
-		objB<span class="token punctuation">.</span>instance <span class="token operator">=</span> objA<span class="token punctuation">;</span>
-		objA <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
-		objB <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
-
-	<span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReferenceCountingGc</span> &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">instance</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">		<span class="type">ReferenceCountingGc</span> <span class="variable">objA</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGc</span>();</span><br><span class="line">		<span class="type">ReferenceCountingGc</span> <span class="variable">objB</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGc</span>();</span><br><span class="line">		objA.instance = objB;</span><br><span class="line">		objB.instance = objA;</span><br><span class="line">		objA = <span class="literal">null</span>;</span><br><span class="line">		objB = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="2-2-可达性分析算法"><a href="#2-2-可达性分析算法" class="headerlink" title="2.2 可达性分析算法"></a>2.2 可达性分析算法</h3><p>这个算法的基本思想就是通过一系列的称为 <strong>“GC Roots”</strong> 的对象作为起点，从这些节点开始向下搜索，节点所走过的路径称为引用链，当一个对象到 GC Roots 没有任何引用链相连的话，则证明此对象是不可用的。</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157162.png" srcset="/img/loading.gif" lazyload alt="可达性分析算法 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157162.png" alt="可达性分析算法 "></p>
 <p>可作为 GC Roots 的对象包括下面几种:</p>
 <ul>
 <li>虚拟机栈(栈帧中的本地变量表)中引用的对象</li>
@@ -460,32 +314,32 @@ uint result &#x3D; age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;
 <li>该类对应的 <code>java.lang.Class</code> 对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</li>
 </ul>
 <p>虚拟机可以对满足上述 3 个条件的无用类进行回收，这里说的仅仅是“可以”，而并不是和对象一样不使用了就会必然被回收。</p>
-<h2 id="3-垃圾收集算法"><a href="#3-垃圾收集算法" class="headerlink" title="3 垃圾收集算法"></a>3 垃圾收集算法</h2><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157177.png" srcset="/img/loading.gif" lazyload alt="垃圾收集算法分类"></p>
+<h2 id="3-垃圾收集算法"><a href="#3-垃圾收集算法" class="headerlink" title="3 垃圾收集算法"></a>3 垃圾收集算法</h2><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157177.png" alt="垃圾收集算法分类"></p>
 <h3 id="3-1-标记-清除算法"><a href="#3-1-标记-清除算法" class="headerlink" title="3.1 标记-清除算法"></a>3.1 标记-清除算法</h3><p>该算法分为“标记”和“清除”阶段：首先标记出所有不需要回收的对象，在标记完成后统一回收掉所有没有被标记的对象。它是最基础的收集算法，后续的算法都是对其不足进行改进得到。这种垃圾收集算法会带来两个明显的问题：</p>
 <ol>
 <li><strong>效率问题</strong></li>
 <li><strong>空间问题（标记清除后会产生大量不连续的碎片）</strong></li>
 </ol>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157224.jpeg" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157224.jpeg"></p>
 <h3 id="3-2-标记-复制算法"><a href="#3-2-标记-复制算法" class="headerlink" title="3.2 标记-复制算法"></a>3.2 标记-复制算法</h3><p>为了解决效率问题，“标记-复制”收集算法出现了。它可以将内存分为大小相同的两块，每次使用其中的一块。当这一块的内存使用完后，就将还存活的对象复制到另一块去，然后再把使用的空间一次清理掉。这样就使每次的内存回收都是对内存区间的一半进行回收。</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157338.png" srcset="/img/loading.gif" lazyload alt="复制算法"></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157338.png" alt="复制算法"></p>
 <h3 id="3-3-标记-整理算法"><a href="#3-3-标记-整理算法" class="headerlink" title="3.3 标记-整理算法"></a>3.3 标记-整理算法</h3><p>根据老年代的特点提出的一种标记算法，标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象回收，而是让所有存活的对象向一端移动，然后直接清理掉端边界以外的内存。</p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157406.png" srcset="/img/loading.gif" lazyload alt="标记-整理算法 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157406.png" alt="标记-整理算法 "></p>
 <h3 id="3-4-分代收集算法"><a href="#3-4-分代收集算法" class="headerlink" title="3.4 分代收集算法"></a>3.4 分代收集算法</h3><p>当前虚拟机的垃圾收集都采用分代收集算法，这种算法没有什么新的思想，只是根据对象存活周期的不同将内存分为几块。一般将 java 堆分为新生代和老年代，这样我们就可以根据各个年代的特点选择合适的垃圾收集算法。</p>
 <p><strong>比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。</strong></p>
 <p><strong>延伸面试问题：</strong> HotSpot 为什么要分为新生代和老年代？</p>
 <p>根据上面的对分代收集算法的介绍回答。</p>
-<h2 id="4-垃圾收集器"><a href="#4-垃圾收集器" class="headerlink" title="4 垃圾收集器"></a>4 垃圾收集器</h2><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157414.png" srcset="/img/loading.gif" lazyload alt="垃圾收集器分类"></p>
+<h2 id="4-垃圾收集器"><a href="#4-垃圾收集器" class="headerlink" title="4 垃圾收集器"></a>4 垃圾收集器</h2><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157414.png" alt="垃圾收集器分类"></p>
 <p><strong>如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</strong></p>
 <p>虽然我们对各个收集器进行比较，但并非要挑选出一个最好的收集器。因为直到现在为止还没有最好的垃圾收集器出现，更加没有万能的垃圾收集器，<strong>我们能做的就是根据具体应用场景选择适合自己的垃圾收集器</strong>。试想一下：如果有一种四海之内、任何场景下都适用的完美收集器存在，那么我们的 HotSpot 虚拟机就不会实现那么多不同的垃圾收集器了。</p>
 <h3 id="4-1-Serial-收集器"><a href="#4-1-Serial-收集器" class="headerlink" title="4.1 Serial 收集器"></a>4.1 Serial 收集器</h3><p>Serial（串行）收集器是最基本、历史最悠久的垃圾收集器了。大家看名字就知道这个收集器是一个单线程收集器了。它的 <strong>“单线程”</strong> 的意义不仅仅意味着它只会使用一条垃圾收集线程去完成垃圾收集工作，更重要的是它在进行垃圾收集工作的时候必须暂停其他所有的工作线程（ <strong>“Stop The World”</strong> ），直到它收集结束。</p>
 <p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157675.png" srcset="/img/loading.gif" lazyload alt=" Serial 收集器 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157675.png" alt=" Serial 收集器 "></p>
 <p>虚拟机的设计者们当然知道 Stop The World 带来的不良用户体验，所以在后续的垃圾收集器设计中停顿时间在不断缩短（仍然还有停顿，寻找最优秀的垃圾收集器的过程仍然在继续）。</p>
 <p>但是 Serial 收集器有没有优于其他垃圾收集器的地方呢？当然有，它<strong>简单而高效（与其他收集器的单线程相比）</strong>。Serial 收集器由于没有线程交互的开销，自然可以获得很高的单线程收集效率。Serial 收集器对于运行在 Client 模式下的虚拟机来说是个不错的选择。</p>
 <h3 id="4-2-ParNew-收集器"><a href="#4-2-ParNew-收集器" class="headerlink" title="4.2 ParNew 收集器"></a>4.2 ParNew 收集器</h3><p><strong>ParNew 收集器其实就是 Serial 收集器的多线程版本，除了使用多线程进行垃圾收集外，其余行为（控制参数、收集算法、回收策略等等）和 Serial 收集器完全一样。</strong></p>
 <p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157809.png" srcset="/img/loading.gif" lazyload alt="ParNew 收集器 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157809.png" alt="ParNew 收集器 "></p>
 <p>它是许多运行在 Server 模式下的虚拟机的首要选择，除了 Serial 收集器外，只有它能与 CMS 收集器（真正意义上的并发收集器，后面会介绍到）配合工作。</p>
 <p><strong>并行和并发概念补充：</strong></p>
 <ul>
@@ -495,24 +349,14 @@ uint result &#x3D; age &lt; MaxTenuringThreshold ? age : MaxTenuringThreshold;
 </li>
 </ul>
 <h3 id="4-3-Parallel-Scavenge-收集器"><a href="#4-3-Parallel-Scavenge-收集器" class="headerlink" title="4.3 Parallel Scavenge 收集器"></a>4.3 Parallel Scavenge 收集器</h3><p>Parallel Scavenge 收集器也是使用标记-复制算法的多线程收集器，它看上去几乎和 ParNew 都一样。 <strong>那么它有什么特别之处呢？</strong></p>
-<pre class="line-numbers language-none"><code class="language-none">-XX:+UseParallelGC
-
-    使用 Parallel 收集器+ 老年代串行
-
--XX:+UseParallelOldGC
-
-    使用 Parallel 收集器+ 老年代并行
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-XX:+UseParallelGC</span><br><span class="line"></span><br><span class="line">    使用 Parallel 收集器+ 老年代串行</span><br><span class="line"></span><br><span class="line">-XX:+UseParallelOldGC</span><br><span class="line"></span><br><span class="line">    使用 Parallel 收集器+ 老年代并行</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p><strong>Parallel Scavenge 收集器关注点是吞吐量（高效率的利用 CPU）。CMS 等垃圾收集器的关注点更多的是用户线程的停顿时间（提高用户体验）。所谓吞吐量就是 CPU 中用于运行用户代码的时间与 CPU 总消耗时间的比值。</strong> Parallel Scavenge 收集器提供了很多参数供用户找到最合适的停顿时间或最大吞吐量，如果对于收集器运作不太了解，手工优化存在困难的时候，使用 Parallel Scavenge 收集器配合自适应调节策略，把内存管理优化交给虚拟机去完成也是一个不错的选择。</p>
 <p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157818.png" srcset="/img/loading.gif" lazyload alt="Parallel Scavenge 收集器 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157818.png" alt="Parallel Scavenge 收集器 "></p>
 <p><strong>这是 JDK1.8 默认收集器</strong></p>
 <p>使用 java -XX:+PrintCommandLineFlags -version 命令查看</p>
-<pre class="line-numbers language-none"><code class="language-none">-XX:InitialHeapSize&#x3D;262921408 -XX:MaxHeapSize&#x3D;4206742528 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC
-java version &quot;1.8.0_211&quot;
-Java(TM) SE Runtime Environment (build 1.8.0_211-b12)
-Java HotSpot(TM) 64-Bit Server VM (build 25.211-b12, mixed mode)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-XX:InitialHeapSize=262921408 -XX:MaxHeapSize=4206742528 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseParallelGC</span><br><span class="line">java version &quot;1.8.0_211&quot;</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_211-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.211-b12, mixed mode)</span><br></pre></td></tr></table></figure>
 
 <p>JDK1.8 默认使用的是 Parallel Scavenge + Parallel Old，如果指定了-XX:+UseParallelGC 参数，则默认指定了-XX:+UseParallelOldGC，可以使用-XX:-UseParallelOldGC 来禁用该功能</p>
 <h3 id="4-4-Serial-Old-收集器"><a href="#4-4-Serial-Old-收集器" class="headerlink" title="4.4.Serial Old 收集器"></a>4.4.Serial Old 收集器</h3><p><strong>Serial 收集器的老年代版本</strong>，它同样是一个单线程收集器。它主要有两大用途：一种用途是在 JDK1.5 以及以前的版本中与 Parallel Scavenge 收集器搭配使用，另一种用途是作为 CMS 收集器的后备方案。</p>
@@ -526,7 +370,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.211-b12, mixed mode)<span aria-hidde
 <li><strong>重新标记：</strong> 重新标记阶段就是为了修正并发标记期间因为用户程序继续运行而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段的时间稍长，远远比并发标记阶段时间短</li>
 <li><strong>并发清除：</strong> 开启用户线程，同时 GC 线程开始对未标记的区域做清扫。</li>
 </ul>
-<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157917.png" srcset="/img/loading.gif" lazyload alt="CMS 垃圾收集器 "></p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202109281157917.png" alt="CMS 垃圾收集器 "></p>
 <p>从它的名字就可以看出它是一款优秀的垃圾收集器，主要优点：<strong>并发收集、低停顿</strong>。但是它有下面三个明显的缺点：</p>
 <ul>
 <li><strong>对 CPU 资源敏感；</strong></li>
@@ -558,264 +402,139 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.211-b12, mixed mode)<span aria-hidde
 <li><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jvms/se8/html/index.html">https://docs.oracle.com/javase/specs/jvms/se8/html/index.html</a></li>
 </ul>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/JavaSE/">JavaSE</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/JVM/">JVM</a>
-                    
-                      <a class="hover-with-bg" href="/tags/GC/">GC</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2021/03/04/%E5%A4%A7%E7%99%BD%E8%AF%9D%E8%81%8A%E9%80%8FJVM/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">大白话聊透JVM</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/">
-                        <span class="hidden-mobile">浅谈Redis分布式锁(下)</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-number">1.</span> <span class="toc-text">JVM 垃圾回收</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-number">1.1.</span> <span class="toc-text">写在前面</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E8%8A%82%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="toc-number">1.1.1.</span> <span class="toc-text">本节常见面试题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E6%96%87%E5%AF%BC%E7%81%AB%E7%B4%A2"><span class="toc-number">1.1.2.</span> <span class="toc-text">本文导火索</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%8F%AD%E5%BC%80-JVM-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%B8%8E%E5%9B%9E%E6%94%B6%E7%9A%84%E7%A5%9E%E7%A7%98%E9%9D%A2%E7%BA%B1"><span class="toc-number">1.2.</span> <span class="toc-text">1 揭开 JVM 内存分配与回收的神秘面纱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AF%B9%E8%B1%A1%E4%BC%98%E5%85%88%E5%9C%A8-eden-%E5%8C%BA%E5%88%86%E9%85%8D"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 对象优先在 eden 区分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%A4%A7%E5%AF%B9%E8%B1%A1%E7%9B%B4%E6%8E%A5%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 大对象直接进入老年代</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E9%95%BF%E6%9C%9F%E5%AD%98%E6%B4%BB%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%B0%86%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 长期存活的对象将进入老年代</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%8A%A8%E6%80%81%E5%AF%B9%E8%B1%A1%E5%B9%B4%E9%BE%84%E5%88%A4%E5%AE%9A"><span class="toc-number">1.2.4.</span> <span class="toc-text">1.4 动态对象年龄判定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E4%B8%BB%E8%A6%81%E8%BF%9B%E8%A1%8C-gc-%E7%9A%84%E5%8C%BA%E5%9F%9F"><span class="toc-number">1.2.5.</span> <span class="toc-text">1.5 主要进行 gc 的区域</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AF%B9%E8%B1%A1%E5%B7%B2%E7%BB%8F%E6%AD%BB%E4%BA%A1%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">2 对象已经死亡？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E6%B3%95"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 引用计数法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E7%AE%97%E6%B3%95"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 可达性分析算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%86%8D%E8%B0%88%E5%BC%95%E7%94%A8"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 再谈引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%B8%8D%E5%8F%AF%E8%BE%BE%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%B9%B6%E9%9D%9E%E2%80%9C%E9%9D%9E%E6%AD%BB%E4%B8%8D%E5%8F%AF%E2%80%9D"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 不可达的对象并非“非死不可”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%B8%B8%E9%87%8F%E6%98%AF%E5%BA%9F%E5%BC%83%E5%B8%B8%E9%87%8F%EF%BC%9F"><span class="toc-number">1.3.5.</span> <span class="toc-text">2.5 如何判断一个常量是废弃常量？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E7%B1%BB%E6%98%AF%E6%97%A0%E7%94%A8%E7%9A%84%E7%B1%BB"><span class="toc-number">1.3.6.</span> <span class="toc-text">2.6 如何判断一个类是无用的类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.</span> <span class="toc-text">3 垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 标记-清除算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 标记-复制算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 标记-整理算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 分代收集算法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.</span> <span class="toc-text">4 垃圾收集器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Serial-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 Serial 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-ParNew-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 ParNew 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Parallel-Scavenge-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3 Parallel Scavenge 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Serial-Old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4.Serial Old 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-Parallel-Old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.5.</span> <span class="toc-text">4.5 Parallel Old 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-CMS-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.6.</span> <span class="toc-text">4.6 CMS 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-G1-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.7.</span> <span class="toc-text">4.7 G1 收集器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-8-ZGC-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.5.8.</span> <span class="toc-text">4.8 ZGC 收集器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">1.6.</span> <span class="toc-text">参考</span></a></li></ol></li></ol>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&text=浅谈Java GC"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&is_video=false&description=浅谈Java GC"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈Java GC&body=Check out this article: http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&title=浅谈Java GC"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&name=浅谈Java GC&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/11/22/%E6%B5%85%E8%B0%88Java%20GC/&t=浅谈Java GC"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>

@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="静态代理假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。 你如何在不修改已有代码的前提下，完成这个需求？ 我首先想到的是静态代理。具体做法是： 1.为现有的每一个类都编写一个对应的代理类，并且让它实现和目标类相同的接口（假设都有）  2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，代理对象 &#x3D; 增强代码">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="静态代理假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。 你如何在不修改已有代码的前提下，完成这个需求？ 我首先想到的是静态代理。具体做法是： 1.为现有的每一个类都编写一个对应的代理类，并且让它实现和目标类相同的接口（假设都有）  2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，代理对象 &#x3D;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="静态代理&amp;动态代理">
 <meta property="og:url" content="http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/index.html">
 <meta property="og:site_name" content="low gravity">
-<meta property="og:description" content="静态代理假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。 你如何在不修改已有代码的前提下，完成这个需求？ 我首先想到的是静态代理。具体做法是： 1.为现有的每一个类都编写一个对应的代理类，并且让它实现和目标类相同的接口（假设都有）  2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，代理对象 &#x3D; 增强代码">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:description" content="静态代理假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。 你如何在不修改已有代码的前提下，完成这个需求？ 我首先想到的是静态代理。具体做法是： 1.为现有的每一个类都编写一个对应的代理类，并且让它实现和目标类相同的接口（假设都有）  2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，代理对象 &#x3D;">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-001c5db900d8785d47c1a5a0c6f32762_1440w-20210902214027681.jpg">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e302487f952bdf8e284afc0d8d6a770b_1440w-20210902214033494.jpg">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-9cd31ab516bd967e1b8e68736931f8ba_1440w-20210903091359016.jpg">
@@ -48,343 +38,218 @@
 <meta property="article:modified_time" content="2021-09-28T05:11:52.326Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="proxy">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-001c5db900d8785d47c1a5a0c6f32762_1440w-20210902214027681.jpg">
-  
-  <title>静态代理&amp;动态代理 - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>静态代理&amp;动态代理</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/12/08/java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E4%B9%8BInvocationHandler/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&text=静态代理&amp;动态代理"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&is_video=false&description=静态代理&amp;动态代理"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=静态代理&amp;动态代理&body=Check out this article: http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&name=静态代理&amp;动态代理&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&t=静态代理&amp;动态代理"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923140320.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="静态代理&amp;动态代理">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2019-12-08 21:03" pubdate>
-        2019年12月8日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">静态代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">动态代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">小结</span></a></li></ol>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        静态代理&amp;动态代理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-12-08T13:03:42.000Z" class="dt-published" itemprop="datePublished">2019-12-08</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/JavaSE/">JavaSE</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/proxy/" rel="tag">proxy</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">静态代理&amp;动态代理</h1>
-            
-            <div class="markdown-body">
-              <h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a><strong>静态代理</strong></h2><p>假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。</p>
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a><strong>静态代理</strong></h2><p>假设现在项目经理有一个需求：在项目现有所有类的方法前后打印日志。</p>
 <p>你如何在<strong>不修改已有代码的前提下</strong>，完成这个需求？</p>
 <p>我首先想到的是静态代理。具体做法是：</p>
 <p>1.为现有的每一个类都编写一个<strong>对应的</strong>代理类，并且让它实现和目标类相同的接口（假设都有）</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-001c5db900d8785d47c1a5a0c6f32762_1440w-20210902214027681.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p>2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，<strong>代理对象 = 增强代码 + 目标对象（原对象）</strong>。有了代理对象后，就不用原对象了</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e302487f952bdf8e284afc0d8d6a770b_1440w-20210902214033494.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-001c5db900d8785d47c1a5a0c6f32762_1440w-20210902214027681.jpg" alt="img"></p>
+<p>2.在创建代理对象时，通过构造器塞入一个目标对象，然后在代理对象的方法内部调用目标对象同名方法，并在调用前后打印日志。也就是说，<strong>代理对象 &#x3D; 增强代码 + 目标对象（原对象）</strong>。有了代理对象后，就不用原对象了</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e302487f952bdf8e284afc0d8d6a770b_1440w-20210902214033494.jpg" alt="img"></p>
 <p><strong>静态代理的缺陷</strong></p>
 <p>程序员要手动为每一个目标类编写对应的代理类。如果当前系统已经有成百上千个类，工作量太大了。所以，现在我们的努力方向是：如何少写或者不写代理类，却能完成代理功能？</p>
 <p><strong>复习对象的创建</strong></p>
 <p>很多初学Java的朋友眼中创建对象的过程</p>
-<p>;<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-9cd31ab516bd967e1b8e68736931f8ba_1440w-20210903091359016.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>;<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-9cd31ab516bd967e1b8e68736931f8ba_1440w-20210903091359016.jpg" alt="img"></p>
 <p>实际上可以换个角度，也说得通</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-eddc430b991c58039dfc79dd6f3139cc_1440w-20210903091410216.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-eddc430b991c58039dfc79dd6f3139cc_1440w-20210903091410216.jpg" alt="img"></p>
 <p>所谓的Class对象，是Class类的实例，而Class类是描述所有类的，比如Person类，Student类</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-c9bf695b1b9d2a0ae01cf92501492159_1440w-20210903091424896.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p>可以看出，要创建一个实例，最关键的就是<strong>得到对应的Class对象。</strong>只不过对于初学者来说，new这个关键字配合构造方法，实在太好用了，底层隐藏了太多细节，一句 Person p = new Person();直接把对象返回给你了。我自己刚开始学Java时，也没意识到Class对象的存在。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-c9bf695b1b9d2a0ae01cf92501492159_1440w-20210903091424896.jpg" alt="img"></p>
+<p>可以看出，要创建一个实例，最关键的就是<strong>得到对应的Class对象。</strong>只不过对于初学者来说，new这个关键字配合构造方法，实在太好用了，底层隐藏了太多细节，一句 Person p &#x3D; new Person();直接把对象返回给你了。我自己刚开始学Java时，也没意识到Class对象的存在。</p>
 <p>分析到这里，貌似有了思路：</p>
 <p><strong>能否不写代理类，而直接得到代理Class对象，然后根据它创建代理实例（反射）。</strong></p>
 <p>Class对象包含了一个类的所有信息，比如构造器、方法、字段等。如果我们不写代理类，这些信息从哪获取呢？苦思冥想，突然灵光一现：代理类和目标类理应实现同一组接口。<strong>之所以实现相同接口，是为了尽可能保证代理对象的内部结构和目标对象一致，这样我们对代理对象的操作最终都可以转移到目标对象身上，代理对象只需专注于增强代码的编写。</strong>还是上面这幅图：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e302487f952bdf8e284afc0d8d6a770b_1440w-20210903091438566.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e302487f952bdf8e284afc0d8d6a770b_1440w-20210903091438566.jpg" alt="img"></p>
 <p>所以，可以这样说：接口拥有代理对象和目标对象共同的类信息。所以，我们可以从接口那得到理应由代理类提供的信息。但是别忘了，接口是无法创建对象的，怎么办？</p>
 <h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><p>JDK提供了java.lang.reflect.InvocationHandler接口和 java.lang.reflect.Proxy类，这两个类相互配合，入口是Proxy，所以我们先聊它。</p>
 <p>Proxy有个静态方法：getProxyClass(ClassLoader, interfaces)，只要你给它传入类加载器和一组接口，它就给你返回代理Class对象。</p>
 <p>用通俗的话说，getProxyClass()这个方法，会从你传入的接口Class中，“拷贝”类结构信息到一个新的Class对象中，但新的Class对象带有构造器，是可以创建对象的。打个比方，一个大内太监（接口Class），空有一身武艺（类信息），但是无法传给后人。现在江湖上有个妙手神医（Proxy类），发明了克隆大法（getProxyClass），不仅能克隆太监的一身武艺，还保留了小DD（构造器）…（这到底是道德の沦丧，还是人性的扭曲，欢迎走进动态代理）</p>
 <p>所以，一旦我们明确接口，完全可以通过接口的Class对象，创建一个代理Class，通过代理Class即可创建代理对象。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-d187a82b1eb9c088fe60327828ee63aa_1440w-20210903091450435.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-d187a82b1eb9c088fe60327828ee63aa_1440w-20210903091450435.jpg" alt="img"></p>
 <p>大体思路</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-28223a1c03c1800052a5dfe4e6cb8c53_1440w-20210903091507755.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-28223a1c03c1800052a5dfe4e6cb8c53_1440w-20210903091507755.jpg" alt="img"></p>
 <p>静态代理</p>
-<p><img src="https://pica.zhimg.com/80/v2-ba3d9206f341be466f18afbdd938a3b3_1440w.jpg?source=1940ef5c" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://pica.zhimg.com/80/v2-ba3d9206f341be466f18afbdd938a3b3_1440w.jpg?source=1940ef5c" alt="img"></p>
 <p>动态代理</p>
 <p>所以，按我理解，Proxy.getProxyClass()这个方法的本质就是：<strong>以Class造Class。</strong></p>
 <p>有了Class对象，就很好办了，具体看代码：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-6b091b6d41bae1f88ba74a510acb24b1_1440w-20210903091542536.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-6b091b6d41bae1f88ba74a510acb24b1_1440w-20210903091542536.jpg" alt="img"></p>
 <p>完美。</p>
 <p>根据代理Class的构造器创建对象时，需要传入InvocationHandler。每次调用代理对象的方法，最终都会调用InvocationHandler的invoke()方法：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-92610586e77cf71ba5ce89087de52ff1_1440w-20210903091554306.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-92610586e77cf71ba5ce89087de52ff1_1440w-20210903091554306.jpg" alt="img"></p>
 <p>怎么做到的呢？</p>
 <p>上面不是说了吗，根据代理Class的构造器创建对象时，需要传入InvocationHandler。<strong>通过构造器传入一个引用，那么必然有个成员变量去接收。</strong>没错，代理对象的内部确实有个成员变量invocationHandler，而且代理对象的每个方法内部都会调用handler.invoke()！InvocationHandler对象成了代理对象和目标对象的桥梁，不像静态代理这么直接。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-b5fc8b279a6152889afdfedbb0f611cc_1440w-20210903091605600.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p>大家仔细看上图右侧的动态代理，我在invocationHandler的invoke()方法中并没有写目标对象。因为一开始invocationHandler的invoke()里确实没有目标对象，需要我们手动new。<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-88147b81ee9342015374159b2671320b_1440w-20210903091623203.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-b5fc8b279a6152889afdfedbb0f611cc_1440w-20210903091605600.jpg" alt="img"></p>
+<p>大家仔细看上图右侧的动态代理，我在invocationHandler的invoke()方法中并没有写目标对象。因为一开始invocationHandler的invoke()里确实没有目标对象，需要我们手动new。<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-88147b81ee9342015374159b2671320b_1440w-20210903091623203.jpg" alt="img"></p>
 <p>但这种写法不够优雅，属于硬编码。我这次代理A对象，下次想代理B对象还要进来改invoke()方法，太差劲了。改进一下，让调用者把目标对象作为参数传进来：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ProxyTest</span> <span class="token punctuation">&#123;</span>
-	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Throwable</span> <span class="token punctuation">&#123;</span>
-		<span class="token class-name">CalculatorImpl</span> target <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CalculatorImpl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-                <span class="token comment">//传入目标对象</span>
-                <span class="token comment">//目的：1.根据它实现的接口生成代理对象 2.代理对象调用目标对象方法</span>
-		<span class="token class-name">Calculator</span> calculatorProxy <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Calculator</span><span class="token punctuation">)</span> <span class="token function">getProxy</span><span class="token punctuation">(</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		calculatorProxy<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		calculatorProxy<span class="token punctuation">.</span><span class="token function">subtract</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token punctuation">&#125;</span>
-
-	<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Object</span> <span class="token function">getProxy</span><span class="token punctuation">(</span><span class="token keyword">final</span> <span class="token class-name">Object</span> target<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-		<span class="token comment">//参数1：随便找个类加载器给它， 参数2：目标对象实现的接口，让代理对象实现相同接口</span>
-		<span class="token class-name">Class</span> proxyClazz <span class="token operator">=</span> <span class="token class-name">Proxy</span><span class="token punctuation">.</span><span class="token function">getProxyClass</span><span class="token punctuation">(</span>target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInterfaces</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token class-name">Constructor</span> constructor <span class="token operator">=</span> proxyClazz<span class="token punctuation">.</span><span class="token function">getConstructor</span><span class="token punctuation">(</span><span class="token class-name">InvocationHandler</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token class-name">Object</span> proxy <span class="token operator">=</span> constructor<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">InvocationHandler</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
-			<span class="token annotation punctuation">@Override</span>
-			<span class="token keyword">public</span> <span class="token class-name">Object</span> <span class="token function">invoke</span><span class="token punctuation">(</span><span class="token class-name">Object</span> proxy<span class="token punctuation">,</span> <span class="token class-name">Method</span> method<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Throwable</span> <span class="token punctuation">&#123;</span>
-				<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>method<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"方法开始执行..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-				<span class="token class-name">Object</span> result <span class="token operator">=</span> method<span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>target<span class="token punctuation">,</span> args<span class="token punctuation">)</span><span class="token punctuation">;</span>
-				<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span><span class="token punctuation">;</span>
-				<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>method<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"方法执行结束..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-				<span class="token keyword">return</span> result<span class="token punctuation">;</span>
-			<span class="token punctuation">&#125;</span>
-		<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">return</span> proxy<span class="token punctuation">;</span>
-	<span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProxyTest</span> &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">		<span class="type">CalculatorImpl</span> <span class="variable">target</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CalculatorImpl</span>();</span><br><span class="line">                <span class="comment">//传入目标对象</span></span><br><span class="line">                <span class="comment">//目的：1.根据它实现的接口生成代理对象 2.代理对象调用目标对象方法</span></span><br><span class="line">		<span class="type">Calculator</span> <span class="variable">calculatorProxy</span> <span class="operator">=</span> (Calculator) getProxy(target);</span><br><span class="line">		calculatorProxy.add(<span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">		calculatorProxy.subtract(<span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> Object <span class="title function_">getProxy</span><span class="params">(<span class="keyword">final</span> Object target)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">		<span class="comment">//参数1：随便找个类加载器给它， 参数2：目标对象实现的接口，让代理对象实现相同接口</span></span><br><span class="line">		<span class="type">Class</span> <span class="variable">proxyClazz</span> <span class="operator">=</span> Proxy.getProxyClass(target.getClass().getClassLoader(), target.getClass().getInterfaces());</span><br><span class="line">		<span class="type">Constructor</span> <span class="variable">constructor</span> <span class="operator">=</span> proxyClazz.getConstructor(InvocationHandler.class);</span><br><span class="line">		<span class="type">Object</span> <span class="variable">proxy</span> <span class="operator">=</span> constructor.newInstance(<span class="keyword">new</span> <span class="title class_">InvocationHandler</span>() &#123;</span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">				System.out.println(method.getName() + <span class="string">&quot;方法开始执行...&quot;</span>);</span><br><span class="line">				<span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> method.invoke(target, args);</span><br><span class="line">				System.out.println(result);</span><br><span class="line">				System.out.println(method.getName() + <span class="string">&quot;方法执行结束...&quot;</span>);</span><br><span class="line">				<span class="keyword">return</span> result;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		<span class="keyword">return</span> proxy;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这样就非常灵活，非常优雅了。无论现在系统有多少类，只要你把实例传进来，getProxy()都能给你返回对应的代理对象。就这样，我们完美地跳过了代理类，直接创建了代理对象！</p>
 <p>不过实际编程中，一般不用getProxyClass()，而是使用Proxy类的另一个静态方法：Proxy.newProxyInstance()，直接返回代理实例，连中间得到代理Class对象的过程都帮你隐藏：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ProxyTest</span> <span class="token punctuation">&#123;</span>
-	<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Throwable</span> <span class="token punctuation">&#123;</span>
-		<span class="token class-name">CalculatorImpl</span> target <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CalculatorImpl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token class-name">Calculator</span> calculatorProxy <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Calculator</span><span class="token punctuation">)</span> <span class="token function">getProxy</span><span class="token punctuation">(</span>target<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		calculatorProxy<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		calculatorProxy<span class="token punctuation">.</span><span class="token function">subtract</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token punctuation">&#125;</span>
-
-	<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Object</span> <span class="token function">getProxy</span><span class="token punctuation">(</span><span class="token keyword">final</span> <span class="token class-name">Object</span> target<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
-		<span class="token class-name">Object</span> proxy <span class="token operator">=</span> <span class="token class-name">Proxy</span><span class="token punctuation">.</span><span class="token function">newProxyInstance</span><span class="token punctuation">(</span>
-				target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token comment">/*类加载器*/</span>
-				target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInterfaces</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token comment">/*让代理对象和目标对象实现相同接口*/</span>
-				<span class="token keyword">new</span> <span class="token class-name">InvocationHandler</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span><span class="token comment">/*代理对象的方法最终都会被JVM导向它的invoke方法*/</span>
-					<span class="token keyword">public</span> <span class="token class-name">Object</span> <span class="token function">invoke</span><span class="token punctuation">(</span><span class="token class-name">Object</span> proxy<span class="token punctuation">,</span> <span class="token class-name">Method</span> method<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Throwable</span> <span class="token punctuation">&#123;</span>
-						<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>method<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"方法开始执行..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-						<span class="token class-name">Object</span> result <span class="token operator">=</span> method<span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>target<span class="token punctuation">,</span> args<span class="token punctuation">)</span><span class="token punctuation">;</span>
-						<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span><span class="token punctuation">;</span>
-						<span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>method<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"方法执行结束..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-						<span class="token keyword">return</span> result<span class="token punctuation">;</span>
-					<span class="token punctuation">&#125;</span>
-				<span class="token punctuation">&#125;</span>
-		<span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">return</span> proxy<span class="token punctuation">;</span>
-	<span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProxyTest</span> &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">		<span class="type">CalculatorImpl</span> <span class="variable">target</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CalculatorImpl</span>();</span><br><span class="line">		<span class="type">Calculator</span> <span class="variable">calculatorProxy</span> <span class="operator">=</span> (Calculator) getProxy(target);</span><br><span class="line">		calculatorProxy.add(<span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">		calculatorProxy.subtract(<span class="number">2</span>, <span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> Object <span class="title function_">getProxy</span><span class="params">(<span class="keyword">final</span> Object target)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">		<span class="type">Object</span> <span class="variable">proxy</span> <span class="operator">=</span> Proxy.newProxyInstance(</span><br><span class="line">				target.getClass().getClassLoader(),<span class="comment">/*类加载器*/</span></span><br><span class="line">				target.getClass().getInterfaces(),<span class="comment">/*让代理对象和目标对象实现相同接口*/</span></span><br><span class="line">				<span class="keyword">new</span> <span class="title class_">InvocationHandler</span>()&#123;<span class="comment">/*代理对象的方法最终都会被JVM导向它的invoke方法*/</span></span><br><span class="line">					<span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">						System.out.println(method.getName() + <span class="string">&quot;方法开始执行...&quot;</span>);</span><br><span class="line">						<span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> method.invoke(target, args);</span><br><span class="line">						System.out.println(result);</span><br><span class="line">						System.out.println(method.getName() + <span class="string">&quot;方法执行结束...&quot;</span>);</span><br><span class="line">						<span class="keyword">return</span> result;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">		);</span><br><span class="line">		<span class="keyword">return</span> proxy;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
 <p>现在，我想应该能看懂动态代理了。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-6aacbe1e9df4fe982a68fe142401952e_1440w-20210903091644194.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-6aacbe1e9df4fe982a68fe142401952e_1440w-20210903091644194.jpg" alt="img"></p>
 <p>最后讨论一下代理对象是什么类型。</p>
 <p>首先，请区分两个概念：代理Class对象和代理对象。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-bb82bd129d63f77265f51b2209159269_1440w-20210903091702198.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-bb82bd129d63f77265f51b2209159269_1440w-20210903091702198.jpg" alt="img"></p>
 <p>单从名字看，代理Class和Calculator的接口确实相去甚远，但是我们却能将代理对象赋值给接口类型：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e869e67fc4fbc708b793ff6ea6e2c012_1440w-20210903091722724.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-e869e67fc4fbc708b793ff6ea6e2c012_1440w-20210903091722724.jpg" alt="img"></p>
 <p>千万别觉得名字奇怪，就怀疑它不能用接口接收，只要实现该接口就是该类型。</p>
 <blockquote>
 <p>代理对象的本质就是：和目标对象实现相同接口的实例。代理Class可以叫任何名字，whatever，只要它实现某个接口，就能成为该接口类型。</p>
 </blockquote>
-<p>;<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-91d716b1a95099ad364233de91fca7a3_1440w-20210903091736091.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>;<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-91d716b1a95099ad364233de91fca7a3_1440w-20210903091736091.jpg" alt="img"></p>
 <p>我写了一个MyProxy类，那么它的Class名字必然叫MyProxy。<strong>但这和能否赋值给接口没有任何关系。</strong>由于它实现了Serializable和Collection，所以myProxy（代理实例）<strong>同时</strong>是这两个接口的类型。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a><strong>小结</strong></h2><p>我想了个很骚的比喻，希望能解释清楚：</p>
 <p>接口Class对象是大内太监，里面的方法和字段比做他的一身武艺，但是他没有小DD（构造器），所以不能new实例。一身武艺后继无人。</p>
@@ -394,276 +259,153 @@
 <p>非正常途径（动态代理）：</p>
 <p>通过妙手圣医Proxy的克隆大法（Proxy.getProxyClass()），克隆一个Class，但是有小DD。所以这个克隆人Class可以创建实例，也就是代理对象。</p>
 <p>代理Class其实就是附有构造器的接口Class，一样的类结构信息，却能创建实例。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-33094b28321ab388bb0db46608eae74a_1440w-20210903091759099.jpg" srcset="/img/loading.gif" lazyload alt="img">JDK动态代理生成的实例</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-b99009ee292273a56ab483170b2e20aa_1440w-20210903091819161.jpg" srcset="/img/loading.gif" lazyload alt="img">CGLib动态代理生成的实例</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-33094b28321ab388bb0db46608eae74a_1440w-20210903091759099.jpg" alt="img">JDK动态代理生成的实例</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-b99009ee292273a56ab483170b2e20aa_1440w-20210903091819161.jpg" alt="img">CGLib动态代理生成的实例</p>
 <p>如果说继承的父类是亲爹（只有一个），那么实现的接口是干爹（可以有多个）。</p>
 <p>实现接口是一个类认干爹的过程。接口无法创建对象，但实现该接口的类可以。</p>
 <p>比如 </p>
-<pre class="line-numbers language-text" data-language="text"><code class="language-text">class Student extends Person implements A, B<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">class Student extends Person implements A, B</span><br></pre></td></tr></table></figure>
 
 <p>这个类new一个实例出来，你问它：你爸爸是谁啊？它会告诉你：我只有一个爸爸Person。</p>
 <p>但是student instanceof A interface，或者student instanceof B interface，它会告诉你两个都是它干爹（true），都可以用来接收它。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-1c36d27a6a2a49a266a7fc2ed457e532_1440w-20210903091835896.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-1c36d27a6a2a49a266a7fc2ed457e532_1440w-20210903091835896.jpg" alt="img"></p>
 <p>然而，凡是有利必有弊。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-991ea99b9038d52875ff6ba57e9032de_1440w-20210903091849332.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/v2-991ea99b9038d52875ff6ba57e9032de_1440w-20210903091849332.jpg" alt="img"></p>
 <p>也就是说，动态代理生成的代理对象，最终都可以用接口接收，和目标对象一起形成了多态，可以随意切换展示不同的功能。但是切换的同时，只能使用该接口定义的方法。</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/JavaSE/">JavaSE</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/proxy/">proxy</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">多线程基础(下)</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2019/12/08/java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E4%B9%8BInvocationHandler/">
-                        <span class="hidden-mobile">java动态代理之InvocationHandler</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">静态代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">动态代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">小结</span></a></li></ol>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&text=静态代理&amp;动态代理"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&is_video=false&description=静态代理&amp;动态代理"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=静态代理&amp;动态代理&body=Check out this article: http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&title=静态代理&amp;动态代理"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&name=静态代理&amp;动态代理&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/12/08/%E9%9D%99%E6%80%81%E4%BB%A3%E7%90%86&amp;%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/&t=静态代理&amp;动态代理"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>

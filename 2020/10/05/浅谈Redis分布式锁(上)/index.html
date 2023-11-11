@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。 本篇文章我们一起来探讨Redis分布式锁相关的内容。 说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。 本篇文章我们一起来探讨Redis分布式锁相关的内容。 说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、">
 <meta property="og:type" content="article">
 <meta property="og:title" content="浅谈Redis分布式锁(上)">
 <meta property="og:url" content="http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。 本篇文章我们一起来探讨Redis分布式锁相关的内容。 说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604203263605-6b838677-f5b4-48cd-9298-2788c694aa15-20210924103020945.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612488996804-3ea7c557-98ae-4d76-aa5a-5933c1fe6026-20210924103037552.png">
@@ -44,235 +34,160 @@
 <meta property="article:modified_time" content="2021-09-24T02:32:07.765Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="分布式锁">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png">
-  
-  <title>浅谈Redis分布式锁(上) - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>浅谈Redis分布式锁(上)</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&text=浅谈Redis分布式锁(上)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&is_video=false&description=浅谈Redis分布式锁(上)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈Redis分布式锁(上)&body=Check out this article: http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&name=浅谈Redis分布式锁(上)&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&t=浅谈Redis分布式锁(上)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923145711.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="浅谈Redis分布式锁(上)">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-10-05 21:33" pubdate>
-        2020年10月5日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM%E9%94%81"><span class="toc-number">1.</span> <span class="toc-text">JVM锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81%E3%80%81%E6%80%8E%E4%B9%88%E9%94%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么是锁、怎么锁？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Java%E5%AF%B9%E8%B1%A1%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">Java对象内存结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#synchronized%E4%B8%8E%E9%94%81%E5%8D%87%E7%BA%A7"><span class="toc-number">4.</span> <span class="toc-text">synchronized与锁升级</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#synchronized%E6%A1%88%E4%BE%8B"><span class="toc-number">5.</span> <span class="toc-text">synchronized案例</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">6.</span> <span class="toc-text">Redis分布式锁的概念</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E9%94%81%E9%95%BF%E5%95%A5%E6%A0%B7"><span class="toc-number">7.</span> <span class="toc-text">Redis的锁长啥样</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E4%B8%80%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%98%AF%E5%90%A6%E4%B8%80%E5%AE%9A%E8%A6%81%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">思考一个问题：分布式系统是否一定要分布式锁？</span></a></li></ol>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        浅谈Redis分布式锁(上)
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-10-05T13:33:26.000Z" class="dt-published" itemprop="datePublished">2020-10-05</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">浅谈Redis分布式锁(上)</h1>
-            
-            <div class="markdown-body">
-              <p>不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。</p>
+  <div class="content e-content" itemprop="articleBody">
+    <p>不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。</p>
 <p>本篇文章我们一起来探讨Redis分布式锁相关的内容。</p>
 <p>说到锁，大家第一时间想到的应该是synchronized关键字或ReentrantLock，随即想到偏向锁、自旋锁、重量级锁或者CAS甚至AQS。一般来说，我不喜欢一下子引入这么多概念，可能会把问题弄复杂，但为了方便大家理解Redis分布式锁，这里稍微提一下。</p>
 <h1 id="JVM锁"><a href="#JVM锁" class="headerlink" title="JVM锁"></a>JVM锁</h1><p>所谓JVM锁，其实指的是诸如synchronized关键字或者ReentrantLock实现的锁。之所以统称为JVM锁，是因为我们的项目其实都是跑在JVM上的。理论上每一个项目启动后，就对应一片JVM内存，后续运行时数据的生离死别都在这一片土地上。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png" srcset="/img/loading.gif" lazyload alt="图片.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095054769-ca64b8aa-6bd0-4bdc-a4da-cc7e5d181d24-20210924103005529.png" alt="图片.png"></p>
 <h1 id="什么是锁、怎么锁？"><a href="#什么是锁、怎么锁？" class="headerlink" title="什么是锁、怎么锁？"></a>什么是锁、怎么锁？</h1><p>明白了“JVM锁”名字的由来，我们再来聊什么是“锁”，以及怎么“锁”。</p>
 <p>有时候我们很难阐述清楚某个事物<strong>是什么</strong>，但很容易解释它<strong>能干什么</strong>，JVM锁也是这个道理。JVM锁的出现，就是为了解决线程安全问题。所谓线程安全问题，可以简单地理解为数据不一致（与预期不一致）。</p>
 <p>什么时候可能出现线程安全问题呢？</p>
@@ -282,18 +197,18 @@
 </li>
 <li><p>有共享数据</p>
 </li>
-<li><p>有多条语句操作共享数据/单条语句本身非原子操作（比如i++虽然是单条语句，但并非原子操作）</p>
+<li><p>有多条语句操作共享数据&#x2F;单条语句本身非原子操作（比如i++虽然是单条语句，但并非原子操作）</p>
 </li>
 </ul>
 <p>比如线程A、B同时对int count进行+1操作（初始值假设为1），在一定的概率下两次操作最终结果可能为2，而不是3。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604203263605-6b838677-f5b4-48cd-9298-2788c694aa15-20210924103020945.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604203263605-6b838677-f5b4-48cd-9298-2788c694aa15-20210924103020945.png" alt="image.png"></p>
 <p>那么加锁为什么能解决这个问题呢？</p>
 <p>如果不考虑原子性、内存屏障等晦涩的名词，加锁之所以能保证线程安全，核心就是“互斥”。所谓互斥，就是字面意思上的<strong>互</strong>相排<strong>斥</strong>。这里的“互相”是指谁呢？就是多线程之间！</p>
 <p>怎么实现多线程之间的互斥呢？</p>
 <p>引入“中间人”即可。</p>
 <p>注意，这是个非常简单且伟大的思想。在编程世界中，通过引入“中介”最终解决问题的案例不胜枚举，包括但不限于Spring、MQ。在码农之间，甚至流传着一句话：没有什么问题是引入中间层解决不了的。</p>
 <p>而JVM锁其实就是线程和线程彼此的“中间人”，多个线程在操作加锁数据前都必须征求“中间人”的同意：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612488996804-3ea7c557-98ae-4d76-aa5a-5933c1fe6026-20210924103037552.png" srcset="/img/loading.gif" lazyload alt="图片.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612488996804-3ea7c557-98ae-4d76-aa5a-5933c1fe6026-20210924103037552.png" alt="图片.png"></p>
 <p>锁在这里扮演的角色其实就是守门员，是<strong>唯一</strong>的访问入口，所有的线程都要经过它的拷问。在JDK中，锁的实现机制最常见的就是两种，分别是两个派系：</p>
 <ul>
 <li>synchronized关键字</li>
@@ -302,7 +217,7 @@
 <p>个人觉得synchronized关键字要比AQS难理解，但AQS的源码比较抽象。这里简要介绍一下Java对象内存结构和synchronized关键字的实现原理。</p>
 <h1 id="Java对象内存结构"><a href="#Java对象内存结构" class="headerlink" title="Java对象内存结构"></a>Java对象内存结构</h1><p>要了解synchronized关键字，首先要知道Java对象的内存结构。强调一遍，是Java<strong>对象的内存结构</strong>。</p>
 <p>它的存在仿佛向我们抛出一个疑问：如果有机会解剖一个Java对象，我们能看到什么？</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604205724123-0a6ab812-080e-4626-8a35-db6b6a41bd04-20210924103057869.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604205724123-0a6ab812-080e-4626-8a35-db6b6a41bd04-20210924103057869.png" alt="image.png"></p>
 <p>右上图画了两个对象，只看其中一个即可。我们可以观察到，Java对象内存结构大致分为几块：</p>
 <ul>
 <li><p>Mark Word（锁相关）</p>
@@ -327,37 +242,22 @@
 </li>
 </ul>
 <p>这一切的一切，其实都可以在Java对象内存结构中的Mark Word找到答案：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604208962907-39530cce-67a1-41ff-9855-13f3297d2c10-20210924103109319.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604208962907-39530cce-67a1-41ff-9855-13f3297d2c10-20210924103109319.png" alt="image.png"></p>
 <p>很多同学可能是第一次看到这幅图，会感到有点懵，没关系，我也很头大，都一样的。</p>
 <p>Mark Word包含的信息还是蛮多的，但这里我们只需要简单地把它理解为<strong>记录锁信息</strong>的标记即可。上图展示的是32位虚拟机下的Java对象内存，如果你仔细数一数，会发现全部bit加起来刚好是32位。64位虚拟机下的结构大同小异，就不特别介绍。</p>
 <p>Mark Word从有限的32bit中划分出2bit，专门用作锁标志位，通俗地讲就是标记当前锁的状态。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1620095815528-242114c7-277f-4777-ad33-9e38d4c62c27.png" alt="img"></p>
 <p>正因为每个Java对象都有Mark Word，而Mark Word能标记锁状态（把自己当做锁），所以Java中任意对象都可以作为synchronized的锁：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">synchronized</span><span class="token punctuation">(</span>person<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-<span class="token punctuation">&#125;</span>
-<span class="token keyword">synchronized</span><span class="token punctuation">(</span>student<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span>(person)&#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">synchronized</span>(student)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>所谓的this锁就是当前对象，而Class锁就是当前对象所属类的Class对象，本质也是Java对象。synchronized修饰的普通方法底层使用当前对象作为锁，synchronized修饰的静态方法底层使用Class对象作为锁。</strong></p>
 <p>但如果要保证多个线程互斥，最基本的条件是它们<strong>使用同一把锁：</strong></p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612489131320-62cceb64-2ba8-431d-985f-03cbe8f42df2-20210923220222012.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612489131320-62cceb64-2ba8-431d-985f-03cbe8f42df2-20210923220222012.png" alt="img"></p>
 <p>对同一份数据加两把不同的锁是没有意义的，实际开发时应该注意避免下面的写法：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">synchronized</span><span class="token punctuation">(</span><span class="token class-name">Person</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-    <span class="token comment">// 操作count</span>
-<span class="token punctuation">&#125;</span>
-
-<span class="token keyword">synchronized</span><span class="token punctuation">(</span>person<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-    <span class="token comment">// 操作count</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span>(Person.class)&#123;</span><br><span class="line">    <span class="comment">// 操作count</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">synchronized</span>(person)&#123;</span><br><span class="line">    <span class="comment">// 操作count</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>或者</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">synchronized</span> <span class="token keyword">void</span> <span class="token function">method1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-    <span class="token comment">// 操作count</span>
-<span class="token punctuation">&#125;</span>
-
-<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">synchronized</span> <span class="token keyword">void</span> <span class="token function">method1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
-    <span class="token comment">// 操作count</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">method1</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="comment">// 操作count</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">method1</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="comment">// 操作count</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
@@ -365,9 +265,9 @@
 <p>为什么需要标记锁的状态呢？是否意味着synchronized锁有多种状态呢？</p>
 <p>在JDK早期版本中，synchronized关键字的实现是直接基于重量级锁的。只要我们在代码中使用了synchronized，JVM就会向操作系统申请锁资源（不论当前是否真的是多线程环境），而向操作系统申请锁是比较耗费资源的，其中涉及到用户态和内核态的切换等，总之就是比较费事，且性能不高。</p>
 <p>JDK为了解决JVM锁性能低下的问题，引入了ReentrantLock，它基于CAS+AQS，类似自旋锁。自旋的意思就是，在发生锁竞争的时候，未争取到锁的线程会在门外采取自旋的方式等待锁的释放，谁抢到谁执行。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612489200273-6e3caa00-7625-42b7-9b03-e2a87ba09633-20210923220236604.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612489200273-6e3caa00-7625-42b7-9b03-e2a87ba09633-20210923220236604.png" alt="img"></p>
 <p>自旋锁的好处是，不需要兴师动众地切换到内核态申请操作系统的重量级锁，在JVM层面即可实现自旋等待。但世界上并没有百利而无一害的灵丹妙药，CAS自旋虽然避免了状态切换等复杂操作，却要耗费部分CPU资源，尤其当可预计上锁的时间较长且并发较高的情况下，会造成几百上千个线程同时自旋，极大增加CPU的负担。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604463084016-ce0704e8-55d9-4035-9dda-15778b125560-20210923220242536.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604463084016-ce0704e8-55d9-4035-9dda-15778b125560-20210923220242536.png" alt="img"></p>
 <p>synchronized毕竟JDK亲儿子，所以大概在JDK1.6或者更早期的版本，官方对synchronized做了优化，提出了“锁升级”的概念，把synchronized的锁划分为多个状态，也就是上图中提到的：</p>
 <ul>
 <li><p>无锁</p>
@@ -380,7 +280,7 @@
 </li>
 </ul>
 <p>无锁就是一个Java对象刚new出来的状态。当这个对象第一次被一个线程访问时，该线程会把自己的线程id“贴到”它的头上（Mark Word中部分位数被修改），表示“你是我的”：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604211050450-4463b6fc-3864-4822-b6a5-e8ed98283b7c-20210924103138330.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604211050450-4463b6fc-3864-4822-b6a5-e8ed98283b7c-20210924103138330.png" alt="image.png"></p>
 <p>此时是不存在锁竞争的，所以并不会有什么阻塞或等待。</p>
 <p>为什么要设计“偏向锁”这个状态呢？</p>
 <p>大家回忆一下，项目中并发的场景真的这么多吗？并没有吧。大部分项目的大部分时候，某个变量都是单个线程在执行，此时直接向操作系统申请重量级锁显然没有必要，因为根本不会发生线程安全问题。</p>
@@ -394,22 +294,22 @@
 <ul>
 <li>同一个类中的synchronized method m1和method m2互斥吗？</li>
 </ul>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290796058-a3bfc5f5-f6be-4543-8796-a2b170d36464-20210923220322058.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290796058-a3bfc5f5-f6be-4543-8796-a2b170d36464-20210923220322058.png" alt="img"></p>
 <p>t1线程执行m1方法时要去读this对象锁，但是t2线程并不需要读锁，两者各管各的，没有交集（不共用一把锁）</p>
 <ul>
 <li>同一个类中synchronized method m1中可以调用synchronized method m2吗？</li>
 </ul>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290844351-21fa8f5e-80ac-400f-8033-88aad2dd6960-20210923220329432.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290844351-21fa8f5e-80ac-400f-8033-88aad2dd6960-20210923220329432.png" alt="img"></p>
 <p>synchronized是可重入锁，可以粗浅地理解为同一个线程在已经持有该锁的情况下，可以再次获取锁，并且会在某个状态量上做+1操作（ReentrantLock也支持重入）</p>
 <ul>
 <li>子类同步方法synchronized method m可以调用父类的synchronized method m吗？</li>
 </ul>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290893998-8ba4a1e0-48a4-4789-9856-b5de2539ff7c-20210923220336563.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290893998-8ba4a1e0-48a4-4789-9856-b5de2539ff7c-20210923220336563.png" alt="img"></p>
 <p>子类对象初始化前，会调用父类构造方法，在结构上相当于包裹了一个父类对象，用的都是this锁对象</p>
 <ul>
 <li>静态同步方法和非静态同步方法互斥吗？</li>
 </ul>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290932744-f6d63490-b46a-4c0e-b939-c0a54764f6be-20210923220344834.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604290932744-f6d63490-b46a-4c0e-b939-c0a54764f6be-20210923220344834.png" alt="img"></p>
 <p>各玩各的，不是同一把锁，谈不上互斥</p>
 <h1 id="Redis分布式锁的概念"><a href="#Redis分布式锁的概念" class="headerlink" title="Redis分布式锁的概念"></a>Redis分布式锁的概念</h1><p>谈到Redis分布式锁，总是会有这样或那样的疑问：</p>
 <ul>
@@ -424,13 +324,13 @@
 </ul>
 <p>前3个问题其实可以一起回答，至于Redis如何实现分布式锁，我们放在下一篇。</p>
 <p>什么是分布式？这是个很复杂的概念，我也很难说准确，所以干脆画个图，大家各花入各眼吧：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604211829338-3b84a9f8-b551-41ba-a83e-1428ea401e13-20210923220351203.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604211829338-3b84a9f8-b551-41ba-a83e-1428ea401e13-20210923220351203.png" alt="img"></p>
 <p>分布式有个很显著的特点是，Service A和Service B极有可能并不是部署在同一个服务器上，所以它们也不共享同一片JVM内存。<strong>而上面介绍了，要想实现线程互斥，必须保证所有访问的线程使用的是同一把锁（JVM锁此时就无法保证互斥）。</strong></p>
 <p>对于分布式项目，有多少台服务器就有多少片JVM内存，即使每片内存中各设置一把“独一无二”的锁，从整体来看项目中的锁就不是唯一的。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604292366085-77c2f620-9dce-417e-a714-e094c690b934-20210923220359938.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604292366085-77c2f620-9dce-417e-a714-e094c690b934-20210923220359938.png" alt="img"></p>
 <p>此时，<strong>如何保证每一个JVM上的线程共用一把锁呢？</strong></p>
 <p>答案是：把锁抽取出来，让线程们在<strong>同一片内存</strong>相遇。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604292683347-9f095018-1aa9-464d-848e-f26b2ae69a52-20210923220408318.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604292683347-9f095018-1aa9-464d-848e-f26b2ae69a52-20210923220408318.png" alt="img"></p>
 <p>但锁是不能凭空存在的，本质还是要在内存中，此时可以使用Redis缓存作为锁的宿主环境，这就是Redis能构造分布式锁的原因。</p>
 <h1 id="Redis的锁长啥样"><a href="#Redis的锁长啥样" class="headerlink" title="Redis的锁长啥样"></a>Redis的锁长啥样</h1><p>synchronized关键字和ReentrantLock，它们都是实实在在已经实现的锁，而且还有标志位啥的。但Redis就是一个内存…怎么作为锁呢?</p>
 <p>有一点大家要明确，Redis之所以能用来做分布式锁，肯定不只是因为它是一片内存，否则JVM本身也占有内存，为什么无法自己实现分布式锁呢？</p>
@@ -453,262 +353,139 @@
 <p>可能未必。</p>
 <p>如果你需要的是写锁，那么可能确实需要分布式锁保证单一线程处理数据，而如果是为了防止缓存击穿（热点数据定时失效），那么使用JVM本地锁也没有太大关系。比如某个服务有10个节点，在使用JVM锁的情况下，即使某一时刻每个节点<strong>各自</strong>涌入1000个请求，虽然总共有1w个请求，但最终打到数据库的也只有10个，数据库层面是完全可以抗住这点请求量的，又由于本身是查询，所以不会造成线程安全问题。</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2020/10/17/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%AD)/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">浅谈Redis分布式锁(中)</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2020/09/16/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/">
-                        <span class="hidden-mobile">计算机网络概述</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM%E9%94%81"><span class="toc-number">1.</span> <span class="toc-text">JVM锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%94%81%E3%80%81%E6%80%8E%E4%B9%88%E9%94%81%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么是锁、怎么锁？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Java%E5%AF%B9%E8%B1%A1%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">Java对象内存结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#synchronized%E4%B8%8E%E9%94%81%E5%8D%87%E7%BA%A7"><span class="toc-number">4.</span> <span class="toc-text">synchronized与锁升级</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#synchronized%E6%A1%88%E4%BE%8B"><span class="toc-number">5.</span> <span class="toc-text">synchronized案例</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">6.</span> <span class="toc-text">Redis分布式锁的概念</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E9%94%81%E9%95%BF%E5%95%A5%E6%A0%B7"><span class="toc-number">7.</span> <span class="toc-text">Redis的锁长啥样</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E4%B8%80%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%98%AF%E5%90%A6%E4%B8%80%E5%AE%9A%E8%A6%81%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">思考一个问题：分布式系统是否一定要分布式锁？</span></a></li></ol>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&text=浅谈Redis分布式锁(上)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&is_video=false&description=浅谈Redis分布式锁(上)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈Redis分布式锁(上)&body=Check out this article: http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&title=浅谈Redis分布式锁(上)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&name=浅谈Redis分布式锁(上)&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/&t=浅谈Redis分布式锁(上)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>

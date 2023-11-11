@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="Cookie1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。 但随着交互式 Web 的兴起（所谓交互式就是你不光可以浏览，还可以登录，发评论，购物等用户操作的行为），单纯地浏览 web 已经无法满足人们的要求，比如随着网上购物">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Cookie1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。 但随着交互式 Web 的兴起（所谓交互式就是你不光可以浏览，还可以登录，发评论，购物等用户操作的行为），单纯地浏览 web 已经无法满足人们的要求，比如随着网上购物">
 <meta property="og:type" content="article">
 <meta property="og:title" content="cookie&amp;session&amp;token">
 <meta property="og:url" content="http://example.com/2020/03/02/Cookie&Session&Token/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="Cookie1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。 但随着交互式 Web 的兴起（所谓交互式就是你不光可以浏览，还可以登录，发评论，购物等用户操作的行为），单纯地浏览 web 已经无法满足人们的要求，比如随着网上购物">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101133075">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101138792">
@@ -38,257 +28,182 @@
 <meta property="article:modified_time" content="2021-09-28T05:12:43.427Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="Communication protocol">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316">
-  
-  <title>cookie&amp;session&amp;token - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>cookie&amp;session&amp;token</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&text=cookie&amp;session&amp;token"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&is_video=false&description=cookie&amp;session&amp;token"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=cookie&amp;session&amp;token&body=Check out this article: http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&name=cookie&amp;session&amp;token&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&t=cookie&amp;session&amp;token"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923141023.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="cookie&amp;session&amp;token">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-03-02 22:11" pubdate>
-        2020年3月2日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookie"><span class="toc-number">1.</span> <span class="toc-text">Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Session"><span class="toc-number">2.</span> <span class="toc-text">Session</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#session-%E7%9A%84%E7%97%9B%E7%82%B9"><span class="toc-number">3.</span> <span class="toc-text">session 的痛点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Token%EF%BC%9Ano-session"><span class="toc-number">4.</span> <span class="toc-text">Token：no session!</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookie-%E4%B8%8E-Token-%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">Cookie 与 Token 的简单总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E8%A7%A3-Cookie-%E7%9B%B8%E6%AF%94-token-%E6%9B%B4%E4%B8%8D%E5%AE%89%E5%85%A8%EF%BC%8C%E6%AF%94%E5%A6%82-CSRF-%E6%94%BB%E5%87%BB"><span class="toc-number">6.</span> <span class="toc-text">误解: Cookie 相比 token 更不安全，比如 CSRF 攻击</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number"></span> <span class="toc-text">总结</span></a>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        cookie&amp;session&amp;token
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-03-02T14:11:37.000Z" class="dt-published" itemprop="datePublished">2020-03-02</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/Web/">Web</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Communication-protocol/" rel="tag">Communication protocol</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">cookie&amp;session&amp;token</h1>
-            
-            <div class="markdown-body">
-              <h3 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a>Cookie</h3><p>1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。</p>
+  <div class="content e-content" itemprop="articleBody">
+    <h3 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a>Cookie</h3><p>1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。</p>
 <p>但随着交互式 Web 的兴起（所谓交互式就是你不光可以浏览，还可以登录，发评论，购物等用户操作的行为），单纯地浏览 web 已经无法满足人们的要求，比如随着网上购物的兴起，需要记录用户的购物车记录，就需要有一个机制记录每个连接的关系，这样我们就知道加入购物车的商品到底属于谁了，于是 Cookie 就诞生了。</p>
 <blockquote>
 <p>Cookie，有时也用其复数形式 Cookies。类型为“小型文本文件”，是某些网站为了辨别用户身份，进行 Session 跟踪而储存在用户本地终端上的数据（通常经过加密），由用户客户端计算机暂时或永久保存的信息 。</p>
 </blockquote>
 <p>工作机制如下</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316" alt="图片">img</p>
 <p>以加入购物车为例，每次浏览器请求后 server 都会将本次商品 id 存储在 Cookie 中返回给客户端，客户端会将 Cookie 保存在本地，下一次再将上次保存在本地的 Cookie 传给 server 就行了，这样每个 Cookie 都保存着用户的商品 id，购买记录也就不会丢失了</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101133075" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101133075" alt="图片">img</p>
 <p>仔细观察上图相信你不难发现随着购物车内的商品越来越多，每次请求的 cookie 也越来越大，这对每个请求来说是一个很大的负担，我只是想将一个商品加入购买车，为何要将历史的商品记录也一起返回给 server ？购物车信息其实已经记录在 server 了，浏览器这样的操作岂不是多此一举？怎么改进呢</p>
 <h3 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h3><p>仔细考虑下，由于用户的购物车信息都会保存在 Server 中，所以在 Cookie 里只要保存能识别用户身份的信息，知道是谁发起了加入购物车操作即可，这样每次请求后只要在 Cookie 里带上用户的身份信息，请求体里也只要带上本次加入购物车的商品 id，大大减少了 cookie 的体积大小，我们把这种能识别哪个请求由哪个用户发起的机制称为 Session（会话机制），生成的能识别用户身份信息的字符串称为 sessionId，它的工作机制如下</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101138792" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101138792" alt="图片"></p>
 <ol>
 <li>首先用户登录，server 会为用户生成一个 session，为其分配唯一的 sessionId，这个 sessionId 是与某个用户绑定的，也就是说根据此 sessionid（假设为 abc） 可以查询到它到底是哪个用户，然后将此 sessionid 通过 cookie 传给浏览器</li>
-<li>之后浏览器的每次添加购物车请求中只要在 cookie 里带上 sessionId=abc 这一个键值对即可，server 根据 sessionId 找到它对应的用户后，把传过来的商品 id 保存到 server 中对应用户的购物车即可</li>
+<li>之后浏览器的每次添加购物车请求中只要在 cookie 里带上 sessionId&#x3D;abc 这一个键值对即可，server 根据 sessionId 找到它对应的用户后，把传过来的商品 id 保存到 server 中对应用户的购物车即可</li>
 </ol>
 <p>可以看到通过这种方式再也不需要在 cookie 里传所有的购物车的商品 id 了，大大减轻了请求的负担！</p>
 <p>另外通过上文不难观察出 <strong>cookie 是存储在 client 的，而 session 保存在 server</strong>，sessionId 需要借助 cookie 的传递才有意义。</p>
 <h3 id="session-的痛点"><a href="#session-的痛点" class="headerlink" title="session 的痛点"></a>session 的痛点</h3><p>看起来通过  cookie + session 的方式是解决了问题， 但是我们忽略了一个问题，上述情况能正常工作是因为我们假设 server 是单机工作的，但实际在生产上，为了保障高可用，一般服务器至少需要两台机器，通过负载均衡的方式来决定到底请求该打到哪台机器上。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101154301" srcset="/img/loading.gif" lazyload alt="图片">balance</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101154301" alt="图片">balance</p>
 <p><strong>如图示：客户端请求后，由负载均衡器（如 Nginx）来决定到底打到哪台机器</strong></p>
 <p>假设登录请求打到了 A 机器，A 机器生成了 session 并在 cookie 里添加 sessionId 返回给了浏览器，那么问题来了：下次添加购物车时如果请求打到了 B 或者 C，由于 session 是在 A 机器生成的，此时的 B,C 是找不到 session 的，那么就会发生无法添加购物车的错误，就得重新登录了，此时请问该怎么办。主要有以下三种方式</p>
 <blockquote>
 <p>1、session 复制</p>
 </blockquote>
 <p>A 生成 session 后复制到 B, C，这样每台机器都有一份 session，无论添加购物车的请求打到哪台机器，由于 session 都能找到，故不会有问题</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101201725" srcset="/img/loading.gif" lazyload alt="图片">balance (1)</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101201725" alt="图片">balance (1)</p>
 <p>这种方式虽然可行，但缺点也很明显：</p>
 <ol>
 <li>同一样的一份 session 保存了多份，数据冗余</li>
@@ -298,30 +213,26 @@
 <p>2、session 粘连</p>
 </blockquote>
 <p>这种方式是让每个客户端请求只打到固定的一台机器上，比如浏览器登录请求打到 A 机器后，后续所有的添加购物车请求也都打到 A 机器上，Nginx 的 sticky 模块可以支持这种方式，支持按 ip 或 cookie 粘连等等，如按 ip 粘连方式如下</p>
-<pre class="line-numbers language-none"><code class="language-none">upstream tomcats &#123;
-  ip_hash;
-  server 10.1.1.107:88;
-  server 10.1.1.132:80;
-&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">upstream tomcats &#123;</span><br><span class="line">  ip_hash;</span><br><span class="line">  server 10.1.1.107:88;</span><br><span class="line">  server 10.1.1.132:80;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101207746" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101207746" alt="图片">img</p>
 <p>这样的话每个 client 请求到达 Nginx 后，只要它的 ip 不变，根据 ip hash 算出来的值会打到固定的机器上，也就不存在 session 找不到的问题了，当然不难看出这种方式缺点也是很明显，对应的机器挂了怎么办？</p>
 <blockquote>
 <p>3、session 共享</p>
 </blockquote>
 <p>这种方式也是目前各大公司普遍采用的方案，将 session 保存在 redis，memcached 等中间件中，请求到来时，各个机器去这些中间件取一下 session 即可。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101212174" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101212174" alt="图片">img</p>
 <p>缺点其实也不难发现，就是每个请求都要去 redis 取一下 session，多了一次内部连接，消耗了一点性能，另外为了保证 redis 的高可用，必须做集群，当然了对于大公司来说, redis 集群基本都会部署，所以这方案可以说是大公司的首选了。</p>
 <h3 id="Token：no-session"><a href="#Token：no-session" class="headerlink" title="Token：no session!"></a>Token：no session!</h3><p>通过上文分析我们知道通过在服务端共享 session 的方式可以完成用户的身份定位，但是不难发现也有一个小小的瑕疵：搞个校验机制我还得搭个 redis 集群？大厂确实 redis 用得比较普遍，但对于小厂来说可能它的业务量还未达到用 redis 的程度，所以有没有其他不用 server 存储 session 的用户身份校验机制呢，这就是我们今天要介绍的主角：token。</p>
 <p>首先请求方输入自己的用户名，密码，然后 server 据此生成 token，客户端拿到 token 后会保存到本地，之后向 server 请求时在请求头带上此 token 即可。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101217167" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101217167" alt="图片">img</p>
 <p>相信大家看了上图会发现存在两个问题</p>
 <p>1、 token 只存储在浏览器中，服务端却没有存储，这样的话我随便搞个 token 传给 server 也行？</p>
 <p>答：server 会有一套校验机制，校验这个 token 是否合法。</p>
 <p>2、怎么不像 session 那样根据 sessionId 找到 userid 呢，这样的话怎么知道是哪个用户？</p>
 <p>答：token 本身携带 uid 信息</p>
 <p>第一个问题，如何校验 token 呢？我们可以借鉴 HTTPS 的签名机制来校验。先来看 jwt token 的组成部分</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101223022" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101223022" alt="图片">img</p>
 <p>可以看到 token 主要由三部分组成</p>
 <ol>
 <li>header：指定了签名算法</li>
@@ -339,7 +250,7 @@
 <p>1、 Cookie 跨站是不能共享的，这样的话如果你要实现多应用（多系统）的单点登录（SSO），使用 Cookie 来做需要的话就很困难了（要用比较复杂的 trick 来实现，有兴趣的话可以看文末参考链接）</p>
 <p><strong>画外音: 所谓单点登录，是指在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。</strong></p>
 <p>但如果用 token 来实现 SSO 会非常简单，如下</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101228882" srcset="/img/loading.gif" lazyload alt="图片">img</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101228882" alt="图片">img</p>
 <p>只要在 header 中的 authorize 字段（或其他自定义）加上 token 即可完成所有跨域站点的认证。</p>
 <p>2、 在移动端原生请求是没有 cookie 之说的，而 sessionid 依赖于 cookie，sessionid 就不能用 cookie 来传了，如果用 token 的话，由于它是随着 header 的 authoriize 传过来的，也就不存在此问题，换句话说token 天生支持移动平台，可扩展性好</p>
 <p>综上所述，token 具有存储实现简单，扩展性好这些特点。</p>
@@ -354,11 +265,11 @@
 <p><strong>所以 token 更适合一次性的命令认证，设置一个比较短的有效期</strong></p>
 <h3 id="误解-Cookie-相比-token-更不安全，比如-CSRF-攻击"><a href="#误解-Cookie-相比-token-更不安全，比如-CSRF-攻击" class="headerlink" title="误解: Cookie 相比 token 更不安全，比如 CSRF 攻击"></a>误解: Cookie 相比 token 更不安全，比如 CSRF 攻击</h3><p>首先我们需要解释下 CSRF 攻击是怎么回事</p>
 <p>攻击者通过一些技术手段欺骗用户的浏览器去访问一个自己曾经认证过的网站并运行一些操作（如发邮件，发消息，甚至财产操作如转账和购买商品）。由于浏览器曾经认证过（cookie 里带来 sessionId 等身份认证的信息），所以被访问的网站会认为是真正的用户操作而去运行。</p>
-<p>比如用户登录了某银行网站（假设为 **<a target="_blank" rel="noopener" href="http://www.examplebank.com/**%EF%BC%8C%E5%B9%B6%E4%B8%94%E8%BD%AC%E8%B4%A6%E5%9C%B0%E5%9D%80%E4%B8%BA">http://www.examplebank.com/**，并且转账地址为</a> <strong><a target="_blank" rel="noopener" href="http://www.examplebank.com/withdraw?amount=1000&amp;transferTo=PayeeName">http://www.examplebank.com/withdraw?amount=1000&amp;transferTo=PayeeName</a></strong>），登录后 cookie 里会包含登录用户的 sessionid，攻击者可以在另一个网站上放置如下代码</p>
-<pre class="line-numbers language-none"><code class="language-none">&lt;img src&#x3D;&quot;http:&#x2F;&#x2F;www.examplebank.com&#x2F;withdraw?account&#x3D;Alice&amp;amount&#x3D;1000&amp;for&#x3D;Badman&quot;&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>比如用户登录了某银行网站（假设为 **<a target="_blank" rel="noopener" href="http://www.examplebank.com/**%EF%BC%8C%E5%B9%B6%E4%B8%94%E8%BD%AC%E8%B4%A6%E5%9C%B0%E5%9D%80%E4%B8%BA">http://www.examplebank.com/**，并且转账地址为</a> <strong><a target="_blank" rel="noopener" href="http://www.examplebank.com/withdraw?amount=1000&transferTo=PayeeName">http://www.examplebank.com/withdraw?amount=1000&amp;transferTo=PayeeName</a></strong>），登录后 cookie 里会包含登录用户的 sessionid，攻击者可以在另一个网站上放置如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;img src=&quot;http://www.examplebank.com/withdraw?account=Alice&amp;amount=1000&amp;for=Badman&quot;&gt;</span><br></pre></td></tr></table></figure>
 
 <p>那么如果正常的用户误点了上面这张图片，由于相同域名的请求会自动带上 cookie，而 cookie 里带有正常登录用户的 sessionid，类似上面这样的转账操作在 server 就会成功，会造成极大的安全风险</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101238289" srcset="/img/loading.gif" lazyload alt="图片">csrf 示意图</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101238289" alt="图片">csrf 示意图</p>
 <p>CSRF 攻击的根本原因在于对于同样域名的每个请求来说，它的 cookie 都会被自动带上，这个是浏览器的机制决定的，所以很多人据此认定 cookie 不安全。</p>
 <p>使用 token 确实避免了CSRF 的问题，但正如上文所述，由于 token 保存在 local storage，它会被 JS 读取，<strong>从存储角度来看</strong>也不安全（实际上防护 CSRF 攻击的正确方式是用 CSRF token）</p>
 <p>所以不管是 cookie 还是 token，从存储角度来看其实都不安全，都有暴露的风险，我们所说的安全更多的是强调传输中的安全，可以用 HTTPS 协议来传输， 这样的话请求头都能被加密，也就保证了传输中的安全。</p>
@@ -370,262 +281,139 @@
 <li><a target="_blank" rel="noopener" href="http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/">http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/</a></li>
 </ul>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/Web/">Web</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/Communication-protocol/">Communication protocol</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">redis分布式锁</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2019/12/12/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80(%E4%B8%8B)/">
-                        <span class="hidden-mobile">多线程基础(下)</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookie"><span class="toc-number">1.</span> <span class="toc-text">Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Session"><span class="toc-number">2.</span> <span class="toc-text">Session</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#session-%E7%9A%84%E7%97%9B%E7%82%B9"><span class="toc-number">3.</span> <span class="toc-text">session 的痛点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Token%EF%BC%9Ano-session"><span class="toc-number">4.</span> <span class="toc-text">Token：no session!</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookie-%E4%B8%8E-Token-%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">Cookie 与 Token 的简单总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E8%A7%A3-Cookie-%E7%9B%B8%E6%AF%94-token-%E6%9B%B4%E4%B8%8D%E5%AE%89%E5%85%A8%EF%BC%8C%E6%AF%94%E5%A6%82-CSRF-%E6%94%BB%E5%87%BB"><span class="toc-number">6.</span> <span class="toc-text">误解: Cookie 相比 token 更不安全，比如 CSRF 攻击</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number"></span> <span class="toc-text">总结</span></a>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&text=cookie&amp;session&amp;token"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&is_video=false&description=cookie&amp;session&amp;token"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=cookie&amp;session&amp;token&body=Check out this article: http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&title=cookie&amp;session&amp;token"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&name=cookie&amp;session&amp;token&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/02/Cookie&amp;Session&amp;Token/&t=cookie&amp;session&amp;token"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>

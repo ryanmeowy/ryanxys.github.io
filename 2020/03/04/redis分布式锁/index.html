@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。 Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？ 因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？  基于 Redis 如何实现一个分布式锁？ Redis 分布式锁真的安全吗？ Redis 的 Redlock 有">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。 Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？ 因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？  基于 Redis 如何实现一个分布式锁？ Redis 分布式锁真的安全吗？ Redis 的 Redlock 有">
 <meta property="og:type" content="article">
 <meta property="og:title" content="redis分布式锁">
 <meta property="og:url" content="http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。 Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？ 因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？  基于 Redis 如何实现一个分布式锁？ Redis 分布式锁真的安全吗？ Redis 的 Redlock 有">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101801037.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101752919.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101730050.png">
@@ -42,231 +32,156 @@
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="redis">
 <meta property="article:tag" content="分布式锁">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101801037.png">
-  
-  <title>redis分布式锁 - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>redis分布式锁</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/03/02/Cookie&Session&Token/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&text=redis分布式锁"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&is_video=false&description=redis分布式锁"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redis分布式锁&body=Check out this article: http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&name=redis分布式锁&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&t=redis分布式锁"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/redisDistributed.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="redis分布式锁">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-03-04 09:11" pubdate>
-        2020年3月4日 上午
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">为什么需要分布式锁？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">分布式锁怎么实现？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E6%AD%BB%E9%94%81%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">如何避免死锁？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%94%81%E8%A2%AB%E5%88%AB%E4%BA%BA%E9%87%8A%E6%94%BE%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">4.</span> <span class="toc-text">锁被别人释放怎么办?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%94%81%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4%E4%B8%8D%E5%A5%BD%E8%AF%84%E4%BC%B0%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">锁过期时间不好评估怎么办？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redlock-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%90%97%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">Redlock 真的安全吗？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redlock-%E7%9A%84%E4%BA%89%E8%AE%BA%E8%B0%81%E5%AF%B9%E8%B0%81%E9%94%99%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">Redlock 的争论谁对谁错？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%93%E5%AE%B6-Martin-%E5%AF%B9%E4%BA%8E-Relock-%E7%9A%84%E8%B4%A8%E7%96%91"><span class="toc-number">7.1.</span> <span class="toc-text">分布式专家 Martin 对于 Relock 的质疑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis-%E4%BD%9C%E8%80%85-Antirez-%E7%9A%84%E5%8F%8D%E9%A9%B3"><span class="toc-number">7.2.</span> <span class="toc-text">Redis 作者 Antirez 的反驳</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E-Zookeeper-%E7%9A%84%E9%94%81%E5%AE%89%E5%85%A8%E5%90%97%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">基于 Zookeeper 的锁安全吗？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%88%91%E5%AF%B9%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E7%90%86%E8%A7%A3"><span class="toc-number">9.</span> <span class="toc-text">我对分布式锁的理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%8E%E8%AE%B0"><span class="toc-number">11.</span> <span class="toc-text">后记</span></a></li></ol>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        redis分布式锁
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-03-04T01:11:45.000Z" class="dt-published" itemprop="datePublished">2020-03-04</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/redis/" rel="tag">redis</a>, <a class="p-category" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">redis分布式锁</h1>
-            
-            <div class="markdown-body">
-              <p>这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。</p>
+  <div class="content e-content" itemprop="articleBody">
+    <p>这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。</p>
 <p>Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？</p>
 <p>因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？</p>
 <ul>
@@ -280,12 +195,12 @@
 <p>这篇文章，我就来把这些问题彻底讲清楚。</p>
 <p>读完这篇文章，你不仅可以彻底了解分布式锁，还会对「分布式系统」有更加深刻的理解。</p>
 <p><strong>文章有点长，但干货很多，希望你可以耐心读完。</strong></p>
-<p><strong><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101801037.png" srcset="/img/loading.gif" lazyload alt="图片"></strong></p>
+<p><strong><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101801037.png" alt="图片"></strong></p>
 <h1 id="为什么需要分布式锁？"><a href="#为什么需要分布式锁？" class="headerlink" title="为什么需要分布式锁？"></a>为什么需要分布式锁？</h1><p>在开始讲分布式锁之前，有必要简单介绍一下，为什么需要分布式锁？</p>
 <p>与分布式锁相对应的是「单机锁」，我们在写多线程程序时，避免同时操作一个共享变量产生数据问题，通常会使用一把锁来「互斥」，以保证共享变量的正确性，其使用范围是在「同一个进程」中。</p>
 <p>如果换做是多个进程，需要同时操作一个共享资源，如何互斥呢？</p>
 <p>例如，现在的业务应用通常都是微服务架构，这也意味着一个应用会部署多个进程，那这多个进程如果需要修改 MySQL 中的同一行记录时，为了避免操作乱序导致数据错误，此时，我们就需要引入「分布式锁」来解决这个问题了。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101752919.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101752919.png" alt="图片"></p>
 <p>想要实现分布式锁，必须借助一个外部系统，所有进程都去这个系统上申请「加锁」。</p>
 <p>而这个外部系统，必须要实现「互斥」的能力，即两个请求同时进来，只会给一个进程返回成功，另一个返回失败（或等待）。</p>
 <p>这个外部系统，可以是 MySQL，也可以是 Redis 或 Zookeeper。但为了追求更好的性能，我们通常会选择使用 Redis 或 Zookeeper 来做。</p>
@@ -294,21 +209,18 @@
 <p>想要实现分布式锁，必须要求 Redis 有「互斥」的能力，我们可以使用 SETNX 命令，这个命令表示<strong>SET</strong> if <strong>N</strong>ot e<strong>X</strong>ists，即如果 key 不存在，才会设置它的值，否则什么也不做。</p>
 <p>两个客户端进程可以执行这个命令，达到互斥，就可以实现一个分布式锁。</p>
 <p>客户端 1 申请加锁，加锁成功：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">127.0.0.1:6379&gt; SETNX lock 1
-(integer) 1     &#x2F;&#x2F; 客户端1，加锁成功<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; SETNX lock 1</span><br><span class="line">(integer) 1     // 客户端1，加锁成功</span><br></pre></td></tr></table></figure>
 
 <p>客户端 2 申请加锁，因为它后到达，加锁失败：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">127.0.0.1:6379&gt; SETNX lock 1
-(integer) 0     &#x2F;&#x2F; 客户端2，加锁失败<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; SETNX lock 1</span><br><span class="line">(integer) 0     // 客户端2，加锁失败</span><br></pre></td></tr></table></figure>
 
 <p>此时，加锁成功的客户端，就可以去操作「共享资源」，例如，修改 MySQL 的某一行数据，或者调用一个 API 请求。</p>
 <p>操作完成后，还要及时释放锁，给后来者让出操作共享资源的机会。如何释放锁呢？</p>
 <p>也很简单，直接使用 DEL 命令删除这个 key 即可：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">127.0.0.1:6379&gt; DEL lock &#x2F;&#x2F; 释放锁
-(integer) 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; DEL lock // 释放锁</span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
 
 <p>这个逻辑非常简单，整体的路程就是这样：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101730050.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101730050.png" alt="图片"></p>
 <p>但是，它存在一个很大的问题，当客户端 1 拿到锁后，如果发生下面的场景，就会造成「死锁」：</p>
 <ol>
 <li>程序处理业务逻辑异常，没及时释放锁</li>
@@ -318,10 +230,7 @@
 <p>怎么解决这个问题呢？</p>
 <h1 id="如何避免死锁？"><a href="#如何避免死锁？" class="headerlink" title="如何避免死锁？"></a>如何避免死锁？</h1><p>我们很容易想到的方案是，在申请锁时，给这把锁设置一个「租期」。</p>
 <p>在 Redis 中实现时，就是给这个 key 设置一个「过期时间」。这里我们假设，操作共享资源的时间不会超过 10s，那么在加锁时，给这个 key 设置 10s 过期即可：</p>
-<pre class="line-numbers language-terminal" data-language="terminal"><code class="language-terminal">127.0.0.1:6379&gt; SETNX lock 1    &#x2F;&#x2F; 加锁
-(integer) 1
-127.0.0.1:6379&gt; EXPIRE lock 10  &#x2F;&#x2F; 10s后自动过期
-(integer) 1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; SETNX lock 1    // 加锁</span><br><span class="line">(integer) 1</span><br><span class="line">127.0.0.1:6379&gt; EXPIRE lock 10  // 10s后自动过期</span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
 
 <p>这样一来，无论客户端是否异常，这个锁都可以在 10s 后被「自动释放」，其它客户端依旧可以拿到锁。</p>
 <p>但这样真的没问题吗？</p>
@@ -336,9 +245,7 @@
 <p>怎么办？</p>
 <p>在 Redis 2.6.12 版本之前，我们需要想尽办法，保证 SETNX 和 EXPIRE 原子性执行，还要考虑各种异常情况如何处理。</p>
 <p>但在 Redis 2.6.12 之后，Redis 扩展了 SET 命令的参数，用这一条命令就可以了：</p>
-<pre class="line-numbers language-terminal" data-language="terminal"><code class="language-terminal">&#x2F;&#x2F; 一条命令保证原子性执行
-127.0.0.1:6379&gt; SET lock 1 EX 10 NX
-OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// 一条命令保证原子性执行</span><br><span class="line">127.0.0.1:6379&gt; SET lock 1 EX 10 NX</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
 
 <p>这样就解决了死锁问题，也比较简单。</p>
 <p>我们再来看分析下，它还有什么问题？</p>
@@ -371,17 +278,13 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>如何解决这个问题呢？</p>
 <h1 id="锁被别人释放怎么办"><a href="#锁被别人释放怎么办" class="headerlink" title="锁被别人释放怎么办?"></a>锁被别人释放怎么办?</h1><p>解决办法是：客户端在加锁时，设置一个只有自己知道的「唯一标识」进去。</p>
 <p>例如，可以是自己的线程 ID，也可以是一个 UUID（随机且唯一），这里我们以 UUID 举例：</p>
-<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">&#x2F;&#x2F; 锁的VALUE设置为UUID
-127.0.0.1:6379&gt; SET lock $uuid EX 20 NX
-OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// 锁的VALUE设置为UUID</span><br><span class="line">127.0.0.1:6379&gt; SET lock $uuid EX 20 NX</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>这里假设 20s 操作共享时间完全足够，先不考虑锁自动过期的问题。</p>
 </blockquote>
 <p>之后，在释放锁时，要先判断这把锁是否还归自己持有，伪代码可以这么写：</p>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// 锁是自己的，才释放</span>
-<span class="token keyword">if</span> redis<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"lock"</span><span class="token punctuation">)</span> <span class="token operator">==</span> $uuid<span class="token operator">:</span>
-    redis<span class="token punctuation">.</span><span class="token function">del</span><span class="token punctuation">(</span><span class="token string">"lock"</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 锁是自己的，才释放</span></span><br><span class="line"><span class="keyword">if</span> redis.get(<span class="string">&quot;lock&quot;</span>) == $uuid:</span><br><span class="line">    redis.del(<span class="string">&quot;lock&quot;</span>)</span><br></pre></td></tr></table></figure>
 
 <p>这里释放锁使用的是 GET + DEL 两条命令，这时，又会遇到我们前面讲的原子性问题了。</p>
 <ol>
@@ -393,15 +296,9 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>怎样原子执行呢？Lua 脚本。</p>
 <p>我们可以把这个逻辑，写成 Lua 脚本，让 Redis 来执行。</p>
 <p>因为 Redis 处理每一个请求是「单线程」执行的，在执行一个 Lua 脚本时，其它请求必须等待，直到这个 Lua 脚本处理完成，这样一来，GET + DEL 之间就不会插入其它命令了。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101642484.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101642484.png" alt="图片"></p>
 <p>安全释放锁的 Lua 脚本如下：</p>
-<pre class="line-numbers language-lua" data-language="lua"><code class="language-lua"><span class="token operator">//</span> 判断锁是自己的，才释放
-<span class="token keyword">if</span> redis<span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span>KEYS<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">==</span> ARGV<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
-<span class="token keyword">then</span>
-    <span class="token keyword">return</span> redis<span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token string">"DEL"</span><span class="token punctuation">,</span>KEYS<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-<span class="token keyword">else</span>
-    <span class="token keyword">return</span> <span class="token number">0</span>
-<span class="token keyword">end</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// 判断锁是自己的，才释放</span><br><span class="line"><span class="keyword">if</span> redis.call(<span class="string">&quot;GET&quot;</span>,KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> redis.call(<span class="string">&quot;DEL&quot;</span>,KEYS[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
 <p>好了，这样一路优化，整个的加锁、解锁的流程就更「严谨」了。</p>
 <p>这里我们先小结一下，基于 Redis 实现的分布式锁，一个严谨的的流程如下：</p>
@@ -410,7 +307,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <li>操作共享资源</li>
 <li>释放锁：Lua 脚本，先 GET 判断锁是否归属自己，再 DEL 释放锁</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101626176.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101626176.png" alt="图片"></p>
 <p>好，有了这个完整的锁模型，让我们重新回到前面提到的第一个问题。</p>
 <p>锁过期时间不好评估怎么办？</p>
 <h1 id="锁过期时间不好评估怎么办？"><a href="#锁过期时间不好评估怎么办？" class="headerlink" title="锁过期时间不好评估怎么办？"></a>锁过期时间不好评估怎么办？</h1><p>前面我们提到，锁的过期时间如果评估不好，这个锁就会有「提前」过期的风险。</p>
@@ -420,7 +317,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>这确实一种比较好的方案。</p>
 <p>如果你是 Java 技术栈，幸运的是，已经有一个库把这些工作都封装好了：<strong>Redisson</strong>。</p>
 <p>Redisson 是一个 Java 语言实现的 Redis SDK 客户端，在使用分布式锁时，它就采用了「自动续期」的方案来避免锁过期，这个守护线程我们一般也把它叫做「看门狗」线程。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101618896.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101618896.png" alt="图片"></p>
 <p>除此之外，这个 SDK 还封装了很多易用的功能：</p>
 <ul>
 <li>可重入锁</li>
@@ -449,7 +346,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <li>此时，主库异常宕机，SET 命令还未同步到从库上（主从复制是异步的）</li>
 <li>从库被哨兵提升为新主库，这个锁在新的主库上，丢失了！</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101604473.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101604473.png" alt="图片"></p>
 <p>可见，当引入 Redis 副本后，分布锁还是可能会受到影响。</p>
 <p>怎么解决这个问题？</p>
 <p>为此，Redis 的作者提出一种解决方案，就是我们经常听到的 <strong>Redlock（红锁）</strong>。</p>
@@ -469,13 +366,13 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <blockquote>
 <p><strong>注意：不是部署 Redis Cluster，就是部署 5 个简单的 Redis 实例。</strong></p>
 </blockquote>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101557341.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101557341.png" alt="图片"></p>
 <p>Redlock 具体如何使用呢？</p>
 <p>整体的流程是这样的，一共分为 5 步：</p>
 <ol>
 <li>客户端先获取「当前时间戳T1」</li>
 <li>客户端依次向这 5 个 Redis 实例发起加锁请求（用前面讲到的 SET 命令），且每个请求会设置超时时间（毫秒级，要远小于锁的有效时间），如果某一个实例加锁失败（包括网络超时、锁被其它人持有等各种异常情况），就立即向下一个 Redis 实例申请加锁</li>
-<li>如果客户端从 &gt;=3 个（大多数）以上 Redis 实例加锁成功，则再次获取「当前时间戳T2」，如果 T2 - T1 &lt; 锁的过期时间，此时，认为客户端加锁成功，否则认为加锁失败</li>
+<li>如果客户端从 &gt;&#x3D;3 个（大多数）以上 Redis 实例加锁成功，则再次获取「当前时间戳T2」，如果 T2 - T1 &lt; 锁的过期时间，此时，认为客户端加锁成功，否则认为加锁失败</li>
 <li>加锁成功，去操作共享资源（例如修改 MySQL 某一行，或发起一个 API 请求）</li>
 <li>加锁失败，向「全部节点」发起释放锁请求（前面讲到的 Lua 脚本释放锁）</li>
 </ol>
@@ -511,7 +408,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>但事实真的如此吗？</p>
 <h1 id="Redlock-的争论谁对谁错？"><a href="#Redlock-的争论谁对谁错？" class="headerlink" title="Redlock 的争论谁对谁错？"></a>Redlock 的争论谁对谁错？</h1><p>Redis 作者把这个方案一经提出，就马上受到业界著名的分布式系统专家的<strong>质疑</strong>！</p>
 <p>这个专家叫 <strong>Martin</strong>，是英国剑桥大学的一名分布式系统研究员。在此之前他曾是软件工程师和企业家，从事大规模数据基础设施相关的工作。它还经常在大会做演讲，写博客，写书，也是开源贡献者。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101545963.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101545963.png" alt="图片"></p>
 <p>他马上写了篇文章，质疑这个 Redlock 的算法模型是有问题的，并对分布式锁的设计，提出了自己的看法。</p>
 <p>之后，Redis 作者 Antirez 面对质疑，不甘示弱，也写了一篇文章，反驳了对方的观点，并详细剖析了 Redlock 算法模型的更多设计细节。</p>
 <p>而且，关于这个问题的争论，在当时互联网上也引起了非常激烈的讨论。</p>
@@ -547,7 +444,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <li>客户端 1 GC 结束，认为成功获取锁</li>
 <li>客户端 2 也认为获取到了锁，发生「冲突」</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101536288.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101536288.png" alt="图片"></p>
 <p>Martin 认为，GC 可能发生在程序的任意时刻，而且执行时间是不可控的。</p>
 <blockquote>
 <p>注：当然，即使是使用没有 GC 的编程语言，在发生网络延迟、时钟漂移时，也都有可能导致 Redlock 出现问题，这里 Martin 只是拿 GC 举例。</p>
@@ -579,7 +476,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <li>客户端拿着这个 token 去操作共享资源</li>
 <li>共享资源可以根据 token 拒绝「后来者」的请求</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101529458.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101529458.png" alt="图片"></p>
 <p>这样一来，无论 NPC 哪种异常情况发生，都可以保证分布式锁的安全性，因为它是建立在「异步模型」上的。</p>
 <p>而 Redlock 无法提供类似 fecing token 的方案，所以它无法保证安全性。</p>
 <p>他还表示，<strong>一个好的分布式锁，无论 NPC 怎么发生，可以不在规定时间内给出结果，但并不会给出一个错误的结果。也就是只会影响到锁的「性能」（或称之为活性），而不会影响它的「正确性」。</strong></p>
@@ -613,7 +510,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <li>客户端 1 GC 结束，认为成功获取锁</li>
 <li>客户端 2 也认为获取到锁，发生「冲突」</li>
 </ol>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101522843.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101522843.png" alt="图片"></p>
 <p>Redis 作者反驳到，这个假设其实是有问题的，Redlock 是可以保证锁安全的。</p>
 <p>这是怎么回事呢？</p>
 <p>还记得前面介绍 Redlock 流程的那 5 步吗？这里我再拿过来让你复习一下。</p>
@@ -644,9 +541,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>Redis 作者对于对方提出的 fecing token 机制，也提出了质疑，主要分为 2 个问题，这里最不宜理解，请跟紧我的思路。</p>
 <p><strong>第一</strong>，这个方案必须要求要操作的「共享资源服务器」有拒绝「旧 token」的能力。</p>
 <p>例如，要操作 MySQL，从锁服务拿到一个递增数字的 token，然后客户端要带着这个 token 去改 MySQL 的某一行，这就需要利用 MySQL 的「事物隔离性」来做。</p>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment">// 两个客户端必须利用事物和隔离性达到目的</span>
-<span class="token comment">// 注意 token 的判断条件</span>
-<span class="token keyword">UPDATE</span> <span class="token keyword">table</span> T <span class="token keyword">SET</span> val <span class="token operator">=</span> $new_val <span class="token keyword">WHERE</span> id <span class="token operator">=</span> $id <span class="token operator">AND</span> current_token <span class="token operator">&lt;</span> $token<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">/</span><span class="operator">/</span> 两个客户端必须利用事物和隔离性达到目的</span><br><span class="line"><span class="operator">/</span><span class="operator">/</span> 注意 token 的判断条件</span><br><span class="line"><span class="keyword">UPDATE</span> <span class="keyword">table</span> T <span class="keyword">SET</span> val <span class="operator">=</span> $new_val <span class="keyword">WHERE</span> id <span class="operator">=</span> $id <span class="keyword">AND</span> current_token <span class="operator">&lt;</span> $token</span><br></pre></td></tr></table></figure>
 
 <p>但如果操作的不是 MySQL 呢？例如向磁盘上写一个文件，或发起一个 HTTP 请求，那这个方案就无能为力了，这对要操作的资源服务器，提出了更高的要求。</p>
 <p>也就是说，大部分要操作的资源服务器，都是没有这种互斥能力的。</p>
@@ -669,7 +564,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <li>客户端处理业务逻辑</li>
 <li>客户端修改 MySQL 的这一行数据，把 VALUE 当做 WHERE 条件，再修改</li>
 </ol>
-<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">UPDATE</span> <span class="token keyword">table</span> T <span class="token keyword">SET</span> val <span class="token operator">=</span> $new_val <span class="token keyword">WHERE</span> id <span class="token operator">=</span> $id <span class="token operator">AND</span> current_token <span class="token operator">=</span> $redlock_value<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> <span class="keyword">table</span> T <span class="keyword">SET</span> val <span class="operator">=</span> $new_val <span class="keyword">WHERE</span> id <span class="operator">=</span> $id <span class="keyword">AND</span> current_token <span class="operator">=</span> $redlock_value</span><br></pre></td></tr></table></figure>
 
 <p>可见，这种方案依赖 MySQL 的事物机制，也达到对方提到的 fecing token 一样的效果。</p>
 <p>但这里还有个小问题，是网友参与问题讨论时提出的：<strong>两个客户端通过这种方案，先「标记」再「检查+修改」共享资源，那这两个客户端的操作顺序无法保证啊？</strong></p>
@@ -688,10 +583,10 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>好，讲完了双方对于 Redis 分布锁的争论，你可能也注意到了，Martin 在他的文章中，推荐使用 Zookeeper 实现分布式锁，认为它更安全，确实如此吗？</p>
 <h1 id="基于-Zookeeper-的锁安全吗？"><a href="#基于-Zookeeper-的锁安全吗？" class="headerlink" title="基于 Zookeeper 的锁安全吗？"></a>基于 Zookeeper 的锁安全吗？</h1><p>如果你有了解过 Zookeeper，基于它实现的分布式锁是这样的：</p>
 <ol>
-<li>客户端 1 和 2 都尝试创建「临时节点」，例如 /lock</li>
+<li>客户端 1 和 2 都尝试创建「临时节点」，例如 &#x2F;lock</li>
 <li>假设客户端 1 先到达，则加锁成功，客户端 2 加锁失败</li>
 <li>客户端 1 操作共享资源</li>
-<li>客户端 1 删除 /lock 节点，释放锁</li>
+<li>客户端 1 删除 &#x2F;lock 节点，释放锁</li>
 </ol>
 <p>你应该也看到了，Zookeeper 不像 Redis 那样，需要考虑锁的过期时间问题，它是采用了「临时节点」，保证客户端 1 拿到锁后，只要连接不断，就可以一直持有锁。</p>
 <p>而且，如果客户端 1 异常崩溃了，那么这个临时节点会自动删除，保证了锁一定会被释放。</p>
@@ -700,13 +595,13 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>思考一下，客户端 1 创建临时节点后，Zookeeper 是如何保证让这个客户端一直持有锁呢？</p>
 <p>原因就在于，<strong>客户端 1 此时会与 Zookeeper 服务器维护一个 Session，这个 Session 会依赖客户端「定时心跳」来维持连接。</strong></p>
 <p>如果 Zookeeper 长时间收不到客户端的心跳，就认为这个 Session 过期了，也会把这个临时节点删除。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101445733.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210617101445733.png" alt="图片"></p>
 <p>同样地，基于此问题，我们也讨论一下 GC 问题对 Zookeeper 的锁有何影响：</p>
 <ol>
-<li>客户端 1 创建临时节点 /lock 成功，拿到了锁</li>
+<li>客户端 1 创建临时节点 &#x2F;lock 成功，拿到了锁</li>
 <li>客户端 1 发生长时间 GC</li>
 <li>客户端 1 无法给 Zookeeper 发送心跳，Zookeeper 把临时节点「删除」</li>
-<li>客户端 2 创建临时节点 /lock 成功，拿到了锁</li>
+<li>客户端 2 创建临时节点 &#x2F;lock 成功，拿到了锁</li>
 <li>客户端 1 GC 结束，它仍然认为自己持有锁（冲突）</li>
 </ol>
 <p>可见，即使是使用 Zookeeper，也无法保证进程 GC、网络延迟异常场景下的安全性。</p>
@@ -745,7 +640,7 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>从最简单分布式锁的实现，到处理各种异常场景，再到引出 Redlock，以及两个分布式专家的辩论，得出了 Redlock 的适用场景。</p>
 <p>最后，我们还对比了 Zookeeper 在做分布式锁时，可能会遇到的问题，以及与 Redis 的差异。</p>
 <p>这里我把这些内容总结成了思维导图，方便你理解。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640.png" srcset="/img/loading.gif" lazyload alt="图片"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640.png" alt="图片"></p>
 <h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>这篇文章的信息量其实是非常大的，我觉得应该把分布锁的问题，彻底讲清楚了。</p>
 <p>如果你没有理解，我建议你多读几遍，并在脑海中构建各种假定的场景，反复思辨。</p>
 <p>在写这篇文章时，我又重新研读了两位大神关于 Redlock 争辩的这两篇文章，可谓是是收获满满，在这里也分享一些心得给你。</p>
@@ -755,264 +650,139 @@ OK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><
 <p>“<strong>前人已经为我们创造出了许多伟大的成果：站在巨人的肩膀上，我们可以才得以构建更好的软件。无论如何，通过争论和检查它们是否经得起别人的详细审查，这是学习过程的一部分。但目标应该是获取知识，而不是为了说服别人，让别人相信你是对的。有时候，那只是意味着停下来，好好地想一想。</strong>”</p>
 <p>共勉。</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/redis/">redis</a>
-                    
-                      <a class="hover-with-bg" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">SQL优化(1)-SQL基础</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2020/03/02/Cookie&amp;Session&amp;Token/">
-                        <span class="hidden-mobile">cookie&session&token</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">为什么需要分布式锁？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">分布式锁怎么实现？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E6%AD%BB%E9%94%81%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">如何避免死锁？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%94%81%E8%A2%AB%E5%88%AB%E4%BA%BA%E9%87%8A%E6%94%BE%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">4.</span> <span class="toc-text">锁被别人释放怎么办?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%94%81%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4%E4%B8%8D%E5%A5%BD%E8%AF%84%E4%BC%B0%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">锁过期时间不好评估怎么办？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redlock-%E7%9C%9F%E7%9A%84%E5%AE%89%E5%85%A8%E5%90%97%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">Redlock 真的安全吗？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redlock-%E7%9A%84%E4%BA%89%E8%AE%BA%E8%B0%81%E5%AF%B9%E8%B0%81%E9%94%99%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">Redlock 的争论谁对谁错？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%93%E5%AE%B6-Martin-%E5%AF%B9%E4%BA%8E-Relock-%E7%9A%84%E8%B4%A8%E7%96%91"><span class="toc-number">7.1.</span> <span class="toc-text">分布式专家 Martin 对于 Relock 的质疑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis-%E4%BD%9C%E8%80%85-Antirez-%E7%9A%84%E5%8F%8D%E9%A9%B3"><span class="toc-number">7.2.</span> <span class="toc-text">Redis 作者 Antirez 的反驳</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E-Zookeeper-%E7%9A%84%E9%94%81%E5%AE%89%E5%85%A8%E5%90%97%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">基于 Zookeeper 的锁安全吗？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%88%91%E5%AF%B9%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E7%90%86%E8%A7%A3"><span class="toc-number">9.</span> <span class="toc-text">我对分布式锁的理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%8E%E8%AE%B0"><span class="toc-number">11.</span> <span class="toc-text">后记</span></a></li></ol>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&text=redis分布式锁"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&is_video=false&description=redis分布式锁"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=redis分布式锁&body=Check out this article: http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&title=redis分布式锁"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&name=redis分布式锁&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/&t=redis分布式锁"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>

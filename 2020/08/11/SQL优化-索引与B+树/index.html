@@ -1,28 +1,18 @@
-
-
 <!DOCTYPE html>
-<html lang="zh-CN" data-default-color-scheme=auto>
-
-
-
+<html lang=en>
 <head>
-  <meta charset="UTF-8">
-  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
-  <link rel="icon" href="/img/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  
-  <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="">
-  <meta name="author" content="ryan">
-  <meta name="keywords" content="">
-  <meta name="description" content="对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。  诚然，很多人对MySQL数据库的印象就是一个模糊的大铁柜，闭上眼睛深吸一口气仿">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。  诚然，很多人对MySQL数据库的印象就是一个模糊的大铁柜，闭上眼睛深吸一口气仿">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SQL优化(2)-索引与B+树">
 <meta property="og:url" content="http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。  诚然，很多人对MySQL数据库的印象就是一个模糊的大铁柜，闭上眼睛深吸一口气仿">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589374354625-30b6de0f-8337-4db5-964b-6c6df7ae09ad-20210923150111295.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589354675837-5eaba89f-fb57-4fdf-aa7e-80573ada61a6-20210923150439959.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589355808319-788e3454-19ae-4c57-9707-b68edc99f05c-20210923150137448.png">
@@ -52,240 +42,165 @@
 <meta property="article:modified_time" content="2021-09-23T07:17:13.432Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="mysql">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589374354625-30b6de0f-8337-4db5-964b-6c6df7ae09ad-20210923150111295.png">
-  
-  <title>SQL优化(2)-索引与B+树 - low gravity</title>
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
-
-
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
-
-  
     
     
       
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark-reasonable.min.css" />
+        
+          <link rel="shortcut icon" href="/images/favicon.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+        
+      
     
-  
-
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
-
-
-<!-- 主题依赖的图标库，不要自行修改 -->
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+    <!-- title -->
+    <title>SQL优化(2)-索引与B+树</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
 
 
-
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
-
-
-<link  rel="stylesheet" href="/css/main.css" />
-
-<!-- 自定义样式保持在最底部 -->
+    <!-- Umami Analytics -->
 
 
-  <script id="fluid-configs">
-    var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":"38d9989ef01991aacdb7c2ab68c48482","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
-  </script>
-  <script  src="/js/utils.js" ></script>
-  <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="low gravity" type="application/atom+xml">
-</head>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.0.0"></head>
 
-<body>
-  <header style="height: 40vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
-  <div class="container">
-    <a class="navbar-brand" href="/">
-      <strong>low gravity</strong>
-    </a>
-
-    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <div class="animated-icon"><span></span><span></span><span></span></div>
-    </button>
-
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto text-center">
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/">
-                <i class="iconfont icon-home-fill"></i>
-                首页
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/archives/">
-                <i class="iconfont icon-archive-fill"></i>
-                归档
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/categories/">
-                <i class="iconfont icon-category-fill"></i>
-                分类
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/tags/">
-                <i class="iconfont icon-tags-fill"></i>
-                标签
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/about/">
-                <i class="iconfont icon-user-fill"></i>
-                关于
-              </a>
-            </li>
-          
-        
-          
-          
-          
-          
-            <li class="nav-item">
-              <a class="nav-link" href="/links/">
-                <i class="iconfont icon-link-fill"></i>
-                友链
-              </a>
-            </li>
-          
-        
-        
-          <li class="nav-item" id="search-btn">
-            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
-            </a>
-          </li>
-        
-        
-          <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
-          </li>
-        
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
       </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/08/04/spring-cloud/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&text=SQL优化(2)-索引与B+树"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&is_video=false&description=SQL优化(2)-索引与B+树"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SQL优化(2)-索引与B+树&body=Check out this article: http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&name=SQL优化(2)-索引与B+树&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&t=SQL优化(2)-索引与B+树"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
     </div>
-  </div>
-</nav>
-
-    <div class="banner" id="banner" parallax=true
-         style="background: url('https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/20210923143551.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="SQL优化(2)-索引与B+树">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2020-08-11 23:11" pubdate>
-        2020年8月11日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      undefined 字
-    </span>
-  
-
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      NaN 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
-          
-        </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%8F%E9%9D%92%E5%93%A5"><span class="toc-number">1.</span> <span class="toc-text">柏青哥</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">线性结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E6%9F%A5%E6%89%BE%E6%A0%91"><span class="toc-number">3.</span> <span class="toc-text">二叉查找树</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E5%B9%B3%E8%A1%A1%E6%A0%91"><span class="toc-number">4.</span> <span class="toc-text">二叉平衡树</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E5%B9%B3%E8%A1%A1%E6%A0%91%E4%B8%8E%E7%A3%81%E7%9B%98IO"><span class="toc-number">5.</span> <span class="toc-text">二叉平衡树与磁盘IO</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#B%E6%A0%91"><span class="toc-number">6.</span> <span class="toc-text">B树</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#B-%E6%A0%91%E4%B8%8E%E7%B4%A2%E5%BC%95"><span class="toc-number">7.</span> <span class="toc-text">B+树与索引</span></a></li></ol>
       </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        SQL优化(2)-索引与B+树
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">ryan</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-08-11T15:11:02.000Z" class="dt-published" itemprop="datePublished">2020-08-11</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/mysql/" rel="tag">mysql</a>
+    </div>
+
+
     </div>
   </header>
+  
 
-  <main>
-    
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
-          <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">SQL优化(2)-索引与B+树</h1>
-            
-            <div class="markdown-body">
-              <p>对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589374354625-30b6de0f-8337-4db5-964b-6c6df7ae09ad-20210923150111295.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+  <div class="content e-content" itemprop="articleBody">
+    <p>对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589374354625-30b6de0f-8337-4db5-964b-6c6df7ae09ad-20210923150111295.png" alt="img"></p>
 <p>诚然，很多人对MySQL数据库的印象就是一个模糊的大铁柜，闭上眼睛深吸一口气仿佛还能嗅到一股铁锈味。只知柜子里藏着很多张表，表里面存着很多行数据，再详细一点的呢？不知道。</p>
 <p>MySQL有太多太多细节，根本无法用四、五篇文章说透，但我仍希望这个系列的文章能成为非常好的入门教程，让从来没接触过SQL优化的同学也能快速建立较为系统的知识框架，方便日后学习其他专栏时进一步拓展。</p>
 <hr>
 <h1 id="柏青哥"><a href="#柏青哥" class="headerlink" title="柏青哥"></a>柏青哥</h1><p>大家小时候在游戏厅看过下面这种机器吗：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589354675837-5eaba89f-fb57-4fdf-aa7e-80573ada61a6-20210923150439959.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589354675837-5eaba89f-fb57-4fdf-aa7e-80573ada61a6-20210923150439959.png" alt="img"></p>
 <p>日本人管它叫柏青哥（パチンコ），玩法是：</p>
 <p>从机器最上方的唯一入口投入一颗钢珠，由于重力的作用，钢珠会往下落。机器是直立的，面板上有很多突出的圆柱，它们的作用是随机改变钢珠的落点。最终，钢珠掉落在下方的某个槽中。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589355808319-788e3454-19ae-4c57-9707-b68edc99f05c-20210923150137448.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589355808319-788e3454-19ae-4c57-9707-b68edc99f05c-20210923150137448.png" alt="img"></p>
 <p>这里提柏青哥，是为后面的B+树及分析B+树搜索过程做铺垫。到时你会发现，沿着索引树搜索的过程和柏青哥小钢珠的下落过程是多么相似！</p>
 <p>很多人都听过数据库索引，但是很少人会去思考下面几个问题：</p>
 <ul>
@@ -299,19 +214,19 @@
 <p>在历史的长河中，索引的出现几乎是必然的。不信？那就跟我重走一遍历史吧。</p>
 <p>请大家先忘了MySQL、Oracle等乱七八糟的玩意儿，就假设你是上世纪第一批程序员，此时连正儿八经的数据库都没有，需要由你来开天辟地。目前摆在你面前的最大难题是：如何较为<strong>高效地</strong>存取数据？</p>
 <h1 id="线性结构"><a href="#线性结构" class="headerlink" title="线性结构"></a>线性结构</h1><p>最直观的想法就是存“格子”里，也就是将数据存在线性结构的容器中，比如数组或链表。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589356217794-f7c00e60-53e2-447d-a2b5-2c97d4726d0c-20210923150143937.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589357468320-10555c9b-b1f5-41a7-922d-73ea4f70c03c-20210923150149784.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589356217794-f7c00e60-53e2-447d-a2b5-2c97d4726d0c-20210923150143937.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589357468320-10555c9b-b1f5-41a7-922d-73ea4f70c03c-20210923150149784.png" alt="img"></p>
 <p>用线性结构存储数据<strong>短期</strong>看是没问题的，但是一家名为SUN的公司发现，随着公司业务增长，平台要经手的用户数据越来越多，特别是今年，他们收到了很多客户的信件投诉，说网页数据的加载越来越慢了！</p>
-<p>SUN的工程师做了个实验，一个线性表如果存了42亿条数据，想要找到id=100的数据，游标只需爬99格即可返回，但如果id=10000000，就要爬将近1000w个格子才能返回。对于这42亿条数据，平均查询次数是21亿次！！</p>
-<h1 id="二叉查找树"><a href="#二叉查找树" class="headerlink" title="二叉查找树"></a>二叉查找树</h1><p>作为改进，有人提出用树结构来存储数据。比如，如果要找id=6的数据，那么只要比较3次，小于爬格子次数（5次）</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358245965-f357a5d0-90fc-49e7-affe-8cfa11a2243d-20210923150156142.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p>如果要找id=9的数据，只要比较4次，小于爬格子次数（8次）。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358394072-a5d5f642-25e5-4d01-ba52-ba7251609d4a-20210923150201825.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>SUN的工程师做了个实验，一个线性表如果存了42亿条数据，想要找到id&#x3D;100的数据，游标只需爬99格即可返回，但如果id&#x3D;10000000，就要爬将近1000w个格子才能返回。对于这42亿条数据，平均查询次数是21亿次！！</p>
+<h1 id="二叉查找树"><a href="#二叉查找树" class="headerlink" title="二叉查找树"></a>二叉查找树</h1><p>作为改进，有人提出用树结构来存储数据。比如，如果要找id&#x3D;6的数据，那么只要比较3次，小于爬格子次数（5次）</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358245965-f357a5d0-90fc-49e7-affe-8cfa11a2243d-20210923150156142.png" alt="img"></p>
+<p>如果要找id&#x3D;9的数据，只要比较4次，小于爬格子次数（8次）。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358394072-a5d5f642-25e5-4d01-ba52-ba7251609d4a-20210923150201825.png" alt="img"></p>
 <p>结合两次实验，SUN的工程师发现：</p>
-<p>在一棵树中找到目标数据所需的比较次数 = 目标数据所在的层级</p>
-<p>如果用一棵树来存储42亿条数据，即232=42亿，树的层级是32，最差的情况也只要查32次（需要是二叉平衡树），远远小于线性结构的平均21亿次，这是非常夸张的。</p>
+<p>在一棵树中找到目标数据所需的比较次数 &#x3D; 目标数据所在的层级</p>
+<p>如果用一棵树来存储42亿条数据，即232&#x3D;42亿，树的层级是32，最差的情况也只要查32次（需要是二叉平衡树），远远小于线性结构的平均21亿次，这是非常夸张的。</p>
 <p>注意，在线性结构的案例中，不是我故意不用二分查找，而是不能使用二分查找。一般来说，<strong>对于线性结构的数据集合，如果要使用二分查找，那么整个数据都要事先在内存中，</strong>但显然没人会这样做！相比在内存中对线性结构进行二分查找，树在逻辑上天然支持二分查找。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608365614192-1f7e343b-f3fc-4dd6-b4c7-90d64f7569d9-20210923150207584.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608365614192-1f7e343b-f3fc-4dd6-b4c7-90d64f7569d9-20210923150207584.png" alt="img"></p>
 <p>然而，树结构也分好几种：</p>
 <ul>
 <li><p>Binary Search Tree（二叉查找树）</p>
@@ -326,12 +241,12 @@
 </li>
 </ul>
 <p>大家可以访问<a target="_blank" rel="noopener" href="https://www.cs.usfca.edu/~galles/visualization/Algorithms.html">Data Structure Visualizations</a>这个网站动手玩一下，特别注意上面的4种树：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589360823134-4c779906-c5d8-4ea4-ab72-47af54d8af3c-20210923150214447.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589360823134-4c779906-c5d8-4ea4-ab72-47af54d8af3c-20210923150214447.png" alt="img"></p>
 <p>如果你听我的建议，打开上面的网站选择Binary Search Tree并按1,2,3,4…的顺序插入数据时，<strong>它其实变成了线性结构：</strong></p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358856443-e8032dc1-b241-4f23-9c43-883c36b3b25e-20210923150222903.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358856443-e8032dc1-b241-4f23-9c43-883c36b3b25e-20210923150222903.png" alt="img"></p>
 <p>显然，这不是我们想要的结果，因为刚才已经讨论过，线性结构不适合存储大数据，等后期数据量大了以后要爬很多“格子”。</p>
 <h1 id="二叉平衡树"><a href="#二叉平衡树" class="headerlink" title="二叉平衡树"></a>二叉平衡树</h1><p>相比来说，AVL Tree更符合SUN工程师的需求：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358993173-e6bd2cc0-279a-4d98-8fdc-68abf82b2744-20210923150229048.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589358993173-e6bd2cc0-279a-4d98-8fdc-68abf82b2744-20210923150229048.png" alt="img"></p>
 <p>二叉平衡树会在数据插入完毕后<strong>自动调整节点，好让“树的层级”不至于太深。（赶紧去动手玩一下）</strong></p>
 <p>按理来说，如果我们按二叉平衡树组织表数据的话，应该是非常完美的。你想啊，42亿数据中找一条记录最多只需比较32次，尤其是对于CPU来说，<strong>别说32次比较，哪怕32w次简单数据的比较都不会超过0.1秒。</strong>但是！问题在于这里所谓的“32w次简单数据的比较不会超过0.1秒”有个前提条件：<strong>数据必须全部在内存中。</strong></p>
 <p>而我们的表数据因为数据量很大，而且需要持久化，所以一般来说是存在磁盘中，等需要使用时再从磁盘载入内存，也就是涉及磁盘-内存的IO操作。</p>
@@ -344,12 +259,12 @@
 <li><p>查询时分块读取数据并比较，持续进行磁盘IO读取节点，直到找到目标数据</p>
 </li>
 </ul>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608365864685-03842132-d684-4a5b-9ca8-42ceb43181f7-20210923150235370.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608365864685-03842132-d684-4a5b-9ca8-42ceb43181f7-20210923150235370.png" alt="img"></p>
 <p>每一个节点存储“一小块数据”，分多次IO读取每一块数据到内存判断，直到找到匹配的数据。</p>
 <h1 id="二叉平衡树与磁盘IO"><a href="#二叉平衡树与磁盘IO" class="headerlink" title="二叉平衡树与磁盘IO"></a>二叉平衡树与磁盘IO</h1><p>数据存在磁盘中，没问题。</p>
 <p>数据桉树结构组织，没问题。</p>
 <p><strong>查询时分块读取数据，有一点点问题。</strong></p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589361951577-71cfd4b1-bfd8-44cc-a968-5de2d821fe2b-20210923150241680.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589361951577-71cfd4b1-bfd8-44cc-a968-5de2d821fe2b-20210923150241680.png" alt="img"></p>
 <p>磁盘IO是非常耗时的操作，耗时到什么程度呢？大家可能都听过各个语言的执行效率：</p>
 <p>C &gt; C++ &gt; Java &gt;&gt; Python</p>
 <p>但这些都是在内存层面谈论语言自身的执行效率，而实际上开发一个Web应用，无论用上述哪个语言，对于普通应用而言，都是可以满足用户需求的，真正的瓶颈是IO（网络IO和磁盘IO）。就好比F1赛车、奥迪A4和拖拉机一起跑在北京4环的路上，限制它们的不是引擎，而是堵车。</p>
@@ -359,42 +274,42 @@
 <p>那么，如何减少树的层级呢（让树变矮）？</p>
 <p>请大家思考一下232中的“2”指的是什么？</p>
 <p>其实就是“二叉平衡树”的“二”，而指数32代表树的层级。也就是说，如果以二叉平衡树的结构组织42亿行数据，那么树的深度是32。如果是“三叉平衡树”呢？</p>
-<p>3?? = 232 </p>
+<p>3?? &#x3D; 232 </p>
 <p>3的指数大概为21。也就是说，如果用“三叉树”组织数据，那么层级将会减少到21，也就意味着磁盘IO次数最多为21次。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589362752238-4daa5676-b2c3-419f-9016-a3cf84bb057f-20210923150255800.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589362752238-4daa5676-b2c3-419f-9016-a3cf84bb057f-20210923150255800.png" alt="img"></p>
 <p>所以，到这里我们已经有答案了：要想减少二叉平衡树的磁盘IO次数，需要增加它的“叉”，变成“N叉平衡树”，从而减少树的深度。</p>
 <p>此时有位长者说了一句：你们心里没点B树吗。</p>
 <p>听到这，SUN的工程师颇受启发：对哦，直接用B树就好了。</p>
 <p>B树有个“阶”的概念，比如“三叉平衡”的B树其实叫“3阶B树”。</p>
 <p>通过上面的图，我们会发现“N阶B树”<strong>每个节点可以存N-1个数据</strong>（二叉平衡树每个节点只存1个数据），且每个节点至多可以连接N个子节点。</p>
-<p>这样组织的好处是，<strong>每次加载一个节点时都可以从磁盘带出更多条数据，从而减少磁盘IO的次数。</strong>比如原先比完id=3，接下来要和id=5比较，需要再从磁盘中把id=5的数据读出来。而现在当前节点已经有id=3,id=5的数据了，直接比较即可，无需做磁盘IO。</p>
+<p>这样组织的好处是，<strong>每次加载一个节点时都可以从磁盘带出更多条数据，从而减少磁盘IO的次数。</strong>比如原先比完id&#x3D;3，接下来要和id&#x3D;5比较，需要再从磁盘中把id&#x3D;5的数据读出来。而现在当前节点已经有id&#x3D;3,id&#x3D;5的数据了，直接比较即可，无需做磁盘IO。</p>
 <p>这是典型的“空间换时间”。</p>
 <p>但B树最难的地方不是结构本身，而是如何实现这种结构，尤其是如何通过B树组织数据库的表数据？</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589370021227-2ce244b2-e5de-4aeb-8a57-5cfb81109d80-20210923150305159.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p>举个例子，当我要找id=7的数据时，需要先找到根节点，和id=4的节点比较，由于7&gt;4，所以选择右侧那一支，接着因为6&lt;7&lt;8，所以这个节点中三个addr选择中间的addr，顺着这个地址找到7的节点，然后取出数据。</p>
-<p>需要注意的是，当一个节点被加载到内存后，这个节点内部的数据就可以通过二分查找得到啦，所以那么id=7去上图右边节点查找正确的addr是很快的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589370021227-2ce244b2-e5de-4aeb-8a57-5cfb81109d80-20210923150305159.png" alt="img"></p>
+<p>举个例子，当我要找id&#x3D;7的数据时，需要先找到根节点，和id&#x3D;4的节点比较，由于7&gt;4，所以选择右侧那一支，接着因为6&lt;7&lt;8，所以这个节点中三个addr选择中间的addr，顺着这个地址找到7的节点，然后取出数据。</p>
+<p>需要注意的是，当一个节点被加载到内存后，这个节点内部的数据就可以通过二分查找得到啦，所以那么id&#x3D;7去上图右边节点查找正确的addr是很快的。</p>
 <p>上面只是演示了3阶B树，实际上1个节点可以存更多数据，做成N阶B树：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589370580691-8b9a4589-4f48-42cb-9daf-918ad3183d99-20210923150314176.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589370580691-8b9a4589-4f48-42cb-9daf-918ad3183d99-20210923150314176.png" alt="img"></p>
 <p>分析到这里，历史的话剧就告一个段落，让我们看看MySQL索引的真正实现方式吧。</p>
 <h1 id="B-树与索引"><a href="#B-树与索引" class="headerlink" title="B+树与索引"></a>B+树与索引</h1><p>实际上MySQL索引采用的是B+树，而不是B树。</p>
 <p>为什么不用B树呢？</p>
 <p>在操作系统中有个叫“页”的概念，是用来存储数据的一种单位，大小为4k。MySQL中也有“页”的概念，但大小为16k，你可以理解为MySQL中的“页”就是上面B树的一个个节点。</p>
 <p>那么问题来了：你知道日常开发中，表中的一行数据大概占多少字节吗？</p>
 <p>让我们来计算一下：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589371147835-6bf74fd5-b52c-4abc-869a-88fd74c96e0a-20210923150326037.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<p>在上面这张表中，按每列数据类型推算，一行数据大概 8+150+150+150+150+9+2+9+750+5+5+8+8=1404字节，就算1k好了，因为节点最大size是16k，所以每个节点最多只能存16行数据。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589371147835-6bf74fd5-b52c-4abc-869a-88fd74c96e0a-20210923150326037.png" alt="img"></p>
+<p>在上面这张表中，按每列数据类型推算，一行数据大概 8+150+150+150+150+9+2+9+750+5+5+8+8&#x3D;1404字节，就算1k好了，因为节点最大size是16k，所以每个节点最多只能存16行数据。</p>
 <p>我们之前之所以从二叉平衡树转为B树，是因为B树的每个节点可以存更多数据。但上面的计算告诉我们，其实也就是比二叉平衡树多了15条数据而已。</p>
 <p>但原则是对的，为了尽可能使树“变矮”从而减少磁盘IO，最好的做法是让<strong>一个节点尽可能地塞入更多的数据。</strong></p>
-<p>不过把整行数据塞到节点中，有点太浪费了，我们其实可以<strong>把每一行数据的主键存进去。</strong>即使用bigint类型做主键，一个主键也就8个字节。假设每个主键对应一个addr（指针），MySQL中一个指针为6个字节，那么节点内每个主键-地址这样形式的数据能存16*1024/14=1170个。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589376951699-3f01f932-8684-414e-8dcb-2c0573837744-20210923150332743.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>不过把整行数据塞到节点中，有点太浪费了，我们其实可以<strong>把每一行数据的主键存进去。</strong>即使用bigint类型做主键，一个主键也就8个字节。假设每个主键对应一个addr（指针），MySQL中一个指针为6个字节，那么节点内每个主键-地址这样形式的数据能存16*1024&#x2F;14&#x3D;1170个。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589376951699-3f01f932-8684-414e-8dcb-2c0573837744-20210923150332743.png" alt="img"></p>
 <p>这其实就是B+树对B树的改造。</p>
 <p><strong>所谓的B+树，就是把原先B树中分散在各个节点的数据都“赶到”最底层的叶子节点，非叶子节点只存储主键-addr形式的数据：</strong></p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589372895183-3540a1e5-82ba-4d3d-9dca-252f95007eee-20210923150338523.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589372895183-3540a1e5-82ba-4d3d-9dca-252f95007eee-20210923150338523.png" alt="img"></p>
 <p>最终，一棵3层的B+树，最底下的叶子节点总共能存2000w条数据。</p>
 <p>有部分同学可能还是不明白B+树为什么比B树能存储更多数据，这里再举个最极端的例子，假设一行表数据8k，而一个节点容量是16k，如果是B Tree，那么一个节点只能存两行数据，最终每个节点只能“夹带”3个addr，只能指向3个子节点：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589377482590-ca616c4f-89de-4de2-b459-1b7ef408a5ff-20210923150345350.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589377482590-ca616c4f-89de-4de2-b459-1b7ef408a5ff-20210923150345350.png" alt="img"></p>
 <p>但如果是B+ Tree，只存主键：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589377712338-9f1bfde7-bce8-4ecb-a9a0-27d1a5670b67-20210923150352723.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589377712338-9f1bfde7-bce8-4ecb-a9a0-27d1a5670b67-20210923150352723.png" alt="img"></p>
 <p>那么最上面的节点可以存更多的主键，指向更多的下级节点，就有更多的“16k数据”。上面还只是分析单个节点的情况，如果放眼整棵索引树，最终叶子节点会多很多很多的“16k数据”。</p>
 <p>从MySQL学习者的角度而言，我们只需要知道B+树2个很重要的特征：</p>
 <ul>
@@ -402,12 +317,12 @@
 <li>叶子节点数据用链表相连</li>
 </ul>
 <p>所以更详细的版本是：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589448311743-b494fa66-02d0-43b8-ab9f-f920caec8af2-20210923150358426.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589448311743-b494fa66-02d0-43b8-ab9f-f920caec8af2-20210923150358426.png" alt="img"></p>
 <p>叶子节点是有序链表，可以帮助做范围查询。</p>
 <p>最后，还有个问题，如果我不提估计很少有人会考虑：B+树如何查找数据。</p>
 <p>为什么会有这个疑问呢？</p>
 <p>之前说过，B数的节点存了完整的数据，假设数据总共3层，而你要找的数据在第2层的某个节点，当你找到后便可以直接返回整行数据。而B+树为了一个节点能存入更多的addr，节点内部只存了主键id，所以即使你在第二层找到匹配的id，还是不能直接返回，必须继续往下，直到在叶子节点读取完整数据。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589421184838-106cccdb-a84e-448f-8806-58e9dfa9b76e-20210923150406906.gif" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589421184838-106cccdb-a84e-448f-8806-58e9dfa9b76e-20210923150406906.gif" alt="img"></p>
 <p>讨论到这，我们来对比一下B树和B+树：</p>
 <ul>
 <li><p>B树的节点都会存储整行数据，占用空间大存储addr少，而B+树的非叶子节点只存储主键，能容纳更多addr</p>
@@ -419,271 +334,148 @@
 <li><p>B+树的叶子节点是有序列表，非常便于范围查询</p>
 </li>
 </ul>
-<p>对于第三点，很多人可能觉得B+树每次都是稳定地查询叶子节点，还不如B树（最好情况根节点就返回了）。其实上面分析过了，B+树每个节点能存储的数据是B树的1170/16≈73倍，意味着B+树每个节点可以连接的分支更多，相同数据量的情况下，B+树远远矮于B树。比如B树的查询IO次数是1~100，而B+树恒定为3，你觉得哪个效率高？</p>
+<p>对于第三点，很多人可能觉得B+树每次都是稳定地查询叶子节点，还不如B树（最好情况根节点就返回了）。其实上面分析过了，B+树每个节点能存储的数据是B树的1170&#x2F;16≈73倍，意味着B+树每个节点可以连接的分支更多，相同数据量的情况下，B+树远远矮于B树。比如B树的查询IO次数是1~100，而B+树恒定为3，你觉得哪个效率高？</p>
 <p>回头看看柏青哥，钢珠掉落的过程是不是很像沿着索引查找数据呢~</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589373836878-c32bc126-fc73-48e4-ae95-d7e23ccf77c8-20210923150420395.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589373836878-c32bc126-fc73-48e4-ae95-d7e23ccf77c8-20210923150420395.png" alt="img"></p>
 <p>学到这里，相信Dao层的对岸到底是什么，大家心里已经有B+树了：</p>
-<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589374780467-c8dbebf7-eb2e-418b-8536-cc90aea27b37-20210923150427648.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589374780467-c8dbebf7-eb2e-418b-8536-cc90aea27b37-20210923150427648.png" alt="img"></p>
 <p>至此，我们回过头来给索引下个定义：</p>
 <p><strong>索引是一种数据结构，</strong>用于高效搜索目标数据，在MySQL中具体实现为B+树（InnoDB引擎）。</p>
 <p>最后说一句，没有所谓的“B减树”，很多人可能看到B树的英文表示法是”B-Tree”，误读为“B减树”。</p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/mysql/">mysql</a>
-                    
-                  </div>
-                
-              </div>
-              
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
-              
-              
-                <div class="post-prevnext">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">SQL优化(3)-索引与优化原理(上)</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2020/08/04/spring-cloud/">
-                        <span class="hidden-mobile">聊下Spring Cloud Netflix</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-              <!-- Comments -->
-              <article class="comments" id="comments" lazyload>
-                
-                  
-                
-                
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/valine@1/dist/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"fNUxhX4VOsT8Dnz93C30c1YE-gzGzoHsz","appKey":"QixxRhAsofecCW4rrHDfyTtP","path":"window.location.pathname","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","recordIP":true,"serverURLs":"https://fnuxhx4v.lc-cn-n1-shared.com","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"tv_doge":"6ea59c827c414b4a2955fe79e0f6fd3dcd515e24.png","tv_亲亲":"a8111ad55953ef5e3be3327ef94eb4a39d535d06.png","tv_偷笑":"bb690d4107620f1c15cff29509db529a73aee261.png","tv_再见":"180129b8ea851044ce71caf55cc8ce44bd4a4fc8.png","tv_冷漠":"b9cbc755c2b3ee43be07ca13de84e5b699a3f101.png","tv_发怒":"34ba3cd204d5b05fec70ce08fa9fa0dd612409ff.png","tv_发财":"34db290afd2963723c6eb3c4560667db7253a21a.png","tv_可爱":"9e55fd9b500ac4b96613539f1ce2f9499e314ed9.png","tv_吐血":"09dd16a7aa59b77baa1155d47484409624470c77.png","tv_呆":"fe1179ebaa191569b0d31cecafe7a2cd1c951c9d.png","tv_呕吐":"9f996894a39e282ccf5e66856af49483f81870f3.png","tv_困":"241ee304e44c0af029adceb294399391e4737ef2.png","tv_坏笑":"1f0b87f731a671079842116e0991c91c2c88645a.png","tv_大佬":"093c1e2c490161aca397afc45573c877cdead616.png","tv_大哭":"23269aeb35f99daee28dda129676f6e9ea87934f.png","tv_委屈":"d04dba7b5465779e9755d2ab6f0a897b9b33bb77.png","tv_害羞":"a37683fb5642fa3ddfc7f4e5525fd13e42a2bdb1.png","tv_尴尬":"7cfa62dafc59798a3d3fb262d421eeeff166cfa4.png","tv_微笑":"70dc5c7b56f93eb61bddba11e28fb1d18fddcd4c.png","tv_思考":"90cf159733e558137ed20aa04d09964436f618a1.png","tv_惊吓":"0d15c7e2ee58e935adc6a7193ee042388adc22af.png","tv_打脸":"56ab10b624063e966bfcb76ea5dc4794d87dfd47.png","tv_抓狂":"fe31c08edad661d63762b04e17b8d5ae3c71a757.png","tv_抠鼻":"c666f55e88d471e51bbd9fab9bb308110824a6eb.png","tv_斜眼笑":"911f987aa8bc1bee12d52aafe62bc41ef4474e6c.png","tv_无奈":"ea8ed89ee9878f2fece2dda0ea8a5dbfe21b5751.png","tv_晕":"5443c22b4d07fb1907ccc610c8e6db254f2461b7.png","tv_流汗":"cead1c351ab8d79e9f369605beb90148db0fbed3.png","tv_流泪":"7e71cde7858f0cd50d74b0264aa26db612a8a167.png","tv_流鼻血":"c32d39db2737f89b904ca32700d140a9241b0767.png","tv_点赞":"f85c354995bd99e28fc76c869bfe42ba6438eff4.png","tv_生气":"26702dcafdab5e8225b43ffd23c94ac1ff932654.png","tv_生病":"8b0ec90e6b86771092a498c54f09fc94621c1900.png","tv_疑问":"0793d949b18d7be716078349c202c15ff166f314.png","tv_白眼":"c1d59f439e379ee50eef488bcb5e5378e5044ea4.png","tv_皱眉":"72ccad6679fea0d14cce648b4d818e09b8ffea2d.png","tv_目瞪口呆":"0b8cb81a68de5d5365212c99375e7ace3e7891b7.png","tv_睡着":"8b196675b53af58264f383c50ad0945048290b33.png","tv_笑哭":"1abc628f6d4f4caf9d0e7800878f4697abbc8273.png","tv_腼腆":"89712c0d4af73e67f89e35cbc518420380a7f6f4.png","tv_色":"61822c7e9aae5da76475e7892534545336b23a6f.png","tv_调侃":"4bc022533ef31544ca0d72c12c808cf4a1cce3e3.png","tv_调皮":"b9c41de8e82dd7a8515ae5e3cb63e898bf245186.png","tv_鄙视":"6e72339f346a692a495b123174b49e4e8e781303.png","tv_闭嘴":"c9e990da7f6e93975e25fd8b70e2e290aa4086ef.png","tv_难过":"87f46748d3f142ebc6586ff58860d0e2fc8263ba.png","tv_馋":"fc7e829b845c43c623c8b490ee3602b7f0e76a31.png","tv_鬼脸":"0ffbbddf8a94d124ca2f54b360bbc04feb6bbfea.png","tv_黑人问号":"45821a01f51bc867da9edbaa2e070410819a95b2.png","tv_鼓掌":"1d21793f96ef4e6f48b23e53e3b9e42da833a0f6.png"},"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          Fluid.plugins.initFancyBox('#valine .vcontent img:not(.vemoji)');
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+</article>
 
 
-              </article>
-            
-          </article>
-        </div>
-      </div>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
 
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9F%8F%E9%9D%92%E5%93%A5"><span class="toc-number">1.</span> <span class="toc-text">柏青哥</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">线性结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E6%9F%A5%E6%89%BE%E6%A0%91"><span class="toc-number">3.</span> <span class="toc-text">二叉查找树</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E5%B9%B3%E8%A1%A1%E6%A0%91"><span class="toc-number">4.</span> <span class="toc-text">二叉平衡树</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E5%B9%B3%E8%A1%A1%E6%A0%91%E4%B8%8E%E7%A3%81%E7%9B%98IO"><span class="toc-number">5.</span> <span class="toc-text">二叉平衡树与磁盘IO</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#B%E6%A0%91"><span class="toc-number">6.</span> <span class="toc-text">B树</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#B-%E6%A0%91%E4%B8%8E%E7%B4%A2%E5%BC%95"><span class="toc-number">7.</span> <span class="toc-text">B+树与索引</span></a></li></ol>
       </div>
     
-  </div>
-</div>
 
-<!-- Custom -->
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&text=SQL优化(2)-索引与B+树"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&is_video=false&description=SQL优化(2)-索引与B+树"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SQL优化(2)-索引与B+树&body=Check out this article: http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&title=SQL优化(2)-索引与B+树"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&name=SQL优化(2)-索引与B+树&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/&t=SQL优化(2)-索引与B+树"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
-
-    
-
-    
-      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
-        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-      </a>
-    
-
-    
-      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header text-center">
-        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
-        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body mx-3">
-        <div class="md-form mb-5">
-          <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
-        </div>
-        <div class="list-group" id="local-search-result"></div>
-      </div>
     </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
   </div>
 </div>
-    
 
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
-  </main>
-
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    
+    2019-2023
+    ryan
   </div>
-  
-
-  
-
-  
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
 </footer>
 
+    </div>
+    <!-- styles -->
 
-  <!-- SCRIPTS -->
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
-
-  <script>
-    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
-    NProgress.start()
-    window.addEventListener('load', function() {
-      NProgress.done();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
     })
+  })
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
-<script  src="/js/events.js" ></script>
-<script  src="/js/plugins.js" ></script>
+<script src="/js/main.js"></script>
 
-<!-- Plugins -->
+<!-- search -->
 
+<!-- Baidu Analytics -->
 
-  <script  src="/js/local-search.js" ></script>
+<!-- Cloudflare Analytics -->
 
+<!-- Disqus Comments -->
 
-
-  
-    <script  src="/js/img-lazyload.js" ></script>
-  
-
-
-
-  
-
-
-
-  
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
-
-
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-      typing(title)
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-  
-    <!-- Baidu Analytics -->
-    <script defer>
-      var _hmt = _hmt || [];
-      (function () {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?38d9989ef01991aacdb7c2ab68c48482";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-      })();
-    </script>
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
-<script  src="/js/boot.js" ></script>
-
+<!-- utterances Comments -->
 
 </body>
 </html>
