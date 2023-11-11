@@ -107,6 +107,16 @@
     
 	<!-- mathjax -->
 	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
 <meta name="generator" content="Hexo 7.0.0"></head>
 
 <body class="max-width mx-auto px3 ltr">
@@ -121,9 +131,11 @@
         <!--
        --><li><a href="/">Home</a></li><!--
      --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
        --><li><a href="/about/">About</a></li><!--
      --><!--
-       --><li><a href="/archives/">Writing</a></li><!--
+       --><li><a href="/search/">Search</a></li><!--
      -->
       </ul>
     </span>
@@ -498,6 +510,12 @@
 </article>
 
 
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
 
         
           <div id="footer-post-container">
@@ -508,9 +526,11 @@
         
           <li><a href="/">Home</a></li>
         
+          <li><a href="/archives/">Writing</a></li>
+        
           <li><a href="/about/">About</a></li>
         
-          <li><a href="/archives/">Writing</a></li>
+          <li><a href="/search/">Search</a></li>
         
       </ul>
     </div>
@@ -566,9 +586,11 @@
         <!--
        --><li><a href="/">Home</a></li><!--
      --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
        --><li><a href="/about/">About</a></li><!--
      --><!--
-       --><li><a href="/archives/">Writing</a></li><!--
+       --><li><a href="/search/">Search</a></li><!--
      -->
       </ul>
     </nav>
@@ -627,6 +649,26 @@
 <!-- Disqus Comments -->
 
 <!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'owner/githubrepo';
+      var utterances_issue_term = 'pathname';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'github-dark';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
 
 </body>
 </html>
