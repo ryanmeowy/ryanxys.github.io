@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="因为可见性问题导致处理器不同核心看到的内存操作顺序不一致，从而看起来就像是指令被重排了一样 JMM在编译器重排阶段， 会禁止特定类型的编译器重排， 在处理器重排序阶段，通过在指令之间插入内存屏障来禁止特定类型的处理器重排， 从而确保了在不同的编译器和不同的处理器平台上，不会应为重排序规则不一致导致非预期的运行结果 现代处理器与内存进行数据交互，会先将数据写到自己的缓冲区中， 每个处理器都有自己的缓">
 <meta property="og:type" content="article">
-<meta property="og:title" content="并发编程艺术读书笔记-JMM">
+<meta property="og:title" content="Java并发编程的艺术读书笔记-JMM">
 <meta property="og:url" content="http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/index.html">
 <meta property="og:site_name" content="low gravity">
 <meta property="og:description" content="因为可见性问题导致处理器不同核心看到的内存操作顺序不一致，从而看起来就像是指令被重排了一样 JMM在编译器重排阶段， 会禁止特定类型的编译器重排， 在处理器重排序阶段，通过在指令之间插入内存屏障来禁止特定类型的处理器重排， 从而确保了在不同的编译器和不同的处理器平台上，不会应为重排序规则不一致导致非预期的运行结果 现代处理器与内存进行数据交互，会先将数据写到自己的缓冲区中， 每个处理器都有自己的缓">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-04-07T07:22:10.000Z">
-<meta property="article:modified_time" content="2023-11-15T13:22:48.539Z">
+<meta property="article:modified_time" content="2024-03-20T15:21:10.839Z">
 <meta property="article:author" content="ryan">
 <meta property="article:tag" content="JMM">
 <meta property="article:tag" content="并发">
@@ -38,7 +38,7 @@
       
     
     <!-- title -->
-    <title>并发编程艺术读书笔记-JMM</title>
+    <title>Java并发编程的艺术读书笔记-JMM</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -112,16 +112,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&text=并发编程艺术读书笔记-JMM"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&is_video=false&description=并发编程艺术读书笔记-JMM"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=并发编程艺术读书笔记-JMM&body=Check out this article: http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&name=并发编程艺术读书笔记-JMM&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&t=并发编程艺术读书笔记-JMM"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&text=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&is_video=false&description=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Java并发编程的艺术读书笔记-JMM&body=Check out this article: http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&name=Java并发编程的艺术读书笔记-JMM&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&t=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -137,7 +137,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        并发编程艺术读书笔记-JMM
+        Java并发编程的艺术读书笔记-JMM
     </h1>
 
 
@@ -230,16 +230,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&text=并发编程艺术读书笔记-JMM"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&is_video=false&description=并发编程艺术读书笔记-JMM"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=并发编程艺术读书笔记-JMM&body=Check out this article: http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=并发编程艺术读书笔记-JMM"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&name=并发编程艺术读书笔记-JMM&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&t=并发编程艺术读书笔记-JMM"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&text=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&is_video=false&description=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Java并发编程的艺术读书笔记-JMM&body=Check out this article: http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&title=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&name=Java并发编程的艺术读书笔记-JMM&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/07/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E8%89%BA%E6%9C%AF%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-JMM/&t=Java并发编程的艺术读书笔记-JMM"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
