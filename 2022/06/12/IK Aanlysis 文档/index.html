@@ -1,18 +1,31 @@
 <!DOCTYPE html>
-<html lang=en>
+<html lang="zh-CN">
 <head>
-    <!-- so meta -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="HandheldFriendly" content="True">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="IK Aanlysis 文档1.源码分析 我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的  core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegem">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="IK Aanlysis 文档1.源码分析  我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IK Aanlysis 文档">
 <meta property="og:url" content="http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/index.html">
-<meta property="og:site_name" content="low gravity">
-<meta property="og:description" content="IK Aanlysis 文档1.源码分析 我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的  core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegem">
-<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="IK Aanlysis 文档1.源码分析  我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082209853.png">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082117840.png">
@@ -21,172 +34,216 @@
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082123981.png">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082130700.png">
 <meta property="article:published_time" content="2022-06-12T07:22:10.000Z">
-<meta property="article:modified_time" content="2023-11-29T16:12:25.357Z">
-<meta property="article:author" content="ryan">
+<meta property="article:modified_time" content="2024-12-13T14:38:19.481Z">
+<meta property="article:author" content="RYAN">
 <meta property="article:tag" content="分词器">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png">
-    
-    
-      
-        
-          <link rel="shortcut icon" href="/images/favicon.png">
-        
-      
-      
-        
-          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
-        
-      
-      
-        
-          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
-        
-      
-    
-    <!-- title -->
-    <title>IK Aanlysis 文档</title>
-    <!-- async scripts -->
-    <!-- Google Analytics -->
 
 
-    <!-- Umami Analytics -->
+<link rel="canonical" href="http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/">
 
 
-    <!-- styles -->
-    
-<link rel="stylesheet" href="/css/style.css">
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/","path":"2022/06/12/IK Aanlysis 文档/","title":"IK Aanlysis 文档"}</script>
 
-    <!-- persian styles -->
-    
-    <!-- rss -->
-    
-    
-      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
-    
-	<!-- mathjax -->
-	
-		<script type="text/x-mathjax-config">
-		  MathJax.Hub.Config({
-			tex2jax: {
-			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-			  inlineMath: [['$','$']]
-			}
-		  });
-		</script>
-		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
-	
-<meta name="generator" content="Hexo 7.0.0"></head>
-
-<body class="max-width mx-auto px3 ltr">
-    
-      <div id="header-post">
-  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
-  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
-  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
-  <span id="menu">
-    <span id="nav">
-      <ul>
-        <!--
-       --><li><a href="/">Home</a></li><!--
-     --><!--
-       --><li><a href="/archives/">Writing</a></li><!--
-     --><!--
-       --><li><a href="/about/">About</a></li><!--
-     --><!--
-       --><li><a href="/search/">Search</a></li><!--
-     -->
-      </ul>
-    </span>
-    <br/>
-    <span id="actions">
-      <ul>
-        
-        <li><a class="icon" aria-label="Previous post" href="/2023/05/16/%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%97%A5%E8%AE%B0-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E8%A7%A6%E5%8F%91%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
-        
-        
-        <li><a class="icon" aria-label="Next post" href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
-        
-        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
-        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
-      </ul>
-      <span id="i-prev" class="info" style="display:none;">Previous post</span>
-      <span id="i-next" class="info" style="display:none;">Next post</span>
-      <span id="i-top" class="info" style="display:none;">Back to top</span>
-      <span id="i-share" class="info" style="display:none;">Share post</span>
-    </span>
-    <br/>
-    <div id="share" style="display: none">
-      <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&text=IK Aanlysis 文档"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&is_video=false&description=IK Aanlysis 文档"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=IK Aanlysis 文档&body=Check out this article: http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&name=IK Aanlysis 文档&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&t=IK Aanlysis 文档"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
-</ul>
-
-    </div>
-    
-    
-      <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IK-Aanlysis-%E6%96%87%E6%A1%A3"><span class="toc-number">1.</span> <span class="toc-text">IK Aanlysis 文档</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">1.1.</span> <span class="toc-text">1.源码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E8%AF%8D%E5%85%B8%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.1.0.1.</span> <span class="toc-text">1.词典初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E8%87%AA%E5%AE%9A%E4%B9%89%E8%AF%8D%E5%85%B8"><span class="toc-number">1.1.0.2.</span> <span class="toc-text">2.自定义词典</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E5%9F%BA%E4%BA%8E%E8%AF%8D%E5%85%B8%E7%9A%84%E5%88%87%E5%88%86"><span class="toc-number">1.1.0.3.</span> <span class="toc-text">3.基于词典的切分</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E5%88%86%E8%AF%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.0.4.</span> <span class="toc-text">4.分词模式</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-%E5%8C%B9%E9%85%8D%E5%AE%9A%E4%B9%89%E8%AF%8D%E6%80%A7"><span class="toc-number">1.1.0.5.</span> <span class="toc-text">5.匹配定义词性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E6%AD%A7%E4%B9%89%E5%88%A4%E6%96%AD"><span class="toc-number">1.1.0.6.</span> <span class="toc-text">6基于规则的歧义判断</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="toc-number">1.2.</span> <span class="toc-text">2.热更新</span></a></li></ol></li></ol>
-      </div>
-    
-  </span>
-</div>
-
-    
-    <div class="content index py4 ">
-        
-        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
-  <header>
-    
-    <h1 class="posttitle p-name" itemprop="name headline">
-        IK Aanlysis 文档
-    </h1>
-
-
-
-    <div class="meta">
-      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
-        <span class="p-name" itemprop="name">ryan</span>
-      </span>
-      
-    <div class="postdate">
-      
-        <time datetime="2022-06-12T07:22:10.000Z" class="dt-published" itemprop="datePublished">2022-06-12</time>
-        
-      
-    </div>
-
-
-      
-    <div class="article-category">
-        <i class="fa-solid fa-archive"></i>
-        <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-    </div>
-
-
-      
-    <div class="article-tag">
-        <i class="fa-solid fa-tag"></i>
-        <a class="p-category" href="/tags/%E5%88%86%E8%AF%8D%E5%99%A8/" rel="tag">分词器</a>
-    </div>
-
-
-    </div>
-  </header>
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>IK Aanlysis 文档 | Low Gravity</title>
   
 
-  <div class="content e-content" itemprop="articleBody">
-    <h2 id="IK-Aanlysis-文档"><a href="#IK-Aanlysis-文档" class="headerlink" title="IK Aanlysis 文档"></a>IK Aanlysis 文档</h2><h3 id="1-源码分析"><a href="#1-源码分析" class="headerlink" title="1.源码分析"></a>1.源码分析</h3><p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png" alt="image-20220508192403184"></p>
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">19</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">21</span></a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#IK-Aanlysis-%E6%96%87%E6%A1%A3"><span class="nav-number">1.</span> <span class="nav-text">IK Aanlysis 文档</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">1.源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E8%AF%8D%E5%85%B8%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.1.0.1.</span> <span class="nav-text">1.词典初始化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E8%87%AA%E5%AE%9A%E4%B9%89%E8%AF%8D%E5%85%B8"><span class="nav-number">1.1.0.2.</span> <span class="nav-text">2.自定义词典</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-%E5%9F%BA%E4%BA%8E%E8%AF%8D%E5%85%B8%E7%9A%84%E5%88%87%E5%88%86"><span class="nav-number">1.1.0.3.</span> <span class="nav-text">3.基于词典的切分</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-%E5%88%86%E8%AF%8D%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.1.0.4.</span> <span class="nav-text">4.分词模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-%E5%8C%B9%E9%85%8D%E5%AE%9A%E4%B9%89%E8%AF%8D%E6%80%A7"><span class="nav-number">1.1.0.5.</span> <span class="nav-text">5.匹配定义词性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E6%AD%A7%E4%B9%89%E5%88%A4%E6%96%AD"><span class="nav-number">1.1.0.6.</span> <span class="nav-text">6基于规则的歧义判断</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="nav-number">1.2.</span> <span class="nav-text">2.热更新</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="IK Aanlysis 文档 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IK Aanlysis 文档
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-06-12 15:22:10" itemprop="dateCreated datePublished" datetime="2022-06-12T15:22:10+08:00">2022-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-13 22:38:19" itemprop="dateModified" datetime="2024-12-13T22:38:19+08:00">2024-12-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h2 id="IK-Aanlysis-文档"><a href="#IK-Aanlysis-文档" class="headerlink" title="IK Aanlysis 文档"></a>IK Aanlysis 文档</h2><h3 id="1-源码分析"><a href="#1-源码分析" class="headerlink" title="1.源码分析"></a>1.源码分析</h3><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205081924063.png" alt="image-20220508192403184" style="zoom:50%;" />
+
 <p>我们需要关注的是cfg , core , dic三个包 ，这其中包含了ik分词器的主类， 主配置类、词元类、 词典类等关键类，后续对ik分词器的改造也是围绕这三个包来展开的 </p>
+<span id="more"></span>
+
 <p>core包括了IK的分词器接口ISegmenter，分词器核心类IKSegmenter，语义单元类Lexeme，上下文AnalyzeContext，以及子分词器LetterSegementer(英文字符子分词器),CN_QuantifierSegmenter(中文量词子分词器),CJKSegmenter(中日韩字符分词器)，</p>
 <p>dic包括了词典类Dictionary，词典树分段类DictSegmenter，用来记录词典匹配命中记录的类Hit</p>
 <h5 id="1-词典初始化"><a href="#1-词典初始化" class="headerlink" title="1.词典初始化"></a>1.词典初始化</h5><p>在分词器IKSegmenter首次实例化时，默认会根据DefaultConfig找到主词典和中文量词词典路径，同时DefaultConfig会根据classpath下配置文件IKAnalyzer.cfg.xml，找到扩展词典和停止词典路径，可以在该配置文件中配置自己的扩展词典和停止词典。</p>
@@ -219,172 +276,113 @@
 
 <h3 id="2-热更新"><a href="#2-热更新" class="headerlink" title="2.热更新"></a>2.热更新</h3><!--代码已隐藏-->
 
-  </div>
-</article>
-
-
-    <div class="blog-post-comments">
-        <div id="utterances_thread">
-            <noscript>Please enable JavaScript to view the comments.</noscript>
-        </div>
-    </div>
-
-
-
-
-
-        
-          <div id="footer-post-container">
-  <div id="footer-post">
-
-    <div id="nav-footer" style="display: none">
-      <ul>
-        
-          <li><a href="/">Home</a></li>
-        
-          <li><a href="/archives/">Writing</a></li>
-        
-          <li><a href="/about/">About</a></li>
-        
-          <li><a href="/search/">Search</a></li>
-        
-      </ul>
     </div>
 
     
     
-      <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IK-Aanlysis-%E6%96%87%E6%A1%A3"><span class="toc-number">1.</span> <span class="toc-text">IK Aanlysis 文档</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">1.1.</span> <span class="toc-text">1.源码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E8%AF%8D%E5%85%B8%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.1.0.1.</span> <span class="toc-text">1.词典初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E8%87%AA%E5%AE%9A%E4%B9%89%E8%AF%8D%E5%85%B8"><span class="toc-number">1.1.0.2.</span> <span class="toc-text">2.自定义词典</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E5%9F%BA%E4%BA%8E%E8%AF%8D%E5%85%B8%E7%9A%84%E5%88%87%E5%88%86"><span class="toc-number">1.1.0.3.</span> <span class="toc-text">3.基于词典的切分</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E5%88%86%E8%AF%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.0.4.</span> <span class="toc-text">4.分词模式</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-%E5%8C%B9%E9%85%8D%E5%AE%9A%E4%B9%89%E8%AF%8D%E6%80%A7"><span class="toc-number">1.1.0.5.</span> <span class="toc-text">5.匹配定义词性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E6%AD%A7%E4%B9%89%E5%88%A4%E6%96%AD"><span class="toc-number">1.1.0.6.</span> <span class="toc-text">6基于规则的歧义判断</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%83%AD%E6%9B%B4%E6%96%B0"><span class="toc-number">1.2.</span> <span class="toc-text">2.热更新</span></a></li></ol></li></ol>
-      </div>
     
 
-    <div id="share-footer" style="display: none">
-      <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&text=IK Aanlysis 文档"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&is_video=false&description=IK Aanlysis 文档"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=IK Aanlysis 文档&body=Check out this article: http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&title=IK Aanlysis 文档"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&name=IK Aanlysis 文档&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/&t=IK Aanlysis 文档"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>RYAN
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://example.com/2022/06/12/IK%20Aanlysis%20%E6%96%87%E6%A1%A3/" title="IK Aanlysis 文档">http://example.com/2022/06/12/IK Aanlysis 文档/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
 </ul>
-
-    </div>
-
-    <div id="actions-footer">
-        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
-        
-          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
-        
-        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
-        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
-    </div>
-
-  </div>
 </div>
 
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E8%AF%8D%E5%99%A8/" rel="tag"><i class="fa fa-tag"></i> 分词器</a>
+          </div>
+
         
-        <footer id="footer">
-  <div class="footer-left">
-    Copyright &copy;
-    
-    
-    2019-2024
-    ryan
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/05/29/%E4%BB%80%E4%B9%88%E6%98%AF%20analysis/" rel="prev" title="analysis">
+                  <i class="fa fa-angle-left"></i> analysis
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/05/16/%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%97%A5%E8%AE%B0-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E8%A7%A6%E5%8F%91%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5/" rel="next" title="故障排查日记-线程池触发拒绝策略">
+                  故障排查日记-线程池触发拒绝策略 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
   </div>
-  <div class="footer-right">
-    <nav>
-      <ul>
-        <!--
-       --><li><a href="/">Home</a></li><!--
-     --><!--
-       --><li><a href="/archives/">Writing</a></li><!--
-     --><!--
-       --><li><a href="/about/">About</a></li><!--
-     --><!--
-       --><li><a href="/search/">Search</a></li><!--
-     -->
-      </ul>
-    </nav>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
-</footer>
 
     </div>
-    <!-- styles -->
-
-
-
-  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
-
-
-    <!-- jquery -->
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
-
-
-
-
-<!-- clipboard -->
+  </footer>
 
   
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
   
-  <script type="text/javascript">
-  $(function() {
-    // copy-btn HTML
-    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
-    btn += '<i class="fa-regular fa-clone"></i>';
-    btn += '</span>';
-    // mount it!
-    $(".highlight table").before(btn);
-    var clip = new ClipboardJS('.btn-copy', {
-      text: function(trigger) {
-        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
-      }
-    });
-    clip.on('success', function(e) {
-      e.trigger.setAttribute('aria-label', "Copied!");
-      e.clearSelection();
-    })
-  })
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
 
 
-<script src="/js/main.js"></script>
 
-<!-- search -->
 
-<!-- Baidu Analytics -->
 
-<!-- Cloudflare Analytics -->
 
-<!-- Disqus Comments -->
+  
 
-<!-- utterances Comments -->
 
-    <script type="text/javascript">
-      var utterances_repo = 'ryanmeowy/comments4blog';
-      var utterances_issue_term = 'pathname';
-      var utterances_label = 'Comment';
-      var utterances_theme = 'github-dark';
 
-      (function(){
-          var script = document.createElement('script');
 
-          script.src = 'https://utteranc.es/client.js';
-          script.setAttribute('repo', utterances_repo);
-          script.setAttribute('issue-term', 'pathname');
-          script.setAttribute('label', utterances_label);
-          script.setAttribute('theme', utterances_theme);
-          script.setAttribute('crossorigin', 'anonymous');
-          script.async = true;
-          (document.getElementById('utterances_thread')).appendChild(script);
-      }());
-  </script>
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
 
 </body>
 </html>

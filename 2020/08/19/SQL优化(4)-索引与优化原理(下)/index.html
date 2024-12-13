@@ -1,18 +1,31 @@
 <!DOCTYPE html>
-<html lang=en>
+<html lang="zh-CN">
 <head>
-    <!-- so meta -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="HandheldFriendly" content="True">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="继续上一篇，本节重点介绍联合索引。 Explain之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？ 这个时候就该Explain上场了，使用方式有两种：  借助Navicat等软件    直接使用Explain命令   大家把它当做一个命令即可，是MySQL提供的专门用来分析SQL执行计划的，比如语句是">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="继续上一篇，本节重点介绍联合索引。 Explain之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SQL优化(4)-索引与优化原理(下)">
 <meta property="og:url" content="http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/index.html">
-<meta property="og:site_name" content="low gravity">
-<meta property="og:description" content="继续上一篇，本节重点介绍联合索引。 Explain之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？ 这个时候就该Explain上场了，使用方式有两种：  借助Navicat等软件    直接使用Explain命令   大家把它当做一个命令即可，是MySQL提供的专门用来分析SQL执行计划的，比如语句是">
-<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="继续上一篇，本节重点介绍联合索引。 Explain之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247075143-d475fc88-120c-4ca9-a27d-204b7d6ecf45-20210923214500198.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247009784-07acd78b-aaf8-4cf6-ae50-6a83e381f027-20210923214507859.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589537787486-ed93cbb6-a245-49eb-8e8f-42fe6ce51893-20210923214519728.png">
@@ -34,172 +47,215 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548223133-3f1b433d-430e-4110-831f-d49b6461481b-20210923214710565.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589599142582-6d0f9da2-d57b-4816-bf63-707f9337fe9d-20210923214721874.png">
 <meta property="article:published_time" content="2020-08-19T13:02:23.000Z">
-<meta property="article:modified_time" content="2021-09-23T13:49:06.548Z">
-<meta property="article:author" content="ryan">
+<meta property="article:modified_time" content="2024-12-13T14:42:32.151Z">
+<meta property="article:author" content="RYAN">
 <meta property="article:tag" content="mysql">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247075143-d475fc88-120c-4ca9-a27d-204b7d6ecf45-20210923214500198.png">
-    
-    
-      
-        
-          <link rel="shortcut icon" href="/images/favicon.png">
-        
-      
-      
-        
-          <link rel="icon" type="image/png" href="/images/favicon.png" sizes="192x192">
-        
-      
-      
-        
-          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
-        
-      
-    
-    <!-- title -->
-    <title>SQL优化(4)-索引与优化原理(下)</title>
-    <!-- async scripts -->
-    <!-- Google Analytics -->
 
 
-    <!-- Umami Analytics -->
+<link rel="canonical" href="http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/">
 
 
-    <!-- styles -->
-    
-<link rel="stylesheet" href="/css/style.css">
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/","path":"2020/08/19/SQL优化(4)-索引与优化原理(下)/","title":"SQL优化(4)-索引与优化原理(下)"}</script>
 
-    <!-- persian styles -->
-    
-    <!-- rss -->
-    
-    
-      <link rel="alternate" href="/true" title="low gravity" type="application/atom+xml" />
-    
-	<!-- mathjax -->
-	
-		<script type="text/x-mathjax-config">
-		  MathJax.Hub.Config({
-			tex2jax: {
-			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-			  inlineMath: [['$','$']]
-			}
-		  });
-		</script>
-		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
-	
-<meta name="generator" content="Hexo 7.0.0"></head>
-
-<body class="max-width mx-auto px3 ltr">
-    
-      <div id="header-post">
-  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
-  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
-  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
-  <span id="menu">
-    <span id="nav">
-      <ul>
-        <!--
-       --><li><a href="/">Home</a></li><!--
-     --><!--
-       --><li><a href="/archives/">Writing</a></li><!--
-     --><!--
-       --><li><a href="/about/">About</a></li><!--
-     --><!--
-       --><li><a href="/search/">Search</a></li><!--
-     -->
-      </ul>
-    </span>
-    <br/>
-    <span id="actions">
-      <ul>
-        
-        <li><a class="icon" aria-label="Previous post" href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
-        
-        
-        <li><a class="icon" aria-label="Next post" href="/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
-        
-        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
-        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
-      </ul>
-      <span id="i-prev" class="info" style="display:none;">Previous post</span>
-      <span id="i-next" class="info" style="display:none;">Next post</span>
-      <span id="i-top" class="info" style="display:none;">Back to top</span>
-      <span id="i-share" class="info" style="display:none;">Share post</span>
-    </span>
-    <br/>
-    <div id="share" style="display: none">
-      <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&text=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&is_video=false&description=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=SQL优化(4)-索引与优化原理(下)&body=Check out this article: http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&name=SQL优化(4)-索引与优化原理(下)&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&t=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
-</ul>
-
-    </div>
-    
-    
-      <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Explain"><span class="toc-number">1.</span> <span class="toc-text">Explain</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#type"><span class="toc-number">1.1.</span> <span class="toc-text">type</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#possible-keys%E3%80%81key%E3%80%81key-len"><span class="toc-number">1.2.</span> <span class="toc-text">possible_keys、key、key_len</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Extra"><span class="toc-number">1.3.</span> <span class="toc-text">Extra</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95"><span class="toc-number">2.</span> <span class="toc-text">联合索引</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AWHERE%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2"><span class="toc-number">2.1.</span> <span class="toc-text">最左匹配原则：WHERE条件查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AORDER-BY"><span class="toc-number">2.2.</span> <span class="toc-text">最左匹配原则：ORDER BY</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AGROUP-BY"><span class="toc-number">2.3.</span> <span class="toc-text">最左匹配原则：GROUP BY</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">联合索引的使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%A4%9A%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2%EF%BC%8C%E6%8F%90%E9%AB%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="toc-number">3.1.</span> <span class="toc-text">场景一：多条件查询，提高利用率</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E9%81%BF%E5%85%8D%E5%9B%9E%E8%A1%A8"><span class="toc-number">3.2.</span> <span class="toc-text">场景二：避免回表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E7%B4%A2%E5%BC%95%E6%8E%92%E5%BA%8F"><span class="toc-number">3.3.</span> <span class="toc-text">场景三：索引排序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9ACOUNT%E7%BB%9F%E8%AE%A1"><span class="toc-number">3.4.</span> <span class="toc-text">场景四：COUNT统计</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MySQL%E7%9A%84%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="toc-number">4.</span> <span class="toc-text">MySQL的架构图</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%99%E7%A8%8B%E6%8E%A8%E8%8D%90"><span class="toc-number">5.</span> <span class="toc-text">教程推荐</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91"><span class="toc-number">5.1.</span> <span class="toc-text">视频</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%93%E6%A0%8F"><span class="toc-number">5.2.</span> <span class="toc-text">专栏</span></a></li></ol></li></ol>
-      </div>
-    
-  </span>
-</div>
-
-    
-    <div class="content index py4 ">
-        
-        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
-  <header>
-    
-    <h1 class="posttitle p-name" itemprop="name headline">
-        SQL优化(4)-索引与优化原理(下)
-    </h1>
-
-
-
-    <div class="meta">
-      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
-        <span class="p-name" itemprop="name">ryan</span>
-      </span>
-      
-    <div class="postdate">
-      
-        <time datetime="2020-08-19T13:02:23.000Z" class="dt-published" itemprop="datePublished">2020-08-19</time>
-        
-      
-    </div>
-
-
-      
-    <div class="article-category">
-        <i class="fa-solid fa-archive"></i>
-        <a class="category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-    </div>
-
-
-      
-    <div class="article-tag">
-        <i class="fa-solid fa-tag"></i>
-        <a class="p-category" href="/tags/mysql/" rel="tag">mysql</a>
-    </div>
-
-
-    </div>
-  </header>
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SQL优化(4)-索引与优化原理(下) | Low Gravity</title>
   
 
-  <div class="content e-content" itemprop="articleBody">
-    <p>继续上一篇，本节重点介绍联合索引。</p>
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">19</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">21</span></a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Explain"><span class="nav-number">1.</span> <span class="nav-text">Explain</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#type"><span class="nav-number">1.1.</span> <span class="nav-text">type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#possible-keys%E3%80%81key%E3%80%81key-len"><span class="nav-number">1.2.</span> <span class="nav-text">possible_keys、key、key_len</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Extra"><span class="nav-number">1.3.</span> <span class="nav-text">Extra</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95"><span class="nav-number">2.</span> <span class="nav-text">联合索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AWHERE%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.1.</span> <span class="nav-text">最左匹配原则：WHERE条件查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AORDER-BY"><span class="nav-number">2.2.</span> <span class="nav-text">最左匹配原则：ORDER BY</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AGROUP-BY"><span class="nav-number">2.3.</span> <span class="nav-text">最左匹配原则：GROUP BY</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.</span> <span class="nav-text">联合索引的使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%A4%9A%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2%EF%BC%8C%E6%8F%90%E9%AB%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">3.1.</span> <span class="nav-text">场景一：多条件查询，提高利用率</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E9%81%BF%E5%85%8D%E5%9B%9E%E8%A1%A8"><span class="nav-number">3.2.</span> <span class="nav-text">场景二：避免回表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E7%B4%A2%E5%BC%95%E6%8E%92%E5%BA%8F"><span class="nav-number">3.3.</span> <span class="nav-text">场景三：索引排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9ACOUNT%E7%BB%9F%E8%AE%A1"><span class="nav-number">3.4.</span> <span class="nav-text">场景四：COUNT统计</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL%E7%9A%84%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">4.</span> <span class="nav-text">MySQL的架构图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%99%E7%A8%8B%E6%8E%A8%E8%8D%90"><span class="nav-number">5.</span> <span class="nav-text">教程推荐</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%86%E9%A2%91"><span class="nav-number">5.1.</span> <span class="nav-text">视频</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%93%E6%A0%8F"><span class="nav-number">5.2.</span> <span class="nav-text">专栏</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SQL优化(4)-索引与优化原理(下) | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SQL优化(4)-索引与优化原理(下)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-08-19 21:02:23" itemprop="dateCreated datePublished" datetime="2020-08-19T21:02:23+08:00">2020-08-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-13 22:42:32" itemprop="dateModified" datetime="2024-12-13T22:42:32+08:00">2024-12-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>继续上一篇，本节重点介绍联合索引。</p>
 <h1 id="Explain"><a href="#Explain" class="headerlink" title="Explain"></a>Explain</h1><p>之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？</p>
+<span id="more"></span>
+
 <p>这个时候就该Explain上场了，使用方式有两种：</p>
 <ul>
 <li>借助Navicat等软件</li>
@@ -660,172 +716,113 @@
 <p><a target="_blank" rel="noopener" href="https://time.geekbang.org/column/intro/139">https://time.geekbang.org/column/intro/139</a></p>
 <p>建议先看第一个，虽然第二个确实厉害点，但不如第一个简单易懂。个人认为有些细节确实不知道也没什么，最重要的是有较为系统认识即可。</p>
 
-  </div>
-</article>
-
-
-    <div class="blog-post-comments">
-        <div id="utterances_thread">
-            <noscript>Please enable JavaScript to view the comments.</noscript>
-        </div>
-    </div>
-
-
-
-
-
-        
-          <div id="footer-post-container">
-  <div id="footer-post">
-
-    <div id="nav-footer" style="display: none">
-      <ul>
-        
-          <li><a href="/">Home</a></li>
-        
-          <li><a href="/archives/">Writing</a></li>
-        
-          <li><a href="/about/">About</a></li>
-        
-          <li><a href="/search/">Search</a></li>
-        
-      </ul>
     </div>
 
     
     
-      <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Explain"><span class="toc-number">1.</span> <span class="toc-text">Explain</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#type"><span class="toc-number">1.1.</span> <span class="toc-text">type</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#possible-keys%E3%80%81key%E3%80%81key-len"><span class="toc-number">1.2.</span> <span class="toc-text">possible_keys、key、key_len</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Extra"><span class="toc-number">1.3.</span> <span class="toc-text">Extra</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95"><span class="toc-number">2.</span> <span class="toc-text">联合索引</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AWHERE%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2"><span class="toc-number">2.1.</span> <span class="toc-text">最左匹配原则：WHERE条件查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AORDER-BY"><span class="toc-number">2.2.</span> <span class="toc-text">最左匹配原则：ORDER BY</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AGROUP-BY"><span class="toc-number">2.3.</span> <span class="toc-text">最左匹配原则：GROUP BY</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">联合索引的使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%A4%9A%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2%EF%BC%8C%E6%8F%90%E9%AB%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="toc-number">3.1.</span> <span class="toc-text">场景一：多条件查询，提高利用率</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E9%81%BF%E5%85%8D%E5%9B%9E%E8%A1%A8"><span class="toc-number">3.2.</span> <span class="toc-text">场景二：避免回表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E7%B4%A2%E5%BC%95%E6%8E%92%E5%BA%8F"><span class="toc-number">3.3.</span> <span class="toc-text">场景三：索引排序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9ACOUNT%E7%BB%9F%E8%AE%A1"><span class="toc-number">3.4.</span> <span class="toc-text">场景四：COUNT统计</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MySQL%E7%9A%84%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="toc-number">4.</span> <span class="toc-text">MySQL的架构图</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%99%E7%A8%8B%E6%8E%A8%E8%8D%90"><span class="toc-number">5.</span> <span class="toc-text">教程推荐</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91"><span class="toc-number">5.1.</span> <span class="toc-text">视频</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%93%E6%A0%8F"><span class="toc-number">5.2.</span> <span class="toc-text">专栏</span></a></li></ol></li></ol>
-      </div>
     
 
-    <div id="share-footer" style="display: none">
-      <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&text=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&is_video=false&description=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=SQL优化(4)-索引与优化原理(下)&body=Check out this article: http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&title=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&name=SQL优化(4)-索引与优化原理(下)&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/&t=SQL优化(4)-索引与优化原理(下)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>RYAN
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/" title="SQL优化(4)-索引与优化原理(下)">http://example.com/2020/08/19/SQL优化(4)-索引与优化原理(下)/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
 </ul>
-
-    </div>
-
-    <div id="actions-footer">
-        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
-        
-          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
-        
-        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
-        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
-    </div>
-
-  </div>
 </div>
 
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"><i class="fa fa-tag"></i> mysql</a>
+          </div>
+
         
-        <footer id="footer">
-  <div class="footer-left">
-    Copyright &copy;
-    
-    
-    2019-2024
-    ryan
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/" rel="prev" title="SQL优化(3)-索引与优化原理(上)">
+                  <i class="fa fa-angle-left"></i> SQL优化(3)-索引与优化原理(上)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/" rel="next" title="浅谈Redis分布式锁(上)">
+                  浅谈Redis分布式锁(上) <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
   </div>
-  <div class="footer-right">
-    <nav>
-      <ul>
-        <!--
-       --><li><a href="/">Home</a></li><!--
-     --><!--
-       --><li><a href="/archives/">Writing</a></li><!--
-     --><!--
-       --><li><a href="/about/">About</a></li><!--
-     --><!--
-       --><li><a href="/search/">Search</a></li><!--
-     -->
-      </ul>
-    </nav>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>
-</footer>
 
     </div>
-    <!-- styles -->
-
-
-
-  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
-
-
-    <!-- jquery -->
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
-
-
-
-
-<!-- clipboard -->
+  </footer>
 
   
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
   
-  <script type="text/javascript">
-  $(function() {
-    // copy-btn HTML
-    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
-    btn += '<i class="fa-regular fa-clone"></i>';
-    btn += '</span>';
-    // mount it!
-    $(".highlight table").before(btn);
-    var clip = new ClipboardJS('.btn-copy', {
-      text: function(trigger) {
-        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
-      }
-    });
-    clip.on('success', function(e) {
-      e.trigger.setAttribute('aria-label', "Copied!");
-      e.clearSelection();
-    })
-  })
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
 
 
-<script src="/js/main.js"></script>
 
-<!-- search -->
 
-<!-- Baidu Analytics -->
 
-<!-- Cloudflare Analytics -->
 
-<!-- Disqus Comments -->
+  
 
-<!-- utterances Comments -->
 
-    <script type="text/javascript">
-      var utterances_repo = 'ryanmeowy/comments4blog';
-      var utterances_issue_term = 'pathname';
-      var utterances_label = 'Comment';
-      var utterances_theme = 'github-dark';
 
-      (function(){
-          var script = document.createElement('script');
 
-          script.src = 'https://utteranc.es/client.js';
-          script.setAttribute('repo', utterances_repo);
-          script.setAttribute('issue-term', 'pathname');
-          script.setAttribute('label', utterances_label);
-          script.setAttribute('theme', utterances_theme);
-          script.setAttribute('crossorigin', 'anonymous');
-          script.async = true;
-          (document.getElementById('utterances_thread')).appendChild(script);
-      }());
-  </script>
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
 
 </body>
 </html>
