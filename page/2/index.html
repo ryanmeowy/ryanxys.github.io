@@ -121,7 +121,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">25</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -132,7 +132,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -160,6 +160,100 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/" class="post-title-link" itemprop="url">rabbitmq延时队列实践</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-29 00:54:22" itemprop="dateCreated datePublished" datetime="2021-08-29T00:54:22+08:00">2021-08-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:41:06" itemprop="dateModified" datetime="2024-12-15T20:41:06+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在许多业务场景中，任务的执行需要与时间紧密关联。例如，在电商领域，订单在生成后的一段时间内未支付则需要自动取消，以释放库存并管理订单状态；新店铺创建后若长时间未上传商品，需及时提醒商家以促进平台活跃度；企业财务系统中，账单在规定期限内未支付则要进行自动结算，确保财务流程的顺畅。这些场景的共同点是都涉及到在特定时间点或时间段后触发相应的操作，对时间的准确性和任务的可靠性要求极高。</p>
+<p>传统的解决方案如定时任务，通过定期轮询数据库来检查任务是否满足执行条件。然而，在数据量较小且对时间精度要求不高的情况下，这种方式或许可行。但当面对大规模数据和高时效性要求时，定时任务的弊端就凸显出来。它需要频繁地查询数据库，这不仅会给数据库带来巨大的压力，影响系统的整体性能，还可能由于查询间隔的限制导致任务执行的延迟，无法满足业务对实时性的严格要求。例如，在电商大促期间，订单量可能瞬间暴增到数百万甚至上千万，如果使用定时任务来检查未支付订单，可能在一秒内无法完成所有订单的检查，导致部分订单未能及时关闭，影响库存管理和用户体验。</p>
+<p>在这样的背景下，消息队列技术应运而生，为解决这类复杂的消息处理需求提供了新的思路和方法。RabbitMQ 作为一款功能强大的消息队列中间件，以其出色的可靠性、灵活性和扩展性，在众多企业的消息处理架构中占据重要地位。它能够实现消息的异步传输，解耦系统组件，提高系统的可伸缩性和响应能力。而延时队列作为 RabbitMQ 的一种特殊应用场景，能够精准地控制消息的延迟处理时间，为上述各种业务场景提供了更为高效、可靠的解决方案，成为企业构建复杂业务逻辑和优化系统性能的关键技术之一。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -920,7 +1014,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/22/SQL%E5%9F%BA%E7%A1%80/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/04/11/%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -938,7 +1032,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/03/22/SQL%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">SQL基础</a>
+          <a href="/2020/04/11/%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/" class="post-title-link" itemprop="url">索引与B+树</a>
         </h2>
 
         <div class="post-meta-container">
@@ -949,14 +1043,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2020-03-22 15:22:10" itemprop="dateCreated datePublished" datetime="2020-03-22T15:22:10+08:00">2020-03-22</time>
+      <time title="创建时间：2020-04-11 23:11:02" itemprop="dateCreated datePublished" datetime="2020-04-11T23:11:02+08:00">2020-04-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-15 20:41:48" itemprop="dateModified" datetime="2024-12-15T20:41:48+08:00">2024-12-15</time>
+      <time title="修改时间：2024-12-15 22:10:14" itemprop="dateModified" datetime="2024-12-15T22:10:14+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -978,120 +1072,12 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>实际上数据库范式不止3种，但大家熟知的就三种。</p>
-<p>第一范式</p>
-<p>所有列应该不可再分</p>
-<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#53;&#50;&#x33;&#x38;&#51;&#x39;&#x30;&#x30;&#x30;&#x40;&#x71;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#53;&#50;&#x33;&#x38;&#51;&#x39;&#x30;&#x30;&#x30;&#x40;&#x71;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
-<p>第二范式</p>
-<p>必须存在业务主键，且非主键字段应该依赖于全部业务主键（之所以写“全部”，因为可能存在复合主键）</p>
-<p>说人话就是：每张表最好都设定主键。虽然某些列可能具备主键的特质（比如user表的id_card），但个人认为主键最好与业务无关，比如自增id。</p>
+          <p>对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。</p>
+<p>诚然，很多人对MySQL数据库的印象就是一个模糊的大铁柜，闭上眼睛深吸一口气仿佛还能嗅到一股铁锈味。只知柜子里藏着很多张表，表里面存着很多行数据，再详细一点的呢？不知道。</p>
+<p>MySQL有太多太多细节，根本无法用四、五篇文章说透，但我仍希望这个系列的文章能成为非常好的入门教程，让从来没接触过SQL优化的同学也能快速建立较为系统的知识框架，方便日后学习其他专栏时进一步拓展。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/22/SQL%E5%9F%BA%E7%A1%80/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="RYAN">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Low Gravity">
-      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Low Gravity">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">redis分布式锁的安全性问题</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-03-04 09:11:45" itemprop="dateCreated datePublished" datetime="2020-03-04T09:11:45+08:00">2020-03-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-15 20:22:13" itemprop="dateModified" datetime="2024-12-15T20:22:13+08:00">2024-12-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。</p>
-<p>Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？</p>
-<p>因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？</p>
-<ul>
-<li>基于 Redis 如何实现一个分布式锁？</li>
-<li>Redis 分布式锁真的安全吗？</li>
-<li>Redis 的 Redlock 有什么问题？一定安全吗？</li>
-<li>业界争论 Redlock，到底在争论什么？哪种观点是对的？</li>
-<li>分布式锁到底用 Redis 还是 Zookeeper？</li>
-<li>实现一个有「容错性」的分布式锁，都需要考虑哪些问题？</li>
-</ul>
-<p>这篇文章，我就来把这些问题彻底讲清楚。</p>
-<p>读完这篇文章，你不仅可以彻底了解分布式锁，还会对「分布式系统」有更加深刻的理解。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/#more" rel="contents">
+              <a class="btn" href="/2020/04/11/%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
