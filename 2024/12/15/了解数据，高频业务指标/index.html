@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="前言本文是指标体系的首篇，主要讲解业务系统中的高频指标，期望能够建立数据的基本认知，方便后面内容的展开。互联网的发展以及人口红利的消失，在企业的管理过程中数据变得越来越重要，需要更加精细化的运营。同时对员工以及公司的管理者都提出了新的要求，如何利用数据，进行指标分析，并进一步通过数据分析从而发现问题及增长点，指导公司的运营，是接下公司发展的趋势。接下来将从数据和业务指标这两个方面来讲解一下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="转载:了解数据，高频业务指标">
+<meta property="og:url" content="http://example.com/2024/12/15/%E4%BA%86%E8%A7%A3%E6%95%B0%E6%8D%AE%EF%BC%8C%E9%AB%98%E9%A2%91%E4%B8%9A%E5%8A%A1%E6%8C%87%E6%A0%87/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="前言本文是指标体系的首篇，主要讲解业务系统中的高频指标，期望能够建立数据的基本认知，方便后面内容的展开。互联网的发展以及人口红利的消失，在企业的管理过程中数据变得越来越重要，需要更加精细化的运营。同时对员工以及公司的管理者都提出了新的要求，如何利用数据，进行指标分析，并进一步通过数据分析从而发现问题及增长点，指导公司的运营，是接下公司发展的趋势。接下来将从数据和业务指标这两个方面来讲解一下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151801401.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151802542.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151802668.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803813.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803564.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803336.png">
+<meta property="article:published_time" content="2024-12-15T09:59:10.000Z">
+<meta property="article:modified_time" content="2024-12-15T10:23:28.593Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="指标体系">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151801401.png">
+
+
+<link rel="canonical" href="http://example.com/2024/12/15/%E4%BA%86%E8%A7%A3%E6%95%B0%E6%8D%AE%EF%BC%8C%E9%AB%98%E9%A2%91%E4%B8%9A%E5%8A%A1%E6%8C%87%E6%A0%87/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2024/12/15/%E4%BA%86%E8%A7%A3%E6%95%B0%E6%8D%AE%EF%BC%8C%E9%AB%98%E9%A2%91%E4%B8%9A%E5%8A%A1%E6%8C%87%E6%A0%87/","path":"2024/12/15/了解数据，高频业务指标/","title":"转载:了解数据，高频业务指标"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>转载:了解数据，高频业务指标 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E7%9A%84%E5%A4%9A%E5%85%83%E8%A7%86%E8%A7%92%EF%BC%8C%E8%A7%A3%E7%AD%94%E6%80%8E%E6%A0%B7%E6%9B%B4%E5%A5%BD%E7%9A%84%E4%BA%86%E8%A7%A3%E6%95%B0%E6%8D%AE"><span class="nav-number">1.</span> <span class="nav-text">理解数据的多元视角，解答怎样更好的了解数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%82%A3%E4%B9%88%E6%8C%87%E6%A0%87%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E6%8C%87%E6%A0%87%E4%B8%8E%E6%95%B0%E6%8D%AE%E7%9A%84%E5%85%B3%E7%B3%BB%E5%8F%88%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">那么指标是什么，指标与数据的关系又是怎样的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E7%94%A8%E6%88%B7%E6%95%B0%E6%8D%AE%E6%8C%87%E6%A0%87"><span class="nav-number">3.</span> <span class="nav-text">常见的用户数据指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%8C%E4%B8%BA%E6%95%B0%E6%8D%AE%E6%8C%87%E6%A0%87"><span class="nav-number">4.</span> <span class="nav-text">行为数据指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%9A%E5%8A%A1%E6%95%B0%E6%8D%AE%E6%8C%87%E6%A0%87"><span class="nav-number">5.</span> <span class="nav-text">业务数据指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/15/%E4%BA%86%E8%A7%A3%E6%95%B0%E6%8D%AE%EF%BC%8C%E9%AB%98%E9%A2%91%E4%B8%9A%E5%8A%A1%E6%8C%87%E6%A0%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="转载:了解数据，高频业务指标 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          转载:了解数据，高频业务指标
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2024-12-15 17:59:10 / 修改时间：18:23:28" itemprop="dateCreated datePublished" datetime="2024-12-15T17:59:10+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E4%BD%93%E7%B3%BB/" itemprop="url" rel="index"><span itemprop="name">数据体系</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><strong>前言</strong><br>本文是指标体系的首篇，主要讲解业务系统中的高频指标，期望能够建立数据的基本认知，方便后面内容的展开。互联网的发展以及人口红利的消失，在企业的管理过程中数据变得越来越重要，需要更加精细化的运营。同时对员工以及公司的管理者都提出了新的要求，如何利用数据，进行指标分析，并进一步通过数据分析从而发现问题及增长点，指导公司的运营，是接下公司发展的趋势。<br>接下来将从数据和业务指标这两个方面来讲解一下。</p>
+<span id="more"></span>
+
+<h3 id="理解数据的多元视角，解答怎样更好的了解数据"><a href="#理解数据的多元视角，解答怎样更好的了解数据" class="headerlink" title="理解数据的多元视角，解答怎样更好的了解数据"></a>理解数据的多元视角，解答怎样更好的了解数据</h3><p>怎么更好的去理解数据呢，我以两个视角来讲，分别是数据的含义以及数据的分类。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151801401.png" alt="图片1 如何理解数据"></p>
+<p>数据的含义是说当获取一份数据后，建立对数据的基本认知，如要知道数据到底是什么，怎么产生的，数据字段的含义是怎样的，字段里面是什么样的数据。</p>
+<p>例如，在电商销售数据中，“订单编号” 字段用于唯一标识每一笔交易，其数据格式可能是特定的数字与字母组合；“商品价格” 字段则明确了每件商品的售价，数据类型为数值型。通过对这些问题的深入了解，为后续的数据处理与分析奠定坚实基础。</p>
+<p>在对数据有了初步了解后，进一步对其进行分类，有助于我们更全面、系统地理解数据。常见的数据分类方式包括用户数据、行为数据和业务数据三类，简言之 “谁”“做了什么”“结果如何” 。</p>
+<p><font color=#FF6A6A> 1. 用户数据</font></p>
+<p>用户数据就是用户的一些基础信息，典型的用户数据如用户的名字、年龄、出生日期、性别、住址、职业、教育水平等。</p>
+<p><font color=#FF6A6A> 2. 行为数据</font></p>
+<p>行为数据则记录用户在产品中的行为，它详细记录用户在何时、何地、以何种方式进行了何种行为。在埋点采集体系中，重点采集的便是此类数据。</p>
+<p>以某社交APP为例，行为数据可记录用户的登录时间、浏览的页面内容、点赞、评论、分享等操作。通过对这些行为数据的深度挖掘，能够洞察用户的兴趣偏好、使用习惯，进而优化产品功能与用户体验。</p>
+<p><font color=#FF6A6A> 3. 业务数据</font></p>
+<p>业务数据则着眼于企业运营的核心成果。在公司运营过程中，除了关注具体的用户，用户的行为之外，最终还是要去关注整个业务的结果是怎样。诸如充值金额、销售业绩、运营目标的达成情况等均属于业务数据范畴。</p>
+<p>以在线教育平台为例，业务数据包括课程的报名人数、付费金额、课程完成率等。这些数据直接反映了平台的业务运营状况，是评估企业盈利能力与市场竞争力的关键指标。</p>
+<p>上面讲述了理解数据的两个视角，接下来引出指标的概念，那为什么我会提到指标呢？</p>
+<hr>
+<h3 id="那么指标是什么，指标与数据的关系又是怎样的？"><a href="#那么指标是什么，指标与数据的关系又是怎样的？" class="headerlink" title="那么指标是什么，指标与数据的关系又是怎样的？"></a>那么指标是什么，指标与数据的关系又是怎样的？</h3><p>在实际工作场景中，数据来源复杂多样，格式常常混乱无序，犹如未经加工的原材料，难以直接被理解与应用。而指标则是基于数据加工提炼而成的、用于精准衡量业务情况的标准与尺度。数据为指标提供了原始素材，指标则成为解读数据、量化业务的有力工具。</p>
+<p>正如现代管理学之父彼得・德鲁克所言：“如果你不能衡量，那么你就不能有效增长。” 这句名言深刻凸显了指标在企业管理与发展进程中的核心地位与重要价值。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151802542.png" alt="图片2 管理学之父彼得・德鲁克"></p>
+<p>在实际工作场景中，常见的数据问题往往都是因为指标引起的。</p>
+<p>例如，指标定义模糊不清，导致业务部门与数据团队对指标含义的理解存在偏差，沟通中犹如 “鸡同鸭讲”，严重影响工作效率与决策的准确性。为有效解决此类问题，构建清晰、准确且通用的指标体系迫在眉睫。</p>
+<p>接下来，我们将深入介绍一些常见的业务指标，帮助读者对数据指标形成系统认知，减少沟通协作中的gap。</p>
+<p>这里我们基于数据类型，列出一些高频常见的业务指标，并讲述指标的口径定义及作用，让大家对业务进行初步理解，具体分为用户数据指标、行为数据指标以及业务数据指标三类。</p>
+<hr>
+<h3 id="常见的用户数据指标"><a href="#常见的用户数据指标" class="headerlink" title="常见的用户数据指标"></a>常见的用户数据指标</h3><p>用户数据指标主要从多个关键视角对用户进行剖析，包括新增用户数、存量用户活跃度（如 DAU、MAU、WAU）、用户健康度（留存率、LT、粘性）以及用户渠道来源。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151802668.png" alt="图片3 常见的用户数据指标"></p>
+<p><font color=#FF6A6A> 1. 新增用户数</font></p>
+<p>新增用户数反映特定时间段内新加入产品的用户数量。在实际场景中，对于新用户的分析，通常与用户渠道来源共同使用，用于分析渠道的表现，评估渠道投放的效果。</p>
+<p>其典型的流程是：用户通过渠道包打开渠道页面后，点击跳转应用商店下载应用，然后用户启动应用激活进一步完成注册。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803813.png" alt="图片4 渠道投放用户注册流程"></p>
+<p><font color=#FF6A6A> 2. 活跃用户数</font></p>
+<p>DAU（日活跃用户数）、MAU（月活跃用户数）、WAU（周活跃用户数）则是衡量存量用户活跃度的关键指标。</p>
+<p>以一款短视频应用为例，DAU 反映了每天有多少用户打开并使用该应用进行浏览、拍摄、分享等操作；MAU 则展示了在一个月内活跃用户的规模，通过对比不同月份的 MAU 数据，可洞察用户群体的长期活跃度趋势；WAU 则在周维度上对用户活跃情况进行了监测，有助于发现用户在一周内的使用规律与波动情况。</p>
+<p><font color=#FF6A6A> 3. 留存率</font></p>
+<p>留存率是评估用户忠诚度与产品粘性的核心指标之一。例如，某电商平台的次日留存率为 30%，意味着在新注册用户中，有 30% 的用户在第二天仍会再次访问该平台。较高的留存率通常表明产品或服务具有较强的吸引力与用户价值，能够有效留住用户。</p>
+<p>实际工作中，不同公司或数据类产品对于留存的定义有所差异，具体的算法有：</p>
+<p>算法 1（7 日日留存）：主流的是按照当日活跃用户且第 n 日仍活跃的用户与当日活跃用户比算作留存率，以衡量渠道投放的业务使用这种算法是合适的，避免了其他日数据的干扰。</p>
+<p>算法 2（7 日内留存）：以 n 日内只要活跃一天的用户即算作 n 日留存，使用于应用活跃较为集中在某一天且周期较长的业务， 为了让数据更加合理会采用该种方案。</p>
+<p>算法 3（7 日日留存，新增当日算做 0 天留存率为 100%）：某些公司或平台存在首日留存率的概念，按照 0 天留存，1 天留存，2 天留存的方式，区别于次日留存，3 日留存，7 日留存等。</p>
+<p><font color=#FF6A6A> 4. LT（生命周期总价值）</font></p>
+<p>LT即用户生命周期(Life Time)，用于衡量用户的活跃情况，如2月29日的LT3 &#x3D; 2.02代表2月29日新增的用户在3日内平均活跃了2.02天。</p>
+<p><font color=#FF6A6A>5. 粘性（日活&#x2F;月活）</font></p>
+<p>日活&#x2F;月活是表示用户参与度的一个常用指标，它是每日活跃用户与每月活跃用户的比率，用百分比来表示。通常认为，日活&#x2F;月活在 20％ 以上的 app 是不错的，超过 50％ 的被形容为世界级。</p>
+<p>适用场景：对消费类和底层的 SaaS 产品来说，这个指标非常有用，但是除了这种日常使用的消息&#x2F;社交类产品外，其实对其他类别都不太有用。这些产品当然很有价值，但他们不是唯一有价值的产品。</p>
+<h3 id="行为数据指标"><a href="#行为数据指标" class="headerlink" title="行为数据指标"></a>行为数据指标</h3><p>行为数据指标基于业务不同在具体场景上也会有所差异，但其核心框架大体一致。主要从行为次数（PV、UV）、行为深度（次数深度或链路深度）、停留多久（时长）以及路径走通率（转化率）几个维度展开。</p>
+<p>举个例子：多少个用户进入首页访问了多少次、访问次数中多少次打开商品详情、进一步多少人下单、多少人购买。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803564.png" alt="图片5 电商购物流程"></p>
+<p><font color=#FF6A6A> 1. PV（页面浏览量）</font></p>
+<p>PV（页面浏览量，Page View），一定时间内某个页面的浏览次数，用户每打开一个网页可以看作一个PV。如，某一个网页1天中被打开10次，那么PV为10。</p>
+<p><font color=#FF6A6A>2. UV（独立访客数）</font></p>
+<p>UV（独立访客数，Unique Visitor），一定时间内访问某个页面的人数。例如，某一个网页1天中被1个人打开过10次，那么UV是1。虽然这位用户在1天中打开该网页10次，但是这位用户都只能算一个人，所以UV是1，而不是10。</p>
+<p>PV（页面浏览量）与 UV（独立访客数）是衡量用户与产品界面交互频率的基础指标。</p>
+<p><font color=#FF6A6A>3. 行为深度</font></p>
+<p>对于行为深度的衡量，主要有两种口径类型，分为基于次数的深度以及基于链路的链路深度。基于次数的深度，如在某社交 APP 应用中，用户与用户间的聊天次数可直观反映其对聊天对象的喜爱深度。</p>
+<p>另一种是页面链路的深度，它记录了用户为完成某一特定行为所经历的页面跳转次数与路径。通过分析链路深度，可发现流程中的瓶颈环节，提出优化页面布局与交互设计，提升用户体验与转化率。</p>
+<p>例如，在电商购物流程中，用户从首页浏览商品，到加入购物车，再到填写收货信息、完成支付，这一系列操作所经过的页面步骤即为页面链路深度。</p>
+<p><font color=#FF6A6A>4. 停留时长</font></p>
+<p>用户在产品内某一行为的停留时长，直接反应用户对该行为的感兴趣程度。</p>
+<p>例如，在一款在线视频平台上，用户观看某部电影的平均时长为 90 分钟，而平台上另一部电影的平均观看时长仅为 30 分钟，这表明前者更受用户喜爱与关注，平台可据此调整影片推荐权重，优先推荐高观看时长的优质内容。</p>
+<p><font color=#FF6A6A> 5. 转化率 </font></p>
+<p>转化率则是衡量用户在一系列行为过程中，从一个行为阶段成功转化至下一个行为阶段的比例情况。</p>
+<p>以电商平台为例，商品详情页的浏览转化率（从浏览详情页到加入购物车的比例）、购物车转化率（从加入购物车到提交订单的比例）、支付转化率（从提交订单到完成支付的比例）等一系列转化率指标，能够精准定位用户在购物流程中的流失环节，为优化营销策略与产品功能提供明确方向。</p>
+<hr>
+<h3 id="业务数据指标"><a href="#业务数据指标" class="headerlink" title="业务数据指标"></a>业务数据指标</h3><p>业务数据指标从多个维度全面衡量企业的业务运营状况，包括总量指标（GMV、目标达成数）、人数指标（付费人数、完成人数）、人均指标（ARPU&#x2F;ARPPU&#x2F; 人均次数 &#x2F; 人均访问时长）、健康程度指标（付费率及完成率）以及被消费视角相关指标。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803336.png" alt="图片6 常见的业务数据指标"></p>
+<p><font color=#FF6A6A> 1.GMV</font></p>
+<p>GMV是描述交易的金额总规模，它涵盖了所有产品在特定时间段内的销售总额，包括实际支付金额、退款金额等。</p>
+<p>例如，某电商平台在 “双 11” 期间的 GMV 突破 500 亿元，这一数据直观展示了平台在该购物狂欢节期间的整体销售规模与市场影响力。</p>
+<p><font color=#FF6A6A> 2. 付费人数 </font></p>
+<p>付费人数统计了在特定时间段内实际支付费用的用户数量，是衡量企业收入来源的重要指标之一。</p>
+<p>例如，一款在线音乐平台的付费人数达到 100 万，表明有 100 万用户认可并愿意为平台的音乐服务付费，这为平台的盈利状况提供了直接依据。</p>
+<p> <font color=#FF6A6A> 3. ARPU及ARPPU</font></p>
+<p>ARPU人均付费&#x3D;GMV&#x2F;总用户数，人均付费在游戏行业也叫ARPU （Average Revenue Per User），在电商行业也叫客单价。</p>
+<p>ARPPU付费用户人均付费（Average Revenue Per Paying User&#x3D;GMV&#x2F;付费人数，这个指标用于统计付费用户的平均收入。</p>
+<p><font color=#FF6A6A>4. 付费率&#x2F;复购率</font></p>
+<p>付费率&#x3D;付费人数&#x2F;总用户数。付费率展示了用户群体中付费用户的占比情况。例如，某App产品有100万注册用户，其中10万用户有过消费，那么该产品的付费率&#x3D;付费人数（10万）&#x2F;总用户数（100万）&#x3D;10%。</p>
+<p>复购率是指重复购买频率，用于反映用户的付费频率。复购率指一定时间内，消费两次以上的用户数&#x2F;付费人数。例如，微信收账管理小程序可以帮助商家统计通过微信转账的用户。</p>
+<p><font color=#FF6A6A> 5.  被消费视角</font></p>
+<p>消费视角相关指标则关注企业产品或服务在市场中的被消费情况与受欢迎程度。例如，知乎内文章被阅读次数、分享次数等，区别于用户阅读次数，属于被消费视角下的指标。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文以业务中常见的高频指标进行切入，期望引导大家对数据以及指标有一个初步的认知。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%8C%87%E6%A0%87%E4%BD%93%E7%B3%BB/" rel="tag"><i class="fa fa-tag"></i> 指标体系</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/07/13/%E6%96%B9%E6%B3%95%E8%AE%BA-%E5%AD%A6%E4%B9%A0%E7%9A%84%E6%96%B9%E6%B3%95/" rel="prev" title="方法论-学习的方法">
+                  <i class="fa fa-angle-left"></i> 方法论-学习的方法
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>

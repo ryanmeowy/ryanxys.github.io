@@ -19,12 +19,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&#53;&#50;&#51;&#56;&#x33;&#x39;&#48;&#x30;&#x30;&#x40;&#113;&#x71;&#46;&#99;&#111;&#x6d;“是比较糟糕的做法，因为此时该列包含了phone、address、ema">
+    <meta name="description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&#x35;&#x32;&#x33;&#56;&#x33;&#57;&#48;&#48;&#48;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;“是比较糟糕的做法，因为此时该列包含了phone、address、ema">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SQL优化(1)-SQL基础">
 <meta property="og:url" content="http://example.com/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="Low Gravity">
-<meta property="og:description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&#53;&#50;&#51;&#56;&#x33;&#x39;&#48;&#x30;&#x30;&#x40;&#113;&#x71;&#46;&#99;&#111;&#x6d;“是比较糟糕的做法，因为此时该列包含了phone、address、ema">
+<meta property="og:description" content="范式与反范式实际上数据库范式不止3种，但大家熟知的就三种。 第一范式 所有列应该不可再分 比如，往contact列存储”18257500000,杭州,&#x35;&#x32;&#x33;&#56;&#x33;&#57;&#48;&#48;&#48;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;“是比较糟糕的做法，因为此时该列包含了phone、address、ema">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589609778497-d64e7ece-7979-4baa-83d7-15555882f163-20210923213840093.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589605039821-daa06c46-0aad-482a-a2e3-5935f95ca480-20210923213848199.png">
@@ -131,18 +131,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -240,7 +240,7 @@
     <div class="post-body" itemprop="articleBody"><h1 id="范式与反范式"><a href="#范式与反范式" class="headerlink" title="范式与反范式"></a>范式与反范式</h1><p>实际上数据库范式不止3种，但大家熟知的就三种。</p>
 <p>第一范式</p>
 <p>所有列应该不可再分</p>
-<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#53;&#50;&#51;&#56;&#x33;&#x39;&#48;&#x30;&#x30;&#x40;&#113;&#x71;&#46;&#99;&#111;&#x6d;">&#53;&#50;&#51;&#56;&#x33;&#x39;&#48;&#x30;&#x30;&#x40;&#113;&#x71;&#46;&#99;&#111;&#x6d;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
+<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#x35;&#x32;&#x33;&#56;&#x33;&#57;&#48;&#48;&#48;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;">&#x35;&#x32;&#x33;&#56;&#x33;&#57;&#48;&#48;&#48;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
 <span id="more"></span>
 
 
@@ -594,23 +594,6 @@
     
 
     <footer class="post-footer">
-          
-
-<div class="post-copyright">
-<ul>
-  <li class="post-copyright-author">
-      <strong>本文作者： </strong>RYAN
-  </li>
-  <li class="post-copyright-link">
-      <strong>本文链接：</strong>
-      <a href="http://example.com/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/" title="SQL优化(1)-SQL基础">http://example.com/2020/03/22/SQL优化(1)-SQL基础/</a>
-  </li>
-  <li class="post-copyright-license">
-      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
-
           <div class="post-tags">
               <a href="/tags/mysql/" rel="tag"><i class="fa fa-tag"></i> mysql</a>
           </div>
