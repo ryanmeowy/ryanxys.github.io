@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803564.png">
 <meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803336.png">
 <meta property="article:published_time" content="2024-12-15T09:59:10.000Z">
-<meta property="article:modified_time" content="2024-12-15T10:23:28.593Z">
+<meta property="article:modified_time" content="2024-12-15T10:33:48.269Z">
 <meta property="article:author" content="RYAN">
 <meta property="article:tag" content="指标体系">
 <meta name="twitter:card" content="summary">
@@ -138,12 +138,12 @@
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -211,7 +211,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2024-12-15 17:59:10 / 修改时间：18:23:28" itemprop="dateCreated datePublished" datetime="2024-12-15T17:59:10+08:00">2024-12-15</time>
+      <time title="创建时间：2024-12-15 17:59:10 / 修改时间：18:33:48" itemprop="dateCreated datePublished" datetime="2024-12-15T17:59:10+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -240,12 +240,12 @@
 <p>数据的含义是说当获取一份数据后，建立对数据的基本认知，如要知道数据到底是什么，怎么产生的，数据字段的含义是怎样的，字段里面是什么样的数据。</p>
 <p>例如，在电商销售数据中，“订单编号” 字段用于唯一标识每一笔交易，其数据格式可能是特定的数字与字母组合；“商品价格” 字段则明确了每件商品的售价，数据类型为数值型。通过对这些问题的深入了解，为后续的数据处理与分析奠定坚实基础。</p>
 <p>在对数据有了初步了解后，进一步对其进行分类，有助于我们更全面、系统地理解数据。常见的数据分类方式包括用户数据、行为数据和业务数据三类，简言之 “谁”“做了什么”“结果如何” 。</p>
-<p><font color=#FF6A6A> 1. 用户数据</font></p>
+<p><font color=#FF6A6A> <strong>1. 用户数据</strong></font></p>
 <p>用户数据就是用户的一些基础信息，典型的用户数据如用户的名字、年龄、出生日期、性别、住址、职业、教育水平等。</p>
-<p><font color=#FF6A6A> 2. 行为数据</font></p>
+<p><font color=#FF6A6A> <strong>2. 行为数据</strong></font></p>
 <p>行为数据则记录用户在产品中的行为，它详细记录用户在何时、何地、以何种方式进行了何种行为。在埋点采集体系中，重点采集的便是此类数据。</p>
 <p>以某社交APP为例，行为数据可记录用户的登录时间、浏览的页面内容、点赞、评论、分享等操作。通过对这些行为数据的深度挖掘，能够洞察用户的兴趣偏好、使用习惯，进而优化产品功能与用户体验。</p>
-<p><font color=#FF6A6A> 3. 业务数据</font></p>
+<p><font color=#FF6A6A> <strong>3. 业务数据</strong></font></p>
 <p>业务数据则着眼于企业运营的核心成果。在公司运营过程中，除了关注具体的用户，用户的行为之外，最终还是要去关注整个业务的结果是怎样。诸如充值金额、销售业绩、运营目标的达成情况等均属于业务数据范畴。</p>
 <p>以在线教育平台为例，业务数据包括课程的报名人数、付费金额、课程完成率等。这些数据直接反映了平台的业务运营状况，是评估企业盈利能力与市场竞争力的关键指标。</p>
 <p>上面讲述了理解数据的两个视角，接下来引出指标的概念，那为什么我会提到指标呢？</p>
@@ -260,58 +260,58 @@
 <hr>
 <h3 id="常见的用户数据指标"><a href="#常见的用户数据指标" class="headerlink" title="常见的用户数据指标"></a>常见的用户数据指标</h3><p>用户数据指标主要从多个关键视角对用户进行剖析，包括新增用户数、存量用户活跃度（如 DAU、MAU、WAU）、用户健康度（留存率、LT、粘性）以及用户渠道来源。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151802668.png" alt="图片3 常见的用户数据指标"></p>
-<p><font color=#FF6A6A> 1. 新增用户数</font></p>
+<p><font color=#FF6A6A> <strong>1. 新增用户数</strong></font></p>
 <p>新增用户数反映特定时间段内新加入产品的用户数量。在实际场景中，对于新用户的分析，通常与用户渠道来源共同使用，用于分析渠道的表现，评估渠道投放的效果。</p>
 <p>其典型的流程是：用户通过渠道包打开渠道页面后，点击跳转应用商店下载应用，然后用户启动应用激活进一步完成注册。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803813.png" alt="图片4 渠道投放用户注册流程"></p>
-<p><font color=#FF6A6A> 2. 活跃用户数</font></p>
+<p><font color=#FF6A6A> <strong>2. 活跃用户数</strong></font></p>
 <p>DAU（日活跃用户数）、MAU（月活跃用户数）、WAU（周活跃用户数）则是衡量存量用户活跃度的关键指标。</p>
 <p>以一款短视频应用为例，DAU 反映了每天有多少用户打开并使用该应用进行浏览、拍摄、分享等操作；MAU 则展示了在一个月内活跃用户的规模，通过对比不同月份的 MAU 数据，可洞察用户群体的长期活跃度趋势；WAU 则在周维度上对用户活跃情况进行了监测，有助于发现用户在一周内的使用规律与波动情况。</p>
-<p><font color=#FF6A6A> 3. 留存率</font></p>
+<p><font color=#FF6A6A> <strong>3. 留存率</strong></font></p>
 <p>留存率是评估用户忠诚度与产品粘性的核心指标之一。例如，某电商平台的次日留存率为 30%，意味着在新注册用户中，有 30% 的用户在第二天仍会再次访问该平台。较高的留存率通常表明产品或服务具有较强的吸引力与用户价值，能够有效留住用户。</p>
 <p>实际工作中，不同公司或数据类产品对于留存的定义有所差异，具体的算法有：</p>
 <p>算法 1（7 日日留存）：主流的是按照当日活跃用户且第 n 日仍活跃的用户与当日活跃用户比算作留存率，以衡量渠道投放的业务使用这种算法是合适的，避免了其他日数据的干扰。</p>
 <p>算法 2（7 日内留存）：以 n 日内只要活跃一天的用户即算作 n 日留存，使用于应用活跃较为集中在某一天且周期较长的业务， 为了让数据更加合理会采用该种方案。</p>
 <p>算法 3（7 日日留存，新增当日算做 0 天留存率为 100%）：某些公司或平台存在首日留存率的概念，按照 0 天留存，1 天留存，2 天留存的方式，区别于次日留存，3 日留存，7 日留存等。</p>
-<p><font color=#FF6A6A> 4. LT（生命周期总价值）</font></p>
+<p><font color=#FF6A6A> <strong>4. LT（生命周期总价值）</strong></font></p>
 <p>LT即用户生命周期(Life Time)，用于衡量用户的活跃情况，如2月29日的LT3 &#x3D; 2.02代表2月29日新增的用户在3日内平均活跃了2.02天。</p>
-<p><font color=#FF6A6A>5. 粘性（日活&#x2F;月活）</font></p>
+<p><font color=#FF6A6A><strong>5. 粘性（日活&#x2F;月活）</strong></font></p>
 <p>日活&#x2F;月活是表示用户参与度的一个常用指标，它是每日活跃用户与每月活跃用户的比率，用百分比来表示。通常认为，日活&#x2F;月活在 20％ 以上的 app 是不错的，超过 50％ 的被形容为世界级。</p>
 <p>适用场景：对消费类和底层的 SaaS 产品来说，这个指标非常有用，但是除了这种日常使用的消息&#x2F;社交类产品外，其实对其他类别都不太有用。这些产品当然很有价值，但他们不是唯一有价值的产品。</p>
 <h3 id="行为数据指标"><a href="#行为数据指标" class="headerlink" title="行为数据指标"></a>行为数据指标</h3><p>行为数据指标基于业务不同在具体场景上也会有所差异，但其核心框架大体一致。主要从行为次数（PV、UV）、行为深度（次数深度或链路深度）、停留多久（时长）以及路径走通率（转化率）几个维度展开。</p>
 <p>举个例子：多少个用户进入首页访问了多少次、访问次数中多少次打开商品详情、进一步多少人下单、多少人购买。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803564.png" alt="图片5 电商购物流程"></p>
-<p><font color=#FF6A6A> 1. PV（页面浏览量）</font></p>
+<p><font color=#FF6A6A> <strong>1. PV（页面浏览量）</strong></font></p>
 <p>PV（页面浏览量，Page View），一定时间内某个页面的浏览次数，用户每打开一个网页可以看作一个PV。如，某一个网页1天中被打开10次，那么PV为10。</p>
-<p><font color=#FF6A6A>2. UV（独立访客数）</font></p>
+<p><font color=#FF6A6A><strong>2. UV（独立访客数）</strong></font></p>
 <p>UV（独立访客数，Unique Visitor），一定时间内访问某个页面的人数。例如，某一个网页1天中被1个人打开过10次，那么UV是1。虽然这位用户在1天中打开该网页10次，但是这位用户都只能算一个人，所以UV是1，而不是10。</p>
 <p>PV（页面浏览量）与 UV（独立访客数）是衡量用户与产品界面交互频率的基础指标。</p>
-<p><font color=#FF6A6A>3. 行为深度</font></p>
+<p><font color=#FF6A6A><strong>3. 行为深度</strong></font></p>
 <p>对于行为深度的衡量，主要有两种口径类型，分为基于次数的深度以及基于链路的链路深度。基于次数的深度，如在某社交 APP 应用中，用户与用户间的聊天次数可直观反映其对聊天对象的喜爱深度。</p>
 <p>另一种是页面链路的深度，它记录了用户为完成某一特定行为所经历的页面跳转次数与路径。通过分析链路深度，可发现流程中的瓶颈环节，提出优化页面布局与交互设计，提升用户体验与转化率。</p>
 <p>例如，在电商购物流程中，用户从首页浏览商品，到加入购物车，再到填写收货信息、完成支付，这一系列操作所经过的页面步骤即为页面链路深度。</p>
-<p><font color=#FF6A6A>4. 停留时长</font></p>
+<p><font color=#FF6A6A><strong>4. 停留时长</strong></font></p>
 <p>用户在产品内某一行为的停留时长，直接反应用户对该行为的感兴趣程度。</p>
 <p>例如，在一款在线视频平台上，用户观看某部电影的平均时长为 90 分钟，而平台上另一部电影的平均观看时长仅为 30 分钟，这表明前者更受用户喜爱与关注，平台可据此调整影片推荐权重，优先推荐高观看时长的优质内容。</p>
-<p><font color=#FF6A6A> 5. 转化率 </font></p>
+<p><font color=#FF6A6A> <strong>5. 转化率</strong> </font></p>
 <p>转化率则是衡量用户在一系列行为过程中，从一个行为阶段成功转化至下一个行为阶段的比例情况。</p>
 <p>以电商平台为例，商品详情页的浏览转化率（从浏览详情页到加入购物车的比例）、购物车转化率（从加入购物车到提交订单的比例）、支付转化率（从提交订单到完成支付的比例）等一系列转化率指标，能够精准定位用户在购物流程中的流失环节，为优化营销策略与产品功能提供明确方向。</p>
 <hr>
 <h3 id="业务数据指标"><a href="#业务数据指标" class="headerlink" title="业务数据指标"></a>业务数据指标</h3><p>业务数据指标从多个维度全面衡量企业的业务运营状况，包括总量指标（GMV、目标达成数）、人数指标（付费人数、完成人数）、人均指标（ARPU&#x2F;ARPPU&#x2F; 人均次数 &#x2F; 人均访问时长）、健康程度指标（付费率及完成率）以及被消费视角相关指标。</p>
 <p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202412151803336.png" alt="图片6 常见的业务数据指标"></p>
-<p><font color=#FF6A6A> 1.GMV</font></p>
+<p><font color=#FF6A6A> <strong>1.GMV</strong></font></p>
 <p>GMV是描述交易的金额总规模，它涵盖了所有产品在特定时间段内的销售总额，包括实际支付金额、退款金额等。</p>
 <p>例如，某电商平台在 “双 11” 期间的 GMV 突破 500 亿元，这一数据直观展示了平台在该购物狂欢节期间的整体销售规模与市场影响力。</p>
-<p><font color=#FF6A6A> 2. 付费人数 </font></p>
+<p><font color=#FF6A6A> <strong>2. 付费人数</strong> </font></p>
 <p>付费人数统计了在特定时间段内实际支付费用的用户数量，是衡量企业收入来源的重要指标之一。</p>
 <p>例如，一款在线音乐平台的付费人数达到 100 万，表明有 100 万用户认可并愿意为平台的音乐服务付费，这为平台的盈利状况提供了直接依据。</p>
-<p> <font color=#FF6A6A> 3. ARPU及ARPPU</font></p>
+<p> <font color=#FF6A6A> <strong>3. ARPU及ARPPU</strong></font></p>
 <p>ARPU人均付费&#x3D;GMV&#x2F;总用户数，人均付费在游戏行业也叫ARPU （Average Revenue Per User），在电商行业也叫客单价。</p>
 <p>ARPPU付费用户人均付费（Average Revenue Per Paying User&#x3D;GMV&#x2F;付费人数，这个指标用于统计付费用户的平均收入。</p>
-<p><font color=#FF6A6A>4. 付费率&#x2F;复购率</font></p>
+<p><font color=#FF6A6A><strong>4. 付费率&#x2F;复购率</strong></font></p>
 <p>付费率&#x3D;付费人数&#x2F;总用户数。付费率展示了用户群体中付费用户的占比情况。例如，某App产品有100万注册用户，其中10万用户有过消费，那么该产品的付费率&#x3D;付费人数（10万）&#x2F;总用户数（100万）&#x3D;10%。</p>
 <p>复购率是指重复购买频率，用于反映用户的付费频率。复购率指一定时间内，消费两次以上的用户数&#x2F;付费人数。例如，微信收账管理小程序可以帮助商家统计通过微信转账的用户。</p>
-<p><font color=#FF6A6A> 5.  被消费视角</font></p>
+<p><font color=#FF6A6A> <strong>5.  被消费视角</strong></font></p>
 <p>消费视角相关指标则关注企业产品或服务在市场中的被消费情况与受欢迎程度。例如，知乎内文章被阅读次数、分享次数等，区别于用户阅读次数，属于被消费视角下的指标。</p>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文以业务中常见的高频指标进行切入，期望引导大家对数据以及指标有一个初步的认知。</p>
 

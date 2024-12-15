@@ -127,12 +127,12 @@
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -169,7 +169,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/28/rabbitmq%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -187,7 +187,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/" class="post-title-link" itemprop="url">浅谈Redis分布式锁(下)</a>
+          <a href="/2021/08/28/rabbitmq%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/" class="post-title-link" itemprop="url">rabbitmq死信队列实践</a>
         </h2>
 
         <div class="post-meta-container">
@@ -198,14 +198,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2020-10-25 02:14:32" itemprop="dateCreated datePublished" datetime="2020-10-25T02:14:32+08:00">2020-10-25</time>
+      <time title="创建时间：2021-08-28 00:54:22" itemprop="dateCreated datePublished" datetime="2021-08-28T00:54:22+08:00">2021-08-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:40:16" itemprop="dateModified" datetime="2024-12-13T22:40:16+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:41:11" itemprop="dateModified" datetime="2024-12-15T20:41:11+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -213,7 +213,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
+          <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
         </span>
     </span>
 
@@ -227,10 +227,12 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="自定义Redis分布式锁的弊端"><a href="#自定义Redis分布式锁的弊端" class="headerlink" title="自定义Redis分布式锁的弊端"></a>自定义Redis分布式锁的弊端</h1><p>在上一篇我们自定义了一个Redis分布式锁，用来解决多节点定时任务的拉取问题（避免任务重复执行）：</p>
+          <p>RabbitMQ是流行的开源消息队列系统，使用erlang语言开发，由于其社区活跃度高，维护更新较快，性能稳定，深得很多企业的欢心。</p>
+<p>为了保证订单业务的消息数据不丢失，需要使用到RabbitMQ的死信队列机制，当消息消费发生异常时，将消息投入死信队列中。但由于对死信队列的概念及配置不熟悉，导致曾一度陷入百度的汪洋大海，无法自拔，很多文章都看起来可行，但是实际上却并不能帮我解决实际问题。最终，在官网文档中找到了我想要的答案，通过官网文档的学习，才发现对于死信队列存在一些误解，导致配置死信队列之路困难重重。</p>
+<p>于是本着记录和分享的精神，将死信队列的概念和配置完整的写下来，以便帮助遇到同样问题的朋友。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/10/25/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8B)/#more" rel="contents">
+              <a class="btn" href="/2021/08/28/rabbitmq%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -261,7 +263,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/22/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6-%E5%AF%B9%E8%B1%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -279,7 +281,195 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/" class="post-title-link" itemprop="url">浅谈Redis分布式锁(上)</a>
+          <a href="/2020/11/22/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6-%E5%AF%B9%E8%B1%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/" class="post-title-link" itemprop="url">转载:Java垃圾回收机制-对象管理与内存优化</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-11-22 23:21:43" itemprop="dateCreated datePublished" datetime="2020-11-22T23:21:43+08:00">2020-11-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 19:41:46" itemprop="dateModified" datetime="2024-12-15T19:41:46+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Java 的自动内存管理主要是针对对象内存的回收和对象内存的分配。同时，Java 自动内存管理最核心的功能是 <strong>堆</strong> 内存中对象的分配与回收。</p>
+<p>Java 堆是垃圾收集器管理的主要区域，因此也被称作<strong>GC 堆（Garbage Collected Heap）</strong>.从垃圾回收的角度，由于现在收集器基本都采用分代垃圾收集算法，所以 Java 堆还可以细分为：新生代和老年代：再细致一点有：Eden 空间、From Survivor、To Survivor 空间等。<strong>进一步划分的目的是更好地回收内存，或者更快地分配内存。</strong></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/11/22/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6-%E5%AF%B9%E8%B1%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/" class="post-title-link" itemprop="url">基于Redis实现的分布式锁的可用性探索2</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-10-06 02:14:32" itemprop="dateCreated datePublished" datetime="2020-10-06T02:14:32+08:00">2020-10-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:00:18" itemprop="dateModified" datetime="2024-12-15T20:00:18+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在上篇文章中，我们深入探讨了 Redis 分布式锁的基本概念，包括其在分布式系统中的重要性以及与传统 JVM 锁的区别，并初步了解了 Redis 如何通过其原子操作特性实现简单的分布式锁逻辑。然而，在实际应用场景中，仅仅依靠 Redis 的基本命令来实现分布式锁存在诸多问题。</p>
+<p>自定义 Redis 分布式锁在实现过程中面临着一些关键操作无法保证原子性的困境。例如，加锁操作通常需要执行 SETNX（设置键值对，当键不存在时）和 EXPIRE（设置键的过期时间）两个步骤，如果在这两个步骤之间发生系统故障或异常，可能导致锁无法正确设置或永远不会过期，从而引发死锁情况，使系统陷入瘫痪。解锁操作同样存在风险，非原子性的解锁可能导致不同节点之间误删对方的锁，造成数据混乱和并发冲突加剧。</p>
+<p>除了原子性问题，锁续期也是一个不容忽视的挑战。在分布式系统中，业务执行时间往往是不确定的，如果锁的持有时间过短，业务未完成时锁就已过期，可能导致其他节点获取锁并执行相同的业务逻辑，破坏数据一致性；反之，若锁持有时间过长，又会降低系统的并发性能，影响系统整体效率。因此，如何根据业务实际执行时间动态地为锁续期，成为确保分布式锁有效性和系统稳定性的关键因素之一。</p>
+<p>为了应对这些复杂的问题，提高 Redis 分布式锁的可靠性和实用性，Redisson 应运而生。Redisson 是一个功能强大的 Java 驻内存数据网格（In-Memory Data Grid），它在 Redis 基础上提供了一系列分布式对象和服务，其中包括高度优化和可靠的分布式锁实现。Redisson 不仅解决了自定义 Redis 分布式锁的原子性问题，通过使用 Lua 脚本将复杂的操作封装为原子操作，确保加锁、解锁和锁续期等操作的完整性和一致性，还提供了诸如锁自动续期、可重入锁、公平锁等丰富的特性，大大简化了分布式锁的使用难度，提高了分布式系统的开发效率和可靠性。通过深入研究 Redisson 分布式锁的实现原理，我们可以更好地理解和应用分布式锁技术，为构建健壮的分布式系统提供有力支持。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A21/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2020/10/05/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A21/" class="post-title-link" itemprop="url">基于Redis实现的分布式锁的可用性探索1</a>
         </h2>
 
         <div class="post-meta-container">
@@ -297,7 +487,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:40:04" itemprop="dateModified" datetime="2024-12-13T22:40:04+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 19:55:45" itemprop="dateModified" datetime="2024-12-15T19:55:45+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -319,11 +509,12 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>不论面试还是实际工作中，Redis都是避无可避的技术点。在我心里，MySQL和Redis是衡量一个程序员是否“小有所成”的两把标尺。如果他能熟练使用MySQL和Redis，以小化大，充分利用现有资源出色地完成当下需求，说明他已经成长了。</p>
-<p>本篇文章我们一起来探讨Redis分布式锁相关的内容。</p>
+          <p>在现代计算机系统中，随着多核处理器的广泛应用和分布式系统的蓬勃发展，多线程编程已成为常态。多线程环境下，资源共享带来了高效性，但同时也引发了一系列严峻的问题，其中最为突出的便是线程安全问题。当多个线程同时访问和操作共享数据时，数据的一致性和完整性面临巨大挑战，可能导致数据错误、程序异常甚至系统崩溃等严重后果。</p>
+<p>在 Java 编程领域，传统的 JVM 锁机制，如 synchronized 关键字和 ReentrantLock，在单进程或单节点应用中有效地解决了线程安全问题。它们基于线程在同一 JVM 内存空间中运行的特性，通过互斥访问共享资源来确保数据一致性。然而，随着分布式系统的兴起，应用架构发生了根本性变化。分布式系统由多个独立的节点组成，这些节点可能分布在不同的服务器上，运行在各自独立的 JVM 中，彼此之间通过网络通信协作。在这种分布式环境下，JVM 锁机制的局限性逐渐显现。由于每个节点的 JVM 内存相互独立，无法实现跨节点的线程互斥，传统的锁机制无法保证分布式系统中共享资源的一致性访问。例如，在一个分布式电商系统中，多个节点可能同时处理订单操作，如果没有有效的分布式锁机制，可能会出现超卖等问题。</p>
+<p>为了满足分布式系统对共享资源一致性访问的需求，分布式锁应运而生。它提供了一种在分布式环境下实现互斥访问的机制，确保在任何时刻，只有一个节点能够获取特定资源的锁，从而保证数据的一致性和完整性。Redis，作为一款高性能的内存数据库，以其出色的性能、丰富的数据结构和原子操作特性，成为了实现分布式锁的理想选择之一。其内存存储和快速读写能力使得获取和释放锁的操作能够高效执行，而原子操作保证了锁操作的完整性和可靠性。通过 Redis 实现分布式锁，可以有效地解决分布式系统中的并发冲突问题，为分布式应用的稳定运行提供有力支持。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/10/05/%E6%B5%85%E8%B0%88Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81(%E4%B8%8A)/#more" rel="contents">
+              <a class="btn" href="/2020/10/05/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A21/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -354,7 +545,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -372,7 +563,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/" class="post-title-link" itemprop="url">SQL优化(4)-索引与优化原理(下)</a>
+          <a href="/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/" class="post-title-link" itemprop="url">查询执行计划分析与联合索引应用</a>
         </h2>
 
         <div class="post-meta-container">
@@ -390,7 +581,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:42:32" itemprop="dateModified" datetime="2024-12-13T22:42:32+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:42:25" itemprop="dateModified" datetime="2024-12-15T20:42:25+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -412,11 +603,12 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>继续上一篇，本节重点介绍联合索引。</p>
-<h1 id="Explain"><a href="#Explain" class="headerlink" title="Explain"></a>Explain</h1><p>之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？</p>
+          <p>数据库应用开发中，SQL 查询性能直接影响系统的整体响应速度和用户体验。尽管开发人员在编写 SQL 语句时努力确保逻辑正确，但随着业务数据量的不断增加，查询效率问题逐渐凸显。</p>
+<p>优化 SQL 查询已成为提高数据库性能的关键环节。而索引作为优化 SQL 的重要手段，其正确使用和理解对于提升查询性能至关重要。</p>
+<p>本文将基于这些实际需求，深入介绍 Explain 工具的使用方法，详细分析联合索引的特性和应用场景，结合实际案例探讨 SQL 优化的技巧和策略</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/08/19/SQL%E4%BC%98%E5%8C%96(4)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8B)/#more" rel="contents">
+              <a class="btn" href="/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -447,7 +639,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -465,7 +657,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/" class="post-title-link" itemprop="url">SQL优化(3)-索引与优化原理(上)</a>
+          <a href="/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/" class="post-title-link" itemprop="url">MySQL索引的基础原理和创建原则</a>
         </h2>
 
         <div class="post-meta-container">
@@ -483,7 +675,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:42:22" itemprop="dateModified" datetime="2024-12-13T22:42:22+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:41:38" itemprop="dateModified" datetime="2024-12-15T20:41:38+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -505,10 +697,12 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>上一篇，我们重走了一遍数据库索引的历史，认识了B+树结构，这一篇我们回归现实中的MySQL数据库，初步学习具体的SQL优化原则，并尝试从索引底层原理出发，分析为什么会有那么多的“规则”。</p>
+          <p>数据库作为存储和管理数据的核心技术，广泛应用于各类信息系统中。随着数据量的不断增长以及业务复杂性的提高，数据库的性能优化成为至关重要的任务。</p>
+<p>其中，索引作为一种能够显著提升查询效率的数据结构，在数据库操作中扮演着关键角色。然而，许多开发人员和数据库管理员对索引的理解仅停留在表面，未能深入掌握其底层原理和适用场景，导致在实际应用中无法充分发挥索引的优势，甚至可能因不当使用而影响数据库性能。</p>
+<p>本文将从索引的类型、实现方式、创建时机、优缺点以及相关的优化原则等方面进行详细阐述，揭示索引背后的核心原理，为数据库性能优化提供坚实的理论基础。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/08/13/SQL%E4%BC%98%E5%8C%96(3)-%E7%B4%A2%E5%BC%95%E4%B8%8E%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86(%E4%B8%8A)/#more" rel="contents">
+              <a class="btn" href="/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -539,7 +733,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/07/29/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -557,99 +751,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/" class="post-title-link" itemprop="url">SQL优化(2)-索引与B+树</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-08-11 23:11:02" itemprop="dateCreated datePublished" datetime="2020-08-11T23:11:02+08:00">2020-08-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:42:01" itemprop="dateModified" datetime="2024-12-13T22:42:01+08:00">2024-12-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>对于60%的程序员而言，Java的三层架构Controller、Service、Dao可以说是“越往后走天越黑”，特别是到了Dao层，提着灯笼也只能看到脚边一米开外的河边小石子，只闻对岸风啸马嘶却不知到底是人是鬼，只能借着MyBatis或JPA这些ORM框架隔着宽宽的河举行一场又一场的刺刀战，你砍我一刀，我刺你一剑。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/08/11/SQL%E4%BC%98%E5%8C%96-%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/07/29/UDP%20&%20TCP%20/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="RYAN">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Low Gravity">
-      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Low Gravity">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/07/29/UDP%20&%20TCP%20/" class="post-title-link" itemprop="url">UDP&TCP</a>
+          <a href="/2020/07/29/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE/" class="post-title-link" itemprop="url">网络传输协议</a>
         </h2>
 
         <div class="post-meta-container">
@@ -667,7 +769,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:42:43" itemprop="dateModified" datetime="2024-12-13T22:42:43+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:12:00" itemprop="dateModified" datetime="2024-12-15T20:12:00+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -675,7 +777,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+          <a href="/categories/Web%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">Web开发</span></a>
         </span>
     </span>
 
@@ -689,107 +791,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>讲解 TCP 三次握手和四次握手之前，我们先了解一下 TCP 和 UDP 这两个重量级的传输层协议。</p>
-<p>💦 <strong>用户数据报协议 UDP</strong>（User Datagram Protocol）：</p>
-<ul>
-<li><strong>UDP 在传送数据之前不需要先建立连接</strong>，远程主机在收到 UDP 报文后，不需要给出任何确认。</li>
-<li>虽然 UDP <strong>不提供可靠交付</strong>，但在某些情况下 UDP 确是一种最有效的工作方式（一般用于即时通信），比如：QQ 语音、 QQ 视频 、直播等等</li>
-</ul>
+          <p>在众多的传输层协议中，TCP（传输控制协议）和 UDP（用户数据报协议）无疑是最为重要和常用的两种协议。它们的设计目标和特性截然不同，以满足不同应用场景下的多样化需求。TCP 协议以其面向连接、可靠传输的特性，成为了许多对数据准确性和完整性要求较高的应用的首选。例如，在文件传输过程中，用户期望文件能够完整无误地从源端传输到目的端，任何数据丢失或错误都可能导致文件损坏无法使用，TCP 通过其复杂的连接建立、数据确认、重传机制等确保了数据的可靠交付；在电子邮件的发送和接收中，同样不容许邮件内容在传输过程中出现丢失或篡改，TCP 的可靠性保证了邮件的准确传递。</p>
+<p>UDP 协议则以其简洁高效、低延迟的特点，在对实时性要求较高的应用场景中发挥着重要作用。例如，在即时通讯应用中，如 QQ 语音和视频通话，用户更注重信息的即时传递，少量的数据丢失或错误在一定程度上可以被接受，但如果传输延迟过高，通话将变得卡顿，严重影响用户体验，UDP 的无连接特性使得它能够快速地将数据发送出去，减少了建立和维护连接的开销，从而降低了延迟；在线直播领域也是如此，观众希望能够实时观看主播的画面和声音，UDP 能够满足这种对实时性的严格要求。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/07/29/UDP%20&%20TCP%20/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/06/16/%E5%BC%80%E5%8F%91%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="RYAN">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Low Gravity">
-      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Low Gravity">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/06/16/%E5%BC%80%E5%8F%91%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" class="post-title-link" itemprop="url">开发注意事项</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-06-16 23:21:43" itemprop="dateCreated datePublished" datetime="2020-06-16T23:21:43+08:00">2020-06-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:46:41" itemprop="dateModified" datetime="2024-12-13T22:46:41+08:00">2024-12-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">笔记</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="1-基础"><a href="#1-基础" class="headerlink" title="1. 基础"></a>1. 基础</h1><h2 id="1-1-正确使用-equals-方法"><a href="#1-1-正确使用-equals-方法" class="headerlink" title="1.1. 正确使用 equals 方法"></a>1.1. 正确使用 equals 方法</h2><p>Object的equals方法容易抛空指针异常，应使用常量或确定有值的对象来调用 equals。 </p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/06/16/%E5%BC%80%E5%8F%91%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/#more" rel="contents">
+              <a class="btn" href="/2020/07/29/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -856,7 +862,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:41:53" itemprop="dateModified" datetime="2024-12-13T22:41:53+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:43:39" itemprop="dateModified" datetime="2024-12-15T20:43:39+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -878,7 +884,9 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>主从切换技术的方法是：当主服务器宕机后，需要手动把一台从服务器切换为主服务器，这就需要人工干预，费事费力，还会造成一段时间内服务不可用。这不是一种推荐的方式，更多时候，我们优先考虑哨兵模式。</p>
+          <p>在分布式系统中，单点故障可能导致整个系统的瘫痪，影响用户体验和业务正常运转。传统的主从模式虽然在一定程度上提高了可用性，但主服务器宕机时仍需手动切换从服务器为主服务器，这一过程不仅耗时费力，还会造成服务中断。</p>
+<p>为了克服这些问题，Redis 哨兵模式应运而生。它提供了一种自动化的故障检测和转移机制，能够实时监控 Redis 实例的运行状态，在主服务器发生故障时自动将从服务器切换为主服务器，并通过发布订阅模式通知其他从服务器进行相应配置更新，确保整个 Redis 集群的持续稳定运行。</p>
+<p>这种模式大大提高了 Redis 服务的可靠性和容错能力，使得企业能够更好地应对高并发、大数据量的业务场景，保障系统的不间断服务，满足用户对系统性能和稳定性的严格要求。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2020/05/22/redis%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F/#more" rel="contents">
@@ -912,7 +920,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/05/12/IO%E6%A8%A1%E5%9E%8B/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/22/SQL%E5%9F%BA%E7%A1%80/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -930,7 +938,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">IO 模型</a>
+          <a href="/2020/03/22/SQL%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">SQL基础</a>
         </h2>
 
         <div class="post-meta-container">
@@ -941,14 +949,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2020-05-12 02:13:22" itemprop="dateCreated datePublished" datetime="2020-05-12T02:13:22+08:00">2020-05-12</time>
+      <time title="创建时间：2020-03-22 15:22:10" itemprop="dateCreated datePublished" datetime="2020-03-22T15:22:10+08:00">2020-03-22</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:46:50" itemprop="dateModified" datetime="2024-12-13T22:46:50+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:41:48" itemprop="dateModified" datetime="2024-12-15T20:41:48+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -956,7 +964,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">计算机原理</span></a>
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
         </span>
     </span>
 
@@ -970,13 +978,16 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>I&#x2F;O 一直是很多小伙伴难以理解的一个知识点，这篇文章我会将我所理解的 I&#x2F;O 讲给你听，希望可以对你有所帮助。</p>
-<h2 id="I-O"><a href="#I-O" class="headerlink" title="I&#x2F;O"></a>I&#x2F;O</h2><h3 id="何为-I-O"><a href="#何为-I-O" class="headerlink" title="何为 I&#x2F;O?"></a>何为 I&#x2F;O?</h3><p>I&#x2F;O（<strong>I</strong>nput&#x2F;<strong>O</strong>utpu） 即<strong>输入／输出</strong> 。</p>
-<p><strong>我们先从计算机结构的角度来解读一下 I&#x2F;O。</strong></p>
-<p>根据冯.诺依曼结构，计算机结构分为 5 大部分：运算器、控制器、存储器、输入设备、输出设备。</p>
+          <p>实际上数据库范式不止3种，但大家熟知的就三种。</p>
+<p>第一范式</p>
+<p>所有列应该不可再分</p>
+<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#53;&#50;&#x33;&#x38;&#51;&#x39;&#x30;&#x30;&#x30;&#x40;&#x71;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#53;&#50;&#x33;&#x38;&#51;&#x39;&#x30;&#x30;&#x30;&#x40;&#x71;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
+<p>第二范式</p>
+<p>必须存在业务主键，且非主键字段应该依赖于全部业务主键（之所以写“全部”，因为可能存在复合主键）</p>
+<p>说人话就是：每张表最好都设定主键。虽然某些列可能具备主键的特质（比如user表的id_card），但个人认为主键最好与业务无关，比如自增id。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/05/12/IO%E6%A8%A1%E5%9E%8B/#more" rel="contents">
+              <a class="btn" href="/2020/03/22/SQL%E5%9F%BA%E7%A1%80/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -1007,7 +1018,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1025,7 +1036,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">SQL优化(1)-SQL基础</a>
+          <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">redis分布式锁的安全性问题</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1036,14 +1047,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2020-03-22 15:22:10" itemprop="dateCreated datePublished" datetime="2020-03-22T15:22:10+08:00">2020-03-22</time>
+      <time title="创建时间：2020-03-04 09:11:45" itemprop="dateCreated datePublished" datetime="2020-03-04T09:11:45+08:00">2020-03-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-12-13 22:42:12" itemprop="dateModified" datetime="2024-12-13T22:42:12+08:00">2024-12-13</time>
+      <time title="修改时间：2024-12-15 20:22:13" itemprop="dateModified" datetime="2024-12-15T20:22:13+08:00">2024-12-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1051,7 +1062,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
         </span>
     </span>
 
@@ -1065,13 +1076,22 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="范式与反范式"><a href="#范式与反范式" class="headerlink" title="范式与反范式"></a>范式与反范式</h1><p>实际上数据库范式不止3种，但大家熟知的就三种。</p>
-<p>第一范式</p>
-<p>所有列应该不可再分</p>
-<p>比如，往contact列存储”18257500000,杭州,<a href="mailto:&#x35;&#x32;&#x33;&#56;&#x33;&#57;&#48;&#48;&#48;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;">&#x35;&#x32;&#x33;&#56;&#x33;&#57;&#48;&#48;&#48;&#64;&#113;&#113;&#x2e;&#99;&#111;&#109;</a>“是比较糟糕的做法，因为此时该列包含了phone、address、email三个维度的数据，应该拆成phone、address、email三个字段分别存储，这样对更新和查询都有好处。</p>
+          <p>这篇文章我想和你聊一聊，关于 Redis 分布式锁的「安全性」问题。</p>
+<p>Redis 分布式锁的话题，很多文章已经写烂了，我为什么还要写这篇文章呢？</p>
+<p>因为我发现网上 99% 的文章，并没有把这个问题真正讲清楚。导致很多读者看了很多文章，依旧云里雾里。例如下面这些问题，你能清晰地回答上来吗？</p>
+<ul>
+<li>基于 Redis 如何实现一个分布式锁？</li>
+<li>Redis 分布式锁真的安全吗？</li>
+<li>Redis 的 Redlock 有什么问题？一定安全吗？</li>
+<li>业界争论 Redlock，到底在争论什么？哪种观点是对的？</li>
+<li>分布式锁到底用 Redis 还是 Zookeeper？</li>
+<li>实现一个有「容错性」的分布式锁，都需要考虑哪些问题？</li>
+</ul>
+<p>这篇文章，我就来把这些问题彻底讲清楚。</p>
+<p>读完这篇文章，你不仅可以彻底了解分布式锁，还会对「分布式系统」有更加深刻的理解。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2020/03/22/SQL%E4%BC%98%E5%8C%96(1)-SQL%E5%9F%BA%E7%A1%80/#more" rel="contents">
+              <a class="btn" href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

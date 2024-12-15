@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在早期的 Web 应用中，主要以静态文档浏览为主，这种无状态性并未带来明显问题。但随着互联网的演进，交互式 Web 应用逐渐成为主流。用户不再仅仅满足于浏览网页，而是期望能够进行登录、发表评论、购物、在线协作等丰富多样的操作。这些交互式功能的实现依赖于服务器能够识别用户身份，并跟踪用户在不同页面和操作之间的状态信息，以提供个性化的服务和准确的交互响应。例如，在购物网站中，用户需要将商品加入购物车，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Web用户认证机制">
+<meta property="og:url" content="http://example.com/2020/03/02/Web%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="在早期的 Web 应用中，主要以静态文档浏览为主，这种无状态性并未带来明显问题。但随着互联网的演进，交互式 Web 应用逐渐成为主流。用户不再仅仅满足于浏览网页，而是期望能够进行登录、发表评论、购物、在线协作等丰富多样的操作。这些交互式功能的实现依赖于服务器能够识别用户身份，并跟踪用户在不同页面和操作之间的状态信息，以提供个性化的服务和准确的交互响应。例如，在购物网站中，用户需要将商品加入购物车，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101133075">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101138792">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101154301">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101201725">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101207746">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101212174">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101217167">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101223022">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101228882">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101238289">
+<meta property="article:published_time" content="2020-03-02T14:11:37.000Z">
+<meta property="article:modified_time" content="2024-12-15T12:09:28.960Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="用户认证">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316">
+
+
+<link rel="canonical" href="http://example.com/2020/03/02/Web%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/03/02/Web%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6/","path":"2020/03/02/Web用户认证机制/","title":"Web用户认证机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Web用户认证机制 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Cookie"><span class="nav-number">1.</span> <span class="nav-text">Cookie</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Session"><span class="nav-number">2.</span> <span class="nav-text">Session</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#session-%E7%9A%84%E7%97%9B%E7%82%B9"><span class="nav-number">3.</span> <span class="nav-text">session 的痛点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Token%EF%BC%9Ano-session"><span class="nav-number">4.</span> <span class="nav-text">Token：no session!</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cookie-%E4%B8%8E-Token-%E7%9A%84%E7%AE%80%E5%8D%95%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">Cookie 与 Token 的简单总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AF%E8%A7%A3-Cookie-%E7%9B%B8%E6%AF%94-token-%E6%9B%B4%E4%B8%8D%E5%AE%89%E5%85%A8%EF%BC%8C%E6%AF%94%E5%A6%82-CSRF-%E6%94%BB%E5%87%BB"><span class="nav-number">6.</span> <span class="nav-text">误解: Cookie 相比 token 更不安全，比如 CSRF 攻击</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number"></span> <span class="nav-text">总结</span></a></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/02/Web%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Web用户认证机制 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Web用户认证机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-03-02 22:11:37" itemprop="dateCreated datePublished" datetime="2020-03-02T22:11:37+08:00">2020-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:09:28" itemprop="dateModified" datetime="2024-12-15T20:09:28+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Web%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">Web开发</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在早期的 Web 应用中，主要以静态文档浏览为主，这种无状态性并未带来明显问题。但随着互联网的演进，交互式 Web 应用逐渐成为主流。用户不再仅仅满足于浏览网页，而是期望能够进行登录、发表评论、购物、在线协作等丰富多样的操作。这些交互式功能的实现依赖于服务器能够识别用户身份，并跟踪用户在不同页面和操作之间的状态信息，以提供个性化的服务和准确的交互响应。例如，在购物网站中，用户需要将商品加入购物车，服务器必须清楚知道这些商品属于哪个用户，以便在结算时准确计算总价并处理订单；在社交平台上，用户的登录状态决定了其能够查看和操作的内容，以及与其他用户的交互权限。</p>
+<p>为了克服 HTTP 协议无状态性带来的挑战，满足 Web 应用对用户身份识别和状态跟踪的需求，Cookie、Session 和 Token 等技术应运而生。它们在 Web 开发领域中扮演着至关重要的角色，共同构建了现代 Web 应用中用户认证和状态管理的基础架构，为实现安全、高效、个性化的 Web 服务提供了不可或缺的支持，推动了 Web 应用向更加复杂和功能强大的方向发展。</p>
+<span id="more"></span>
+
+<h3 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a>Cookie</h3><p>1991 年 HTTP 0.9 诞生了，当时只是为了满足大家浏览 web 文档的要求 ，所以只有 GET 请求，浏览完了就走了，两个连接之间是没有任何联系的，这也是 HTTP 为无状态的原因，因为它诞生之初就没有这个需求。</p>
+<p>但随着交互式 Web 的兴起（所谓交互式就是你不光可以浏览，还可以登录，发评论，购物等用户操作的行为），单纯地浏览 web 已经无法满足人们的要求，比如随着网上购物的兴起，需要记录用户的购物车记录，就需要有一个机制记录每个连接的关系，这样我们就知道加入购物车的商品到底属于谁了，于是 Cookie 就诞生了。</p>
+<blockquote>
+<p>Cookie，有时也用其复数形式 Cookies。类型为“小型文本文件”，是某些网站为了辨别用户身份，进行 Session 跟踪而储存在用户本地终端上的数据（通常经过加密），由用户客户端计算机暂时或永久保存的信息 。</p>
+</blockquote>
+<p>工作机制如下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101127316" alt="图片">img</p>
+<p>以加入购物车为例，每次浏览器请求后 server 都会将本次商品 id 存储在 Cookie 中返回给客户端，客户端会将 Cookie 保存在本地，下一次再将上次保存在本地的 Cookie 传给 server 就行了，这样每个 Cookie 都保存着用户的商品 id，购买记录也就不会丢失了</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101133075" alt="图片">img</p>
+<p>仔细观察上图相信你不难发现随着购物车内的商品越来越多，每次请求的 cookie 也越来越大，这对每个请求来说是一个很大的负担，我只是想将一个商品加入购买车，为何要将历史的商品记录也一起返回给 server ？购物车信息其实已经记录在 server 了，浏览器这样的操作岂不是多此一举？怎么改进呢</p>
+<h3 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h3><p>仔细考虑下，由于用户的购物车信息都会保存在 Server 中，所以在 Cookie 里只要保存能识别用户身份的信息，知道是谁发起了加入购物车操作即可，这样每次请求后只要在 Cookie 里带上用户的身份信息，请求体里也只要带上本次加入购物车的商品 id，大大减少了 cookie 的体积大小，我们把这种能识别哪个请求由哪个用户发起的机制称为 Session（会话机制），生成的能识别用户身份信息的字符串称为 sessionId，它的工作机制如下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101138792" alt="图片"></p>
+<ol>
+<li>首先用户登录，server 会为用户生成一个 session，为其分配唯一的 sessionId，这个 sessionId 是与某个用户绑定的，也就是说根据此 sessionid（假设为 abc） 可以查询到它到底是哪个用户，然后将此 sessionid 通过 cookie 传给浏览器</li>
+<li>之后浏览器的每次添加购物车请求中只要在 cookie 里带上 sessionId&#x3D;abc 这一个键值对即可，server 根据 sessionId 找到它对应的用户后，把传过来的商品 id 保存到 server 中对应用户的购物车即可</li>
+</ol>
+<p>可以看到通过这种方式再也不需要在 cookie 里传所有的购物车的商品 id 了，大大减轻了请求的负担！</p>
+<p>另外通过上文不难观察出 <strong>cookie 是存储在 client 的，而 session 保存在 server</strong>，sessionId 需要借助 cookie 的传递才有意义。</p>
+<h3 id="session-的痛点"><a href="#session-的痛点" class="headerlink" title="session 的痛点"></a>session 的痛点</h3><p>看起来通过  cookie + session 的方式是解决了问题， 但是我们忽略了一个问题，上述情况能正常工作是因为我们假设 server 是单机工作的，但实际在生产上，为了保障高可用，一般服务器至少需要两台机器，通过负载均衡的方式来决定到底请求该打到哪台机器上。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101154301" alt="图片">balance</p>
+<p><strong>如图示：客户端请求后，由负载均衡器（如 Nginx）来决定到底打到哪台机器</strong></p>
+<p>假设登录请求打到了 A 机器，A 机器生成了 session 并在 cookie 里添加 sessionId 返回给了浏览器，那么问题来了：下次添加购物车时如果请求打到了 B 或者 C，由于 session 是在 A 机器生成的，此时的 B,C 是找不到 session 的，那么就会发生无法添加购物车的错误，就得重新登录了，此时请问该怎么办。主要有以下三种方式</p>
+<blockquote>
+<p>1、session 复制</p>
+</blockquote>
+<p>A 生成 session 后复制到 B, C，这样每台机器都有一份 session，无论添加购物车的请求打到哪台机器，由于 session 都能找到，故不会有问题</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101201725" alt="图片">balance (1)</p>
+<p>这种方式虽然可行，但缺点也很明显：</p>
+<ol>
+<li>同一样的一份 session 保存了多份，数据冗余</li>
+<li>如果节点少还好，但如果节点多的话，特别是像阿里，微信这种由于 DAU 上亿，可能需要部署成千上万台机器，这样节点增多复制造成的性能消耗也会很大。</li>
+</ol>
+<blockquote>
+<p>2、session 粘连</p>
+</blockquote>
+<p>这种方式是让每个客户端请求只打到固定的一台机器上，比如浏览器登录请求打到 A 机器后，后续所有的添加购物车请求也都打到 A 机器上，Nginx 的 sticky 模块可以支持这种方式，支持按 ip 或 cookie 粘连等等，如按 ip 粘连方式如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">upstream tomcats &#123;</span><br><span class="line">  ip_hash;</span><br><span class="line">  server 10.1.1.107:88;</span><br><span class="line">  server 10.1.1.132:80;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101207746" alt="图片">img</p>
+<p>这样的话每个 client 请求到达 Nginx 后，只要它的 ip 不变，根据 ip hash 算出来的值会打到固定的机器上，也就不存在 session 找不到的问题了，当然不难看出这种方式缺点也是很明显，对应的机器挂了怎么办？</p>
+<blockquote>
+<p>3、session 共享</p>
+</blockquote>
+<p>这种方式也是目前各大公司普遍采用的方案，将 session 保存在 redis，memcached 等中间件中，请求到来时，各个机器去这些中间件取一下 session 即可。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101212174" alt="图片">img</p>
+<p>缺点其实也不难发现，就是每个请求都要去 redis 取一下 session，多了一次内部连接，消耗了一点性能，另外为了保证 redis 的高可用，必须做集群，当然了对于大公司来说, redis 集群基本都会部署，所以这方案可以说是大公司的首选了。</p>
+<h3 id="Token：no-session"><a href="#Token：no-session" class="headerlink" title="Token：no session!"></a>Token：no session!</h3><p>通过上文分析我们知道通过在服务端共享 session 的方式可以完成用户的身份定位，但是不难发现也有一个小小的瑕疵：搞个校验机制我还得搭个 redis 集群？大厂确实 redis 用得比较普遍，但对于小厂来说可能它的业务量还未达到用 redis 的程度，所以有没有其他不用 server 存储 session 的用户身份校验机制呢，这就是我们今天要介绍的主角：token。</p>
+<p>首先请求方输入自己的用户名，密码，然后 server 据此生成 token，客户端拿到 token 后会保存到本地，之后向 server 请求时在请求头带上此 token 即可。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101217167" alt="图片">img</p>
+<p>相信大家看了上图会发现存在两个问题</p>
+<p>1、 token 只存储在浏览器中，服务端却没有存储，这样的话我随便搞个 token 传给 server 也行？</p>
+<p>答：server 会有一套校验机制，校验这个 token 是否合法。</p>
+<p>2、怎么不像 session 那样根据 sessionId 找到 userid 呢，这样的话怎么知道是哪个用户？</p>
+<p>答：token 本身携带 uid 信息</p>
+<p>第一个问题，如何校验 token 呢？我们可以借鉴 HTTPS 的签名机制来校验。先来看 jwt token 的组成部分</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101223022" alt="图片">img</p>
+<p>可以看到 token 主要由三部分组成</p>
+<ol>
+<li>header：指定了签名算法</li>
+<li>payload：可以指定用户 id，过期时间等非敏感数据</li>
+<li>Signature: 签名，server 根据 header 知道它该用哪种签名算法，再用密钥根据此签名算法对 head + payload 生成签名，这样一个 token 就生成了。</li>
+</ol>
+<p>当 server 收到浏览器传过来的 token 时，它会首先取出 token 中的 header + payload，根据密钥生成签名，然后再与 token 中的签名比对，如果成功则说明签名是合法的，即 token 是合法的。而且你会发现 payload 中存有我们的 userId，所以拿到 token 后直接在 payload 中就可获取 userid，避免了像 session 那样要从 redis 去取的开销</p>
+<p><strong>画外音：header, payload 实际上是以 base64 的形式存在的，文中为了描述方便，省去了这一步。</strong></p>
+<p>你会发现这种方式确实很妙，只要 server 保证密钥不泄露，那么生成的 token 就是安全的，因为如果伪造 token 的话在签名验证环节是无法通过的，就此即可判定 token 非法。</p>
+<p>可以看到通过这种方式有效地避免了 token 必须保存在 server 的弊端，实现了分布式存储，不过需要注意的是，token 一旦由 server 生成，它就是有效的，直到过期，无法让 token 失效，除非在 server 为 token 设立一个黑名单，在校验 token 前先过一遍此黑名单，如果在黑名单里则此  token 失效，但一旦这样做的话，那就意味着黑名单就必须保存在 server，这又回到了 session 的模式，那直接用 session 不香吗。所以一般的做法是当客户端登出要让 token 失效时，直接在本地移除 token 即可，下次登录重新生成 token 就好。</p>
+<p>另外需要注意的是 token 一般是放在 header 的 Authorization 自定义头里，不是放在 Cookie 里的，这主要是为了解决跨域不能共享 Cookie 的问题 （下文详述）</p>
+<h3 id="Cookie-与-Token-的简单总结"><a href="#Cookie-与-Token-的简单总结" class="headerlink" title="Cookie 与 Token 的简单总结"></a>Cookie 与 Token 的简单总结</h3><blockquote>
+<p>Cookie 有哪些局限性？</p>
+</blockquote>
+<p>1、 Cookie 跨站是不能共享的，这样的话如果你要实现多应用（多系统）的单点登录（SSO），使用 Cookie 来做需要的话就很困难了（要用比较复杂的 trick 来实现，有兴趣的话可以看文末参考链接）</p>
+<p><strong>画外音: 所谓单点登录，是指在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。</strong></p>
+<p>但如果用 token 来实现 SSO 会非常简单，如下</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101228882" alt="图片">img</p>
+<p>只要在 header 中的 authorize 字段（或其他自定义）加上 token 即可完成所有跨域站点的认证。</p>
+<p>2、 在移动端原生请求是没有 cookie 之说的，而 sessionid 依赖于 cookie，sessionid 就不能用 cookie 来传了，如果用 token 的话，由于它是随着 header 的 authoriize 传过来的，也就不存在此问题，换句话说token 天生支持移动平台，可扩展性好</p>
+<p>综上所述，token 具有存储实现简单，扩展性好这些特点。</p>
+<blockquote>
+<p>token 有哪些缺点</p>
+</blockquote>
+<p>那有人就问了，既然 token 这么好，那为什么各个大公司几乎都采用共享 session 的方式呢，可能很多人是第一次听到 token，token 不香吗? token 有以下两点劣势：</p>
+<p>1、 token 太长了</p>
+<p>token 是 header, payload 编码后的样式，所以一般要比 sessionId 长很多，很有可能超出 cookie 的大小限制（cookie 一般有大小限制的，如 4kb），如果你在 token 中存储的信息越长，那么 token 本身也会越长，这样的话由于你每次请求都会带上 token，对请求来是个不小的负担</p>
+<p>2、 不太安全</p>
+<p>网上很多文章说 token 更安全，其实不然，细心的你可能发现了，我们说 token 是存在浏览器的，再细问，存在浏览器的哪里？既然它太长放在 cookie 里可能导致 cookie 超限，那就只好放在 local storage 里，这样会造成安全隐患，因为 local storage 这类的本地存储是可以被 JS 直接读取的，另外由上文也提到，token 一旦生成无法让其失效，必须等到其过期才行，这样的话如果服务端检测到了一个安全威胁，也无法使相关的 token 失效。</p>
+<p><strong>所以 token 更适合一次性的命令认证，设置一个比较短的有效期</strong></p>
+<h3 id="误解-Cookie-相比-token-更不安全，比如-CSRF-攻击"><a href="#误解-Cookie-相比-token-更不安全，比如-CSRF-攻击" class="headerlink" title="误解: Cookie 相比 token 更不安全，比如 CSRF 攻击"></a>误解: Cookie 相比 token 更不安全，比如 CSRF 攻击</h3><p>首先我们需要解释下 CSRF 攻击是怎么回事</p>
+<p>攻击者通过一些技术手段欺骗用户的浏览器去访问一个自己曾经认证过的网站并运行一些操作（如发邮件，发消息，甚至财产操作如转账和购买商品）。由于浏览器曾经认证过（cookie 里带来 sessionId 等身份认证的信息），所以被访问的网站会认为是真正的用户操作而去运行。</p>
+<p>比如用户登录了某银行网站（假设为 **<a target="_blank" rel="noopener" href="http://www.examplebank.com/**%EF%BC%8C%E5%B9%B6%E4%B8%94%E8%BD%AC%E8%B4%A6%E5%9C%B0%E5%9D%80%E4%B8%BA">http://www.examplebank.com/**，并且转账地址为</a> <strong><a target="_blank" rel="noopener" href="http://www.examplebank.com/withdraw?amount=1000&transferTo=PayeeName">http://www.examplebank.com/withdraw?amount=1000&amp;transferTo=PayeeName</a></strong>），登录后 cookie 里会包含登录用户的 sessionid，攻击者可以在另一个网站上放置如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;img src=&quot;http://www.examplebank.com/withdraw?account=Alice&amp;amount=1000&amp;for=Badman&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>那么如果正常的用户误点了上面这张图片，由于相同域名的请求会自动带上 cookie，而 cookie 里带有正常登录用户的 sessionid，类似上面这样的转账操作在 server 就会成功，会造成极大的安全风险</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/640-20210903101238289" alt="图片">csrf 示意图</p>
+<p>CSRF 攻击的根本原因在于对于同样域名的每个请求来说，它的 cookie 都会被自动带上，这个是浏览器的机制决定的，所以很多人据此认定 cookie 不安全。</p>
+<p>使用 token 确实避免了CSRF 的问题，但正如上文所述，由于 token 保存在 local storage，它会被 JS 读取，<strong>从存储角度来看</strong>也不安全（实际上防护 CSRF 攻击的正确方式是用 CSRF token）</p>
+<p>所以不管是 cookie 还是 token，从存储角度来看其实都不安全，都有暴露的风险，我们所说的安全更多的是强调传输中的安全，可以用 HTTPS 协议来传输， 这样的话请求头都能被加密，也就保证了传输中的安全。</p>
+<p>其实我们把 cookie 和 token 比较本身就不合理，一个是存储方式，一个是验证方式，正确的比较应该是 session vs token。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>session 和 token 本质上是没有区别的，都是对用户身份的认证机制，只是他们实现的校验机制不一样而已（一个保存在 server，通过在 redis 等中间件获取来校验，一个保存在 client，通过签名校验的方式来校验），多数场景上使用 session 会更合理，但如果在单点登录，一次性命令认证上使用 token 会更合适，最好在不同的业务场景中合理选型，才能达到事半功倍的效果。</p>
+<p>巨人的肩膀</p>
+<ul>
+<li>Cookie Session跨站无法共享问题(单点登录解决方案)：<a target="_blank" rel="noopener" href="https://blog.csdn.net/wtopps/article/details/75040224">https://blog.csdn.net/wtopps/article/details/75040224</a></li>
+<li><a target="_blank" rel="noopener" href="http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/">http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81/" rel="tag"><i class="fa fa-tag"></i> 用户认证</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/06/16/%E5%BC%80%E5%8F%91%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" rel="prev" title="开发注意事项">
+                  <i class="fa fa-angle-left"></i> 开发注意事项
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/03/04/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%89%E5%85%A8%E6%80%A7%E9%97%AE%E9%A2%98/" rel="next" title="redis分布式锁的安全性问题">
+                  redis分布式锁的安全性问题 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>

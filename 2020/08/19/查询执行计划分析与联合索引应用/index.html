@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="数据库应用开发中，SQL 查询性能直接影响系统的整体响应速度和用户体验。尽管开发人员在编写 SQL 语句时努力确保逻辑正确，但随着业务数据量的不断增加，查询效率问题逐渐凸显。 优化 SQL 查询已成为提高数据库性能的关键环节。而索引作为优化 SQL 的重要手段，其正确使用和理解对于提升查询性能至关重要。 本文将基于这些实际需求，深入介绍 Explain 工具的使用方法，详细分析联合索引的特性和应用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="查询执行计划分析与联合索引应用">
+<meta property="og:url" content="http://example.com/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="数据库应用开发中，SQL 查询性能直接影响系统的整体响应速度和用户体验。尽管开发人员在编写 SQL 语句时努力确保逻辑正确，但随着业务数据量的不断增加，查询效率问题逐渐凸显。 优化 SQL 查询已成为提高数据库性能的关键环节。而索引作为优化 SQL 的重要手段，其正确使用和理解对于提升查询性能至关重要。 本文将基于这些实际需求，深入介绍 Explain 工具的使用方法，详细分析联合索引的特性和应用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247075143-d475fc88-120c-4ca9-a27d-204b7d6ecf45-20210923214500198.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247009784-07acd78b-aaf8-4cf6-ae50-6a83e381f027-20210923214507859.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589537787486-ed93cbb6-a245-49eb-8e8f-42fe6ce51893-20210923214519728.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610674696496-4561304d-995a-4035-812f-880cbf5f7a77-20210923214527578.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589544348046-f14690a1-2d1a-44b2-a87e-592802d19765-20210923214533926.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589544632849-3010099d-1849-4dea-9817-dbd57d41b7ea-20210923214538925.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1594511066391-5c4d07d0-0020-4fc1-8242-c93bc1603177-20210923214545481.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589545510186-c162bc1b-fe5f-45a0-9a45-72227ee7934a-20210923214551939.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589546040377-acd3e6b0-1a78-4d3d-9a0d-8d9cd6e4a17d-20210923214558226.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589618860739-a778f594-32c2-4bd0-8575-53788640d3a7-20210923214605529.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589557584392-8bb5a6fe-c7b9-4f87-ac48-07465eade3af-20210923214613726.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608985883366-5221f525-a2b1-4d49-a62d-44da6eb92008-20210923214621711.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589547567889-6a812a41-3b19-4536-a4d6-960327eff327-20210923214629930.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548017233-53960dfe-8407-4c37-8f14-a930eb6bfadb-20210923214636772.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548043565-c2fabb16-a7eb-433b-acb2-bce7842152e2-20210923214645356.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548082945-066e09ba-8d76-4593-a252-1b20376dcb02-20210923214651758.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548127165-ccb2ae5c-8bbe-4861-ba9f-481d263b4664-20210923214656860.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548196364-2aeee667-a9b3-4f59-8289-f501a6b9b010-20210923214703042.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548223133-3f1b433d-430e-4110-831f-d49b6461481b-20210923214710565.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589599142582-6d0f9da2-d57b-4816-bf63-707f9337fe9d-20210923214721874.png">
+<meta property="article:published_time" content="2020-08-19T13:02:23.000Z">
+<meta property="article:modified_time" content="2024-12-15T12:42:25.763Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247075143-d475fc88-120c-4ca9-a27d-204b7d6ecf45-20210923214500198.png">
+
+
+<link rel="canonical" href="http://example.com/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/","path":"2020/08/19/查询执行计划分析与联合索引应用/","title":"查询执行计划分析与联合索引应用"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>查询执行计划分析与联合索引应用 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Explain"><span class="nav-number">1.</span> <span class="nav-text">Explain</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#type"><span class="nav-number">1.1.</span> <span class="nav-text">type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#possible-keys%E3%80%81key%E3%80%81key-len"><span class="nav-number">1.2.</span> <span class="nav-text">possible_keys、key、key_len</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Extra"><span class="nav-number">1.3.</span> <span class="nav-text">Extra</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95"><span class="nav-number">2.</span> <span class="nav-text">联合索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AWHERE%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.1.</span> <span class="nav-text">最左匹配原则：WHERE条件查询</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AORDER-BY"><span class="nav-number">2.2.</span> <span class="nav-text">最左匹配原则：ORDER BY</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%B7%A6%E5%8C%B9%E9%85%8D%E5%8E%9F%E5%88%99%EF%BC%9AGROUP-BY"><span class="nav-number">2.3.</span> <span class="nav-text">最左匹配原则：GROUP BY</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.</span> <span class="nav-text">联合索引的使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%A4%9A%E6%9D%A1%E4%BB%B6%E6%9F%A5%E8%AF%A2%EF%BC%8C%E6%8F%90%E9%AB%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">3.1.</span> <span class="nav-text">场景一：多条件查询，提高利用率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E9%81%BF%E5%85%8D%E5%9B%9E%E8%A1%A8"><span class="nav-number">3.2.</span> <span class="nav-text">场景二：避免回表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E7%B4%A2%E5%BC%95%E6%8E%92%E5%BA%8F"><span class="nav-number">3.3.</span> <span class="nav-text">场景三：索引排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9ACOUNT%E7%BB%9F%E8%AE%A1"><span class="nav-number">3.4.</span> <span class="nav-text">场景四：COUNT统计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL%E7%9A%84%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">4.</span> <span class="nav-text">MySQL的架构图</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="查询执行计划分析与联合索引应用 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          查询执行计划分析与联合索引应用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-08-19 21:02:23" itemprop="dateCreated datePublished" datetime="2020-08-19T21:02:23+08:00">2020-08-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:42:25" itemprop="dateModified" datetime="2024-12-15T20:42:25+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>数据库应用开发中，SQL 查询性能直接影响系统的整体响应速度和用户体验。尽管开发人员在编写 SQL 语句时努力确保逻辑正确，但随着业务数据量的不断增加，查询效率问题逐渐凸显。</p>
+<p>优化 SQL 查询已成为提高数据库性能的关键环节。而索引作为优化 SQL 的重要手段，其正确使用和理解对于提升查询性能至关重要。</p>
+<p>本文将基于这些实际需求，深入介绍 Explain 工具的使用方法，详细分析联合索引的特性和应用场景，结合实际案例探讨 SQL 优化的技巧和策略</p>
+<span id="more"></span>
+
+<h2 id="Explain"><a href="#Explain" class="headerlink" title="Explain"></a>Explain</h2><p>之前我们已经接触了一部分索引优化相关的概念，但更多的是我一个人在讲，大家被动地接收。如何验证文章所说的正确性，以及一条SQL是否真的用到了索引呢？</p>
+<p>这个时候就该Explain上场了，使用方式有两种：</p>
+<ul>
+<li>借助Navicat等软件</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247075143-d475fc88-120c-4ca9-a27d-204b7d6ecf45-20210923214500198.png" alt="img"></p>
+<ul>
+<li>直接使用Explain命令</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610247009784-07acd78b-aaf8-4cf6-ae50-6a83e381f027-20210923214507859.png" alt="img"></p>
+<p>大家把它当做一个命令即可，是MySQL提供的专门用来分析SQL执行计划的，比如语句是否使用了关联查询、是否使用了索引、扫描行数等。使用场景一般是：</p>
+<ul>
+<li>当你发现某条SQL很慢时，可以借助Explain分析一下是否走索引</li>
+<li>当你修改某条SQL后，借助Explain查看是否达到预期</li>
+</ul>
+<p>Explain有很多指标，重点看type、key、Extra：</p>
+<table>
+<thead>
+<tr>
+<th>列名</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>查询编号</td>
+</tr>
+<tr>
+<td>select_type</td>
+<td>查询类型：显示本行是简单还是复杂查询</td>
+</tr>
+<tr>
+<td>table</td>
+<td>涉及到的表</td>
+</tr>
+<tr>
+<td>partitions</td>
+<td>匹配的分区：查询将匹配记录所在的分区。仅当使用 partition 关键字时才显示该列。对于非分区表，该值为 NULL。</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>本次查询的表连接类型</td>
+</tr>
+<tr>
+<td>possible_keys</td>
+<td>可能选择的索引</td>
+</tr>
+<tr>
+<td><strong>key</strong></td>
+<td>实际选择的索引</td>
+</tr>
+<tr>
+<td>key_len</td>
+<td>被选择的索引长度：一般用于判断联合索引有多少列被选择了</td>
+</tr>
+<tr>
+<td>ref</td>
+<td>与索引比较的列</td>
+</tr>
+<tr>
+<td>rows</td>
+<td>预计需要扫描的行数，对 InnoDB 来说，这个值是估值，并不一定准确</td>
+</tr>
+<tr>
+<td>filtered</td>
+<td>按条件筛选的行的百分比</td>
+</tr>
+<tr>
+<td><strong>Extra</strong></td>
+<td>附加信息</td>
+</tr>
+</tbody></table>
+<h3 id="type"><a href="#type" class="headerlink" title="type"></a>type</h3><table>
+<thead>
+<tr>
+<th>type 的值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>system</td>
+<td>查询对象表只有一行数据，且只能用于 MyISAM 和 Memory 引擎的表，这是最好的情况</td>
+</tr>
+<tr>
+<td>const</td>
+<td>基于主键或唯一索引查询，最多返回一条结果</td>
+</tr>
+<tr>
+<td>eq_ref</td>
+<td>表连接时基于主键或非 NULL 的唯一索引完成扫描</td>
+</tr>
+<tr>
+<td>ref</td>
+<td>基于普通索引的等值查询，或者表间等值连接</td>
+</tr>
+<tr>
+<td>fulltext</td>
+<td>全文检索</td>
+</tr>
+<tr>
+<td>ref_or_null</td>
+<td>表连接类型是 ref，但进行扫描的索引列中可能包含 NULL 值</td>
+</tr>
+<tr>
+<td>index_merge</td>
+<td>利用多个索引</td>
+</tr>
+<tr>
+<td>unique_subquery</td>
+<td>子查询中使用唯一索引</td>
+</tr>
+<tr>
+<td>index_subquery</td>
+<td>子查询中使用普通索引</td>
+</tr>
+<tr>
+<td>range</td>
+<td>利用索引进行范围查询</td>
+</tr>
+<tr>
+<td>index</td>
+<td>全索引扫描</td>
+</tr>
+<tr>
+<td>ALL</td>
+<td>全表扫描</td>
+</tr>
+</tbody></table>
+<h3 id="possible-keys、key、key-len"><a href="#possible-keys、key、key-len" class="headerlink" title="possible_keys、key、key_len"></a>possible_keys、key、key_len</h3><p>possible_keys是MySQL预估会使用的索引（基本不用看），key才是最终实际选择的索引，可以结合key_len来推测联合索引的“使用率”。比如联合索引index(a,b,c)，假设每个索引长度为1，而key_len却是2，那么可以推测联合索引只用了前两个。</p>
+<h3 id="Extra"><a href="#Extra" class="headerlink" title="Extra"></a>Extra</h3><p>Extra是最难的，含义也最多，和索引覆盖、排序等都有关系。</p>
+<table>
+<thead>
+<tr>
+<th>Extra 常见的值</th>
+<th>解释</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Using filesort</td>
+<td>将用外部排序而不是索引排序，数据较小时从内存排序，否则需要在磁盘完成排序</td>
+<td>explain select * from t1 order by create_time;</td>
+</tr>
+<tr>
+<td>Using temporary</td>
+<td>需要创建一个临时表来存储结构，通常发生对没有索引的列进行 GROUP BY 时</td>
+<td>explain select * from t1 group by create_time;</td>
+</tr>
+<tr>
+<td>Using index</td>
+<td>使用覆盖索引</td>
+<td>explain select a from t1 where a&#x3D;111;</td>
+</tr>
+<tr>
+<td>Using where</td>
+<td>使用 where 语句来处理结果</td>
+<td>explain select * from t1 where create_time&#x3D;‘2019-06-18 14:38:24’;</td>
+</tr>
+<tr>
+<td>Impossible WHERE</td>
+<td>对 where 子句判断的结果总是 false 而不能选择任何数据</td>
+<td>explain select * from t1 where 1&lt;0;</td>
+</tr>
+<tr>
+<td>Using join buffer (Block Nested Loop)</td>
+<td>关联查询中，被驱动表的关联字段没索引</td>
+<td>explain select * from t1 straight_join t2 on (t1.create_time&#x3D;t2.create_time);</td>
+</tr>
+<tr>
+<td>Using index condition</td>
+<td>先条件过滤索引，再查数据</td>
+<td>explain select * from t1 where a &gt;900 and a like “%9”;</td>
+</tr>
+<tr>
+<td>Select tables optimized away</td>
+<td>使用某些聚合函数（比如 max、min）来访问存在索引的某个字段是</td>
+<td>explain select max(a) from t1;</td>
+</tr>
+</tbody></table>
+<p>Explain更详细的解释可以参考：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1KW411u7vy?p=20">https://www.bilibili.com/video/BV1KW411u7vy?p=20</a></p>
+<h2 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h2><p>联合索引其实要比单列索引难很多，很多SQL优化原则都是针对万恶的联合索引搞出来的，比如大名鼎鼎的“最左匹配原则”。</p>
+<p><strong>虽然联合索引容易引发各种问题，看起来不那么容易驯服，但它在提高索引利用率、加快分组、排序等方面却有着很大的作用，</strong>所以实际开发时，联合索引一般来说应该优于单列索引。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589537787486-ed93cbb6-a245-49eb-8e8f-42fe6ce51893-20210923214519728.png" alt="img"></p>
+<p>我不知道大家是否好奇<strong>联合索引到底长啥样</strong>，反正我当初学习SQL优化时，就有很多的疑问：</p>
+<ul>
+<li><p>联合索引到底长啥样？</p>
+</li>
+<li><p>查询时是怎么检索的呢？</p>
+</li>
+<li><p>为什么对于联合索引index(a, b, c)，查询条件WHERE b&#x3D;1, c&#x3D;2无法利用索引呢？</p>
+</li>
+</ul>
+<p>我们先回答第一、第二个问题，第三个问题我们分为三小节，专门讨论所谓的“最左匹配原则”。</p>
+<p>联合索引到底长什么样呢？</p>
+<ul>
+<li>还是一棵树，不会因为是联合索引，就变成多棵树</li>
+<li>索引节点会存储多列，比如原先单列索引的节点会存储[name, name, name…]，而多列索引的节点内会存储[[name, age], [name, age], [name, age]…]</li>
+</ul>
+<p>为了帮大家更好地理解联合索引，我们一起探讨一个问题：</p>
+<p>当我们向建有联合索引的表中插入一条数据时，发生了什么？</p>
+<p>假设现在数据库的记录是这样的(最底下是有序链表，即叶子节点的数据)：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610674696496-4561304d-995a-4035-812f-880cbf5f7a77-20210923214527578.png" alt="img"></p>
+<p>除了主键索引，其他都是辅助索引，联合索引也不例外。所以，上图叶子节点的数据应该是id，但为了更直观，我画成name和age。</p>
+<p>现在要往数据库插入一条数据(bravo, 18, “杭州”, “18255555556”)，插入时需要维护索引，所以需要沿着索引找到数据所在的位置并在叶子节点的表数据中插入：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589544348046-f14690a1-2d1a-44b2-a87e-592802d19765-20210923214533926.png" alt="img"></p>
+<p><strong>插入数据的过程其实伴随着索引的维护，</strong>插入后整棵索引树就变成了这样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589544632849-3010099d-1849-4dea-9817-dbd57d41b7ea-20210923214538925.png" alt="img"></p>
+<p>通过分析上面数据的插入过程，你会发现，在插入时其实会进行索引比较，先比较name再比较age。<strong>换句话说，这样沿着索引比较后插入的数据，本身就是有序的，符合联合索引的顺序。</strong></p>
+<p>比如班级排座位，老师按照两个条件综合排序，先按身高排，身高一样的，成绩好的坐后面。那么放学走出教室时，顺序自然就是先按身高排，矮的先出来，高的后出来，身高相同的成绩差的先出来。</p>
+<p>所以，对于下面这条SQL：</p>
+<p>SELECT 学生 FROM ‘三年二班’ ORDER BY 身高, 成绩</p>
+<p>你认为MySQL还有排序的必要吗？直接把三年二班的学生从头数到尾拎出来即可。</p>
+<p>这就是所谓的“索引能加快排序速度”：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1594511066391-5c4d07d0-0020-4fc1-8242-c93bc1603177-20210923214545481.png" alt="img"></p>
+<p>因为本身插入或更新时，都是按照某种规则维护的。当你ORDER BY的规则与维护索引的规则一致时（都是根据身高、成绩），此时索引就能加快排序，<strong>因为这个时候根本不用排序。</strong></p>
+<p>所以记住，最快的排序就是不用排序，也就是利用索引排序。把对顺序的维护<strong>分散到</strong>每一次增删改的过程中，而不是查询时再匆忙从零开始排序。</p>
+<h3 id="最左匹配原则：WHERE条件查询"><a href="#最左匹配原则：WHERE条件查询" class="headerlink" title="最左匹配原则：WHERE条件查询"></a>最左匹配原则：WHERE条件查询</h3><p>接着，让我们思考一下“为什么对于联合索引index(name, age)，条件WHERE age&#x3D;25无法利用索引”。</p>
+<p>上面分析过，数据总是要经过索引比较后才插入，所以数据天然就是按索引顺序排列的。当我们拿着WHERE子句的条件（age&#x3D;25）顺着索引树比较时，是得不到正确的结果的。因为当初这棵树排序的第一个条件是name，而不是age。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589545510186-c162bc1b-fe5f-45a0-9a45-72227ee7934a-20210923214551939.png" alt="img"></p>
+<p>由于整棵树的排序规则是“先根据name排列，再根据age排列”，你硬要直接拿age查询，最终结果可能会南辕北辙。还是以学生排座位举例，人家明明是<strong>先按照身高</strong>排序，<strong>再按照成绩</strong>排序，那么注定成绩不会成“递增”或“递减”的趋势（请观察右边分数列），而面对没有相关趋势的数据，我们只能遍历查找：</p>
+<ul>
+<li><p>180cm 98分</p>
+</li>
+<li><p>182cm 96分</p>
+</li>
+<li><p>182cm 97分</p>
+</li>
+<li><p>183cm 99分</p>
+</li>
+<li><p>184cm 93分</p>
+</li>
+<li><p>184cm 95分</p>
+</li>
+</ul>
+<p>分数的相关趋势只有在“身高一致”这个前提下才会显现，是<strong>局部</strong>特征（绿色块、蓝色块的分数确实呈现某种趋势）：</p>
+<ul>
+<li><p>180cm 98分</p>
+</li>
+<li><p>182cm 96分</p>
+</li>
+<li><p>182cm 97分</p>
+</li>
+<li><p>183cm 99分</p>
+</li>
+<li><p>184cm 93分</p>
+</li>
+<li><p>184cm 95分</p>
+</li>
+</ul>
+<p>当然，实际上MySQL在解析SQL时并不会真的像上面一样进行逻辑分析，而是直接进行语法匹配和成本预估，发现WHERE条件不符合联合索引的“最左匹配原则”时，直接放弃走索引，选择全表扫描。</p>
+<p>那么，怎么才能利用index(name, age)这个联合索引呢？</p>
+<p>把查询条件变成 WHERE name&#x3D;bravo, age&#x3D;18即可！此时它会先按照name比较，再按照age比较，刚好和联合索引的顺序一致，也就是和排序顺位一致：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589546040377-acd3e6b0-1a78-4d3d-9a0d-8d9cd6e4a17d-20210923214558226.png" alt="img"></p>
+<p>也就是说，此时WHERE子句的条件顺序刚好能满足最左匹配原则。</p>
+<p>假设联合索引是index(a, b, c)，来看几个最左匹配原则的案例：</p>
+<ul>
+<li><p>WHERE a, b, c ✔️</p>
+</li>
+<li><p>WHERE a, b ✔️（只能匹配a,b）</p>
+</li>
+<li><p>WHERE a, c ✔️（只能匹配a）</p>
+</li>
+<li><p>WHERE b, c（❌）</p>
+</li>
+</ul>
+<p>上面WHERE a, c的查询过程是怎么样的呢？</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589618860739-a778f594-32c2-4bd0-8575-53788640d3a7-20210923214605529.png" alt="img"></p>
+<p>也就是说，WHERE后条件如果能走索引，就能站在更高的地方判断条件是否符合，否则只能<strong>作为判断条件</strong>深入节点内部的数据逐个比对。</p>
+<p>如果能走全部索引，就可以少几次比较，甚至可能少几次IO：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589557584392-8bb5a6fe-c7b9-4f87-ac48-07465eade3af-20210923214613726.png" alt="img"></p>
+<p>另外，除了不能缺少联合索引中的查询字段外，还要注意尽量不要使用范围查询。</p>
+<p>比如，联合索引是index(a, b, c)：</p>
+<ul>
+<li>WHERE a&#x3D;1, b&gt;2, c&#x3D;3 ✔️（只能匹配a, b）</li>
+</ul>
+<p>注意一下即可，毕竟真要做范围查询也不是我们能决定的，无非索引利用率低一些罢了。</p>
+<h3 id="最左匹配原则：ORDER-BY"><a href="#最左匹配原则：ORDER-BY" class="headerlink" title="最左匹配原则：ORDER BY"></a>最左匹配原则：ORDER BY</h3><p>上面说过了，对于index(name, age)的索引树，最底层的数据本身就是先按name，再按age排序的。当ORDER BY的条件刚好是ORDER BY name, age时，直接查询即可，无需排序，因为数据在插入时就按索引顺序排好了。</p>
+<p>现在我们反过来讨论，如果没有利用索引排序，或者无法利用索引排序时，会发生什么呢？</p>
+<p>filesort！</p>
+<p>所谓filesort是EXPLAIN命令中extra一列的某个指标，当extra出现filesort这个指标时，说明我们的SQL没有走索引排序，而是利用内存或磁盘自己重新排序。</p>
+<p>那么，什么情况下会导致ORDER BY无法利用索引排序呢？</p>
+<p>以联合索引index(name, age)为例，以下情况无法利用索引排序：</p>
+<ul>
+<li>ORDER BY age, name（字段顺序不一致）</li>
+<li>ORDER BY name DESC, age ASC（字段排序方式不同步，DESC和ASC混着来）</li>
+</ul>
+<p>第一种情况：</p>
+<p>因为索引里的数据是先按name、后按age排序的，而你想要先按age再按name排序，对不起，你自己对结果集重新排吧，我不管了。</p>
+<p>特别要注意，对于联合索引index(a,b,c)，WHERE条件无论是a,b,c、a,c,b还是b,c,a…都没关系，比如女生找男朋友要身高180以上、长得帅的，如果你“反过来”，长得帅、身高180以上也是可以的。但是排序不同，顺序必须和联合索引一致，否则语义是不同的。比如，先按身高再按分数和先按分数再按身高是两种完全不同的排序策略，结果自然也不同。</p>
+<p>大家不妨做个实验，对于(‘a’, 17),(‘a’, 16), (‘b’, 18), (‘c’, 18)，(‘d’, 15)先按name正序再按age正序的结果是：</p>
+<ul>
+<li><p>(‘a’, 16)</p>
+</li>
+<li><p>(‘a’, 17)</p>
+</li>
+<li><p>(‘b’, 18)</p>
+</li>
+<li><p>(‘c’, 18)</p>
+</li>
+<li><p>(‘d’, 15)</p>
+</li>
+</ul>
+<p>而先按age正序再按name正序的结果是：</p>
+<ul>
+<li><p>(‘d’, 15)</p>
+</li>
+<li><p>(‘a’, 16)</p>
+</li>
+<li><p>(‘a’, 17)</p>
+</li>
+<li><p>(‘b’, 18)</p>
+</li>
+<li><p>(‘c’, 18)</p>
+</li>
+</ul>
+<p>所以对于index(name, age)，ORDER BY age, name排序顺序与索引不一致，是无法利用索引排序的。</p>
+<p>第二种情况：</p>
+<p>维护索引时默认都是name ASC, name ASC排序，如果你需要name DESC，age ASC，对不起，你自己对结果集重新排吧，我不管了。</p>
+<p>理由同上。</p>
+<p>但以下情况仍可以利用索引排序：</p>
+<ul>
+<li>ORDER BY name DESC, age DESC（字段顺序和索引顺序一致即可，全部DESC或ASC都没关系）</li>
+</ul>
+<p>为什么ORDER BY name DESC, address DESC也能利用索引排序呢？</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608985883366-5221f525-a2b1-4d49-a62d-44da6eb92008-20210923214621711.png" alt="img"></p>
+<p>假设右边数据是联合索引自动排序的，而现在查询的排序规则是ORDER BY name DESC, age DESC。我们先尝试一下，如果右边的数据真的按ORDER BY name DESC, age DESC排序，会是什么样呢？</p>
+<p><strong>其实就是左边数据倒过来！</strong></p>
+<p>所以 ORDER BY name DESC, age DESC看起来好像无法利用索引，但其实索引数据反着来刚好符合期望的排序。</p>
+<p>总之，大家应该理解为索引排序是“很消极”的：</p>
+<p>反正索引当初就这么排的，如果你刚好想要这种排序，就直接拿数据即可。但你如果想要的排序不是我现有的这种，对不起，你自己爱咋整咋整，但我明确告诉你，<strong>重新排序会让整个查询变慢。</strong></p>
+<p>说了这么多，我们来验证一下。</p>
+<p>创建表：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589547567889-6a812a41-3b19-4536-a4d6-960327eff327-20210923214629930.png" alt="img"></p>
+<p>给name、address加了联合索引。</p>
+<p>共1000w数据：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548017233-53960dfe-8407-4c37-8f14-a930eb6bfadb-20210923214636772.png" alt="img"></p>
+<p>先介绍两个简单的指标，具体的Explain命令后面介绍：</p>
+<p>Extra列中，如果出现了Using filesort，说明没有走索引排序，也就是说本次查询自己额外做了排序。</p>
+<p>ORDER BY name（正常）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548043565-c2fabb16-a7eb-433b-acb2-bce7842152e2-20210923214645356.png" alt="img"></p>
+<p>ORDER BY name, address（正常）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548082945-066e09ba-8d76-4593-a252-1b20376dcb02-20210923214651758.png" alt="img"></p>
+<p>ORDER BY  <code>name</code> DESC, address DESC（正常）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548127165-ccb2ae5c-8bbe-4861-ba9f-481d263b4664-20210923214656860.png" alt="img"></p>
+<p>Using index指的是索引覆盖，是个好消息，意味着本次查询不会回表。</p>
+<p>索引失效案例：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548196364-2aeee667-a9b3-4f59-8289-f501a6b9b010-20210923214703042.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589548223133-3f1b433d-430e-4110-831f-d49b6461481b-20210923214710565.png" alt="img"></p>
+<p>当前叶子节点链表上的数据是按索引排的（先name后address），而SQL希望的排序方式是先address后name。既然不能有效利用索引的排序，只能把结果集取出来重新排序。</p>
+<p><strong>总之，如果想利用索引排序，那么ORDER BY的顺序必须符合最左前缀原则，顺序完全一致，且DESC和ASC不能混用。</strong></p>
+<p>OK，上面讲的都是ORDER BY本身的一些规则，接下来我们把战场扩大些，把WHERE也引进来。</p>
+<p>当WHERE和ORDER BY搭配，就会产生一种“例外情况”：<strong>对于index(a,b,c)，SELECT * FROM table WHERE</strong> <strong>a</strong><strong>&#x3D;1 ORDER BY</strong> <strong>b,c****也是可以利用索引排序的。</strong></p>
+<p>单独观察ORDER BY后面的字段，由于不符合“最左匹配原则”，理应不能走联合索引才对。</p>
+<p>加入WHERE后怎么就可以了呢？</p>
+<p>道理其实很简单，比如原本学生的排序是身高、体重、分数：</p>
+<ul>
+<li><p>180cm 65kg 98分</p>
+</li>
+<li><p>182cm 65kg 96分</p>
+</li>
+<li><p>182cm 65kg 97分</p>
+</li>
+<li><p>183cm 62kg 99分</p>
+</li>
+<li><p>184cm 63kg 93分</p>
+</li>
+<li><p>184cm 64kg 95分</p>
+</li>
+</ul>
+<p>虽然ORDER BY b, c看起来不完整，但只要我定死身高为182（WHERE a&#x3D;182），那实际筛选出来的学生其实就是先按体重、再按分数排序的，也就是ORDER BY b, c。</p>
+<p>当没有通过a过滤时，数据整体没有相关性，但被a过滤后，局部数据就呈现相关性。</p>
+<p>但这个“例外”本身还有个例外，就是：WHERE的条件不能是范围查询。</p>
+<p>比如：</p>
+<p>SELECT * FROM table WHERE a&gt;1 ORDER BY b,c;</p>
+<p>这条语句是无法利用联合索引index(a,b,c)排序的，理由同上面讲得一样，a&gt;1筛选出来的结果集并不能保证b,c是预期的顺序。</p>
+<p>上面说过，WHERE height&#x3D;182 ORDER BY weight, score是可以走索引排序的，因为局部范围内能保证走索引排序，而WHERE height&gt;&#x3D;182 ORDER BY weight, score，显然就不满足索引排序。</p>
+<ul>
+<li><p>180cm 65kg 98分</p>
+</li>
+<li><p>182cm 65kg 96分</p>
+</li>
+<li><p>182cm 65kg 97分</p>
+</li>
+<li><p>183cm 62kg 99分</p>
+</li>
+<li><p>184cm 63kg 93分</p>
+</li>
+<li><p>184cm 64kg 95分</p>
+</li>
+</ul>
+<h3 id="最左匹配原则：GROUP-BY"><a href="#最左匹配原则：GROUP-BY" class="headerlink" title="最左匹配原则：GROUP BY"></a>最左匹配原则：GROUP BY</h3><p>这个没什么好说的，GROUP BY其实可以看成两步：<strong>先排序，后归并。</strong></p>
+<p>一般对于GROUP BY的优化，就是尽可能让它也走索引排序。当它和联合索引顺序一致时，GROUP BY会跳过排序，直接归并，从而达到优化的目的。</p>
+<p>后面我们专门安排一个章节，汇总一下优化规则，上面的内容理解即可。</p>
+<h2 id="联合索引的使用场景"><a href="#联合索引的使用场景" class="headerlink" title="联合索引的使用场景"></a>联合索引的使用场景</h2><p>GROUP BY没什么好讲的，可以理解为排序的基础上在进行归并，所以学习联合索引时，主要关注WHERE和ORDER BY即可。</p>
+<h3 id="场景一：多条件查询，提高利用率"><a href="#场景一：多条件查询，提高利用率" class="headerlink" title="场景一：多条件查询，提高利用率"></a>场景一：多条件查询，提高利用率</h3><p>如果发现很多SQL的WHERE条件经常是多个相同的字段，比如SELECT xxx WHERE a,b,c、SELECT xxx WHERE a,b、SELECT xxx WHERE a,c等，此时可以考虑创建联合索引index(a,b,c)。</p>
+<p>这里有几条规则需要注意：</p>
+<ul>
+<li><p>WHERE条件的书写顺序并不影响是否走联合索引。比如WHERE a,b,c和WHERE b,c,a都可以走index(a,b,c)</p>
+</li>
+<li><p>但WHERE b,c是不行的，因为缺少a，而WHERE a,c只能利用部分索引</p>
+</li>
+<li><p>创建索引时，最好把区分度高的排在前面（注意，我说的是创建索引的顺序，而不是WHERE条件的顺序）</p>
+</li>
+</ul>
+<p>第三条需要大家再仔细品味一下，比如要给id_card和name建立联合索引，如果你建的是index(name, id_card)，就会浪费无畏的IO在name查找上：先找到全国同名同姓的，再根据id_card匹配。而如果创建index(id_card, name)，那么id_card是唯一的，区分度极高，基本就是一击必中。</p>
+<h3 id="场景二：避免回表"><a href="#场景二：避免回表" class="headerlink" title="场景二：避免回表"></a>场景二：避免回表</h3><p>上一篇已经介绍过了，如果走辅助索引并回表，就会无端多一次对主键索引的扫描。比如对于只有主键索引和name索引的表执行以下SQL：</p>
+<p>SELECT id, name, age FROM table name&#x3D;’xxxx’，</p>
+<p>由于name索引只包含了id和name，而SELECT的列却是id、name、age，此时MySQL底层不得不回表，拿着id再跑一遍主键索引，把age给捞出来。</p>
+<p>可行的解决办法是：添加联合索引index(name, age)，这样辅助索引上就同时包含id、name、age，可以直接返回。</p>
+<p>当然啦，<strong>并不是只有联合索引才能使用索引覆盖，</strong>只要辅助索引上的字段满足SELECT的列即可，所以即使是单列索引index(name)，也是可以避免回表的，比如SELECT id, name FROM table WHERE name&#x3D;’xxx’。</p>
+<p><strong>但大家要认识到，实际开发索引覆盖可遇不可求，基本还是回表的情况多一些。</strong>比如，即使你定了联合索引index(name, age)，但实际上却是要查询所有列怎么办？此时还是要乖乖回表（好歹走了辅助索引了，知足吧）。</p>
+<h3 id="场景三：索引排序"><a href="#场景三：索引排序" class="headerlink" title="场景三：索引排序"></a>场景三：索引排序</h3><p>当你建了联合索引index(a,b,c)，那么每次增删改都会按这个顺序维护。如果查询是需要的顺序刚好是a,b,c，就可以直接返回数据，无需排序，美其名约“利用索引排序”。</p>
+<p>有个比较特别的地方是，WHERE和ORDER BY可以“联手”玩转联合索引，比如对于index(a,b,c)，并不是只有WHERE a,b,c或者ORDER BY a,b,c才能利用联合索引，WHERE a&#x3D;1 ORDER BY b,c也是可以的~</p>
+<p>讲完了这三个场景，再稍微注意一下联合索引失效的问题即可（只说两个最常用的）：</p>
+<ul>
+<li>最左匹配原则</li>
+<li>注意范围查询，比如WHERE a&gt;1 and b&#x3D;2 and c&#x3D;3，那么就只能用到a啦</li>
+</ul>
+<h3 id="场景四：COUNT统计"><a href="#场景四：COUNT统计" class="headerlink" title="场景四：COUNT统计"></a>场景四：COUNT统计</h3><p>虽说一般大数据量不推荐直接使用COUNT函数，但绝大部分公司都是小公司，一张表不会很大，所以初期COUNT也无妨，但最好尽量走索引。比如要求统计天猫平台下的店主粉丝数量：</p>
+<p>SELECT COUNT(*) FROM t_user_follow WHERE uid&#x3D;123 and platform&#x3D;6 and follow_status&#x3D;1;</p>
+<p>此时最好建立联合索引index(uid, platform, follow_status)，速度会稍微快一些。</p>
+<p>其实场景四不过是联合索引的一个特例，这里单独提出来，就是为了给大家提个醒：哦？COUNT也能用上联合索引啊！</p>
+<h2 id="MySQL的架构图"><a href="#MySQL的架构图" class="headerlink" title="MySQL的架构图"></a>MySQL的架构图</h2><p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589599142582-6d0f9da2-d57b-4816-bf63-707f9337fe9d-20210923214721874.png" alt="img"></p>
+<p>看到那个查询优化器了吗，比如index(a,b,c)联合索引，即使我们写成 WHERE a&#x3D;1, c&#x3D;3, b&#x3D;2也能走全索引，就是因为它帮我们优化了顺序。</p>
+<p>好了，虽然上面的内容不一定全部正确，但个人认为利大于弊，起码能让你快速、清晰地理解SQL优化的底层原理，相信大家对于市面上任意的SQL优化课程都能快速吸收。</p>
+<p>如果要用一句话概括SQL优化，应该是下面这句：</p>
+<p>所谓SQL优化，其实就是让查询优化器<strong>根据程序员的意愿</strong>选择匹配的执行计划，最终减少查询中产生的IO。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MySQL/" rel="tag"><i class="fa fa-tag"></i> MySQL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/" rel="prev" title="MySQL索引的基础原理和创建原则">
+                  <i class="fa fa-angle-left"></i> MySQL索引的基础原理和创建原则
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/10/05/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A21/" rel="next" title="基于Redis实现的分布式锁的可用性探索1">
+                  基于Redis实现的分布式锁的可用性探索1 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>

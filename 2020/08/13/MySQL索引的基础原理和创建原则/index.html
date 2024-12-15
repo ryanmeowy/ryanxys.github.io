@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="数据库作为存储和管理数据的核心技术，广泛应用于各类信息系统中。随着数据量的不断增长以及业务复杂性的提高，数据库的性能优化成为至关重要的任务。 其中，索引作为一种能够显著提升查询效率的数据结构，在数据库操作中扮演着关键角色。然而，许多开发人员和数据库管理员对索引的理解仅停留在表面，未能深入掌握其底层原理和适用场景，导致在实际应用中无法充分发挥索引的优势，甚至可能因不当使用而影响数据库性能。 本文将从">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL索引的基础原理和创建原则">
+<meta property="og:url" content="http://example.com/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="数据库作为存储和管理数据的核心技术，广泛应用于各类信息系统中。随着数据量的不断增长以及业务复杂性的提高，数据库的性能优化成为至关重要的任务。 其中，索引作为一种能够显著提升查询效率的数据结构，在数据库操作中扮演着关键角色。然而，许多开发人员和数据库管理员对索引的理解仅停留在表面，未能深入掌握其底层原理和适用场景，导致在实际应用中无法充分发挥索引的优势，甚至可能因不当使用而影响数据库性能。 本文将从">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520399248-9a8373e7-567f-4ab5-9d74-f39ac0bb3332-20210923151215022.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533482892-ea6a7e77-c129-45e3-8519-827ae57c69c7-20210923151221445.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533947057-755cdba3-b196-44cd-88c4-813dc6397463-20210923151227170.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608951320970-75bcceba-6e55-4737-9e29-8a7da83502b6-20210923151233076.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520661369-1d8b2328-8dca-4f08-8fb4-94df84b770b5-20210923151242400.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521376561-1c62b92e-60ae-4d06-ad73-6cfa4c69101b-20210923151251589.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521546600-37ba8127-ad31-4f94-a137-e1986de9354f-20210923151256752.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589527342910-49ca1484-7ba5-4924-944f-d1008cd46e85-20210923151312836.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589532501128-7bf641bd-946e-446b-9a0f-a581b3f13887-20210923151325454.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589586538060-89e3781c-22ed-4b16-a734-d5466af2d6aa-20210923151335790.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589536446002-5fddd16a-59f2-4928-b10e-088aaa01f927-20210923151343933.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608956710604-75cdbc20-a59e-473f-9e98-b963ac3cd49d-20210923151351478.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162572296-97295d9c-ab7c-444b-a99a-6c8ea8f106eb-20210923151400366.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162521710-d2586c99-f888-4db1-b713-3a69dc59028d-20210923151409810.png">
+<meta property="article:published_time" content="2020-08-12T17:31:09.000Z">
+<meta property="article:modified_time" content="2024-12-15T12:41:38.672Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520399248-9a8373e7-567f-4ab5-9d74-f39ac0bb3332-20210923151215022.png">
+
+
+<link rel="canonical" href="http://example.com/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/","path":"2020/08/13/MySQL索引的基础原理和创建原则/","title":"MySQL索引的基础原理和创建原则"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>MySQL索引的基础原理和创建原则 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">索引的类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">索引的实现方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">索引的创建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E7%9A%84%E5%A5%BD%E4%B8%8E%E5%9D%8F"><span class="nav-number">4.</span> <span class="nav-text">索引的好与坏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BB%BA%E7%B4%A2%E5%BC%95%E7%9A%84%E5%8E%9F%E5%88%99"><span class="nav-number">5.</span> <span class="nav-text">建索引的原则</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL%E5%B8%B8%E7%94%A8%E5%BC%95%E6%93%8E"><span class="nav-number">6.</span> <span class="nav-text">MySQL常用引擎</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%81%9A%E7%B0%87%E7%B4%A2%E5%BC%95%E4%B8%8E%E9%9D%9E%E8%81%9A%E7%B0%87%E7%B4%A2%E5%BC%95"><span class="nav-number">7.</span> <span class="nav-text">聚簇索引与非聚簇索引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E8%A6%86%E7%9B%96"><span class="nav-number">8.</span> <span class="nav-text">索引覆盖</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/13/MySQL%E7%B4%A2%E5%BC%95%E7%9A%84%E5%9F%BA%E7%A1%80%E5%8E%9F%E7%90%86%E5%92%8C%E5%88%9B%E5%BB%BA%E5%8E%9F%E5%88%99/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="MySQL索引的基础原理和创建原则 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL索引的基础原理和创建原则
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-08-13 01:31:09" itemprop="dateCreated datePublished" datetime="2020-08-13T01:31:09+08:00">2020-08-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:41:38" itemprop="dateModified" datetime="2024-12-15T20:41:38+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>数据库作为存储和管理数据的核心技术，广泛应用于各类信息系统中。随着数据量的不断增长以及业务复杂性的提高，数据库的性能优化成为至关重要的任务。</p>
+<p>其中，索引作为一种能够显著提升查询效率的数据结构，在数据库操作中扮演着关键角色。然而，许多开发人员和数据库管理员对索引的理解仅停留在表面，未能深入掌握其底层原理和适用场景，导致在实际应用中无法充分发挥索引的优势，甚至可能因不当使用而影响数据库性能。</p>
+<p>本文将从索引的类型、实现方式、创建时机、优缺点以及相关的优化原则等方面进行详细阐述，揭示索引背后的核心原理，为数据库性能优化提供坚实的理论基础。</p>
+<span id="more"></span>
+
+<h1 id="索引的类型"><a href="#索引的类型" class="headerlink" title="索引的类型"></a>索引的类型</h1><p>索引的分类可能有不同维度，这里不追求特别准确的分类，毕竟不是做学术，只要感性认识几种即可。</p>
+<p>打开Navicat，尝试创建索引时会发现有4种索引类型可以选择：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520399248-9a8373e7-567f-4ab5-9d74-f39ac0bb3332-20210923151215022.png" alt="img"></p>
+<ul>
+<li><p>全文索引</p>
+</li>
+<li><p>普通索引</p>
+</li>
+<li><p>空间索引</p>
+</li>
+<li><p>唯一索引</p>
+</li>
+</ul>
+<p>普通索引就可以组织树结构了，而唯一索引在普通索引的基础上还要求索引列不能重复。比如，假设我们给student表的name列加了唯一索引，如果表中已经存在”张三”，那么再次插入”张三”将会报错。</p>
+<p>MySQL这种关系型数据库并不适合进行全文检索（考虑Elastic Search），所以全文索引一般很少使用。</p>
+<p>至于空间索引，我也不知道是什么。</p>
+<p>实际开发常用的索引只有<strong>普通索引</strong>和<strong>唯一索引</strong>，其他的可以不用理会（主键索引其实相当于唯一索引+非NULL）。</p>
+<h1 id="索引的实现方式"><a href="#索引的实现方式" class="headerlink" title="索引的实现方式"></a>索引的实现方式</h1><p>常见的索引实现方式有两种，通过B+树结构或hash算法实现。</p>
+<p><strong>特别注意，这里虽然写的是”BTREE”，但MySQL确实使用的是B+Tree。</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533482892-ea6a7e77-c129-45e3-8519-827ae57c69c7-20210923151221445.png" alt="img"></p>
+<p>这个概念，其实和上面“索引的类型”并不冲突。</p>
+<p>比如，对于普通索引，我们可以使用B+树的结构组织索引，也可以使用hash算法实现。经过上一篇的学习，我们对B+树结构已经比较了解，所以这里单独聊一下hash索引。</p>
+<p>所谓hash索引，其实就是利用<strong>哈希算法为索引列计算得到唯一的存储地址</strong>，一般来说这个地址是不会重复的（重复的情况被称为哈希冲突）。</p>
+<p>举个燕十八老师说的例子：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589533947057-755cdba3-b196-44cd-88c4-813dc6397463-20210923151227170.png" alt="img"></p>
+<p>在墙上装一根弹性永不衰变的弹簧，每次拿不同的物件把弹簧压到极限后放开，不同的物件最终落点会不同。比如你上回存了一本书，那么下次想要找到这本书时，只需要拿一本<strong>一模一样的书</strong>重新弹一下，即可在本次落点处找到上次那本书。</p>
+<p>数据库hash索引的设计也类似，假设你要存入id&#x3D;10086的数据，就需要通过hash算法对id进行计算，得到一个存储位置后写入数据。下次拿着id&#x3D;10086查询时，只要按同样的算法再次计算，就能马上找到对应的数据，是不是很快呢~</p>
+<p>需要注意的是，弹簧的例子用来比喻hash算法虽然挺形象的，但可能会让人误以为越重的物品落点越近，越轻的物品落点越远，进而得出结论：hash索引可以进行范围查找。</p>
+<p>其实并不是如此。</p>
+<p>hash算法有个比较显著的特征：即使源数据具备一定的相关性，经过hash映射后得到的结果也会变得“很散”，没有规律可循。回到之前的例子中，你可以理解为重量并不是影响书本最终落点的唯一因素，书的材质、形状等都占有一定比例，最终体现到空气阻力上导致落点的不规则。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608951320970-75bcceba-6e55-4737-9e29-8a7da83502b6-20210923151233076.png" alt="img"></p>
+<p>不知道大家还是否记得，在JavaSE阶段接触HashMap时，很多人会发现put的顺序和get的顺序并不一定相同。比如put的顺序是1000克、500克、300克，而get的顺序却是500克、300克、1000克。也就是说，经过hash计算后，数据的相关性会大大减弱。</p>
+<p>所以，当你希望查找500g~1000g的书本时，就无法利用边界值进行范围查找。而B+树<strong>叶子节点是有序链表</strong>，范围查询非常方便。</p>
+<p><strong>hash索引除了无法进行范围查找外，还不能进行模糊搜索。</strong></p>
+<p>hash算法本身代表着精确定位，依赖于计算的入参得出“唯一”的值，所以无法进行模糊匹配。比如，你给我”bravo”，我可以计算唯一的hash值，你给我”bra%”，我会以为这人就叫”bra%”，也计算一个值，<strong>而****这个值代表着”bra%”计算得到的落点，而不是”所有以bra开头的数据”的落点</strong>，显然是不对的。</p>
+<p>但B+树可以进行模糊搜索，你可以姑且认为因为它会顺着树查找，并在装有数据的节点内调用类似Java的String#startWith()方法进行比较。</p>
+<p>hash索引的优劣势</p>
+<ul>
+<li>优势：速度非常快，只需一次计算即可得到地址，时间复杂度O(1)，而B+树是O(logn)</li>
+<li>劣势：不支持模糊查询、范围查询、索引排序（本身就是不规则的，如何利用索引排序呢）</li>
+</ul>
+<p>最后，《实用小算法》中List转HashMap的操作其实就是借鉴了hash索引！</p>
+<h1 id="索引的创建"><a href="#索引的创建" class="headerlink" title="索引的创建"></a>索引的创建</h1><p>索引的创建时机一般有两处：</p>
+<ul>
+<li>起初，建表时顺便建立索引</li>
+<li>后期，修改表结构创建索引（一般都是这样，因为很难未卜先知，提前优化等于瞎优化）</li>
+</ul>
+<p>比如，一开始就创建索引：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589520661369-1d8b2328-8dca-4f08-8fb4-94df84b770b5-20210923151242400.png" alt="img"></p>
+<p>这张表有两个索引：主键索引、auditor_id普通索引。</p>
+<p>主键索引并不属于上面介绍的4种索引类型之一，但所谓的Primary Key可以看做 唯一索引 + NOT NULL约束。</p>
+<p>后期如果需要添加索引，可以通过两种方式：</p>
+<ul>
+<li>SQL语句</li>
+<li>Navicat图形界面</li>
+</ul>
+<p>利用SQL语句添加索引：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">-- 1.添加PRIMARY KEY（主键索引） </span><br><span class="line">ALTER TABLE `table_name` ADD PRIMARY KEY (`column`) ;</span><br><span class="line">-- 2.添加UNIQUE(唯一索引) </span><br><span class="line">ALTER TABLE `table_name` ADD UNIQUE (`column`);</span><br><span class="line">-- 3.添加INDEX(普通索引) </span><br><span class="line">ALTER TABLE `table_name` ADD INDEX index_name (`column`);</span><br><span class="line">-- 4.添加FULLTEXT(全文索引) </span><br><span class="line">ALTER TABLE `table_name` ADD FULLTEXT (`column`);</span><br><span class="line">-- 5.添加联合索引 </span><br><span class="line">ALTER TABLE `table_name` ADD INDEX index_name (`column1`, `column2`, `column3`);</span><br></pre></td></tr></table></figure>
+
+<p>在本案例中，可以写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE `moneywithdraw` ADD INDEX idx_auditor_id (`auditor_id`);</span><br></pre></td></tr></table></figure>
+
+<p>利用Navicat图形界面创建<strong>单列索引：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521376561-1c62b92e-60ae-4d06-ad73-6cfa4c69101b-20210923151251589.png" alt="img"></p>
+<p>利用Navicat图形界面创建<strong>联合索引：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589521546600-37ba8127-ad31-4f94-a137-e1986de9354f-20210923151256752.png" alt="img"></p>
+<p>哦，对了，数据量太大的表，不要自己随便加索引，搞不好会锁表哦…后面有机会再说。总之，你可以“懂索引”，但要“动索引”前，最好三思。</p>
+<h1 id="索引的好与坏"><a href="#索引的好与坏" class="headerlink" title="索引的好与坏"></a>索引的好与坏</h1><p>提到索引，很多人就会说：哦，索引能提高查询速度。一般这么说的人，可能学得还不错，但绝对还没有完全掌握索引的底层原理。</p>
+<p>如果你认为索引的优势只是加快查询，那就太小看索引了。</p>
+<p>索引的优势是：</p>
+<ul>
+<li><p>加快查询速度（包括关联查询）</p>
+</li>
+<li><p>加快排序速度（ORDER BY）</p>
+</li>
+<li><p>加快分组速度（GROUP BY）</p>
+</li>
+</ul>
+<p>虽然加快排序、加快分组最终还是体现在加快查询速度上，但能主动意识到这一点算是一种突破。只有当你意识到索引能加快排序和分组，你才会在写ORDER BY和GROUP BY时有意识地利用索引分组和排序（最左匹配原则），从而写出更优的SQL。</p>
+<p>索引的劣势：</p>
+<ul>
+<li><p>创建索引是需要付出代价的，主要体现在维护成本、空间成本和回表成本。也就是说<strong>索引能提高查询效率，但往往会降低增删改的速度</strong>（字典新增几百个字，需要额外编排目录吧，要多占几页纸吧）</p>
+</li>
+<li><p>如果使用了联合索引，还需要考虑索引失效问题（下篇介绍联合索引）</p>
+</li>
+<li><p>太多的索引会增加查询优化器的选择时间（选择太多也麻烦）</p>
+</li>
+</ul>
+<h1 id="建索引的原则"><a href="#建索引的原则" class="headerlink" title="建索引的原则"></a>建索引的原则</h1><p>很多人觉得SQL优化才是重中之重，创建索引只需要一行代码即可，没什么大不了的。但现在你已经知道了索引的优势与劣势，你会明白“在合适的时候、合适的字段建立索引”是多么空泛的口号。创建索引的判断依据究竟是什么呢？</p>
+<p>创建索引有4个大原则：</p>
+<ul>
+<li><p>索引并不是越多越好，联合索引应该优于多个单列索引</p>
+</li>
+<li><p>索引应该建立在区分度高的字段上</p>
+</li>
+<li><p>尽量给查询频繁的字段创建索引，避免为修改频繁的字段创建索引</p>
+</li>
+<li><p>避免重复索引</p>
+</li>
+</ul>
+<p>第一个原则背后的原因是，实际上数据库一次查询只会选择<strong>一棵索引树</strong>（不包括回表），更专业的说法是每次查询只会选择一个执行计划。即使你给a,b,c,d,e,f,g…所有列都加了索引，SELECT xx, xxx FROM table WHERE …时，数据库也只会<strong>择优****选择</strong>一个执行计划进行查询。</p>
+<p>需要注意的是，<strong>每建一个索引，就需要维护一棵索引树，</strong>所以索引绝对不是越多越好，不合适的索引会增加数据库的负担。比如，你已经搞了一个根据拼音查找汉字的目录，又想根据偏旁部首来，那没辙了，只能劳烦您自己再搞一个目录了。</p>
+<p>看到这，你可能会反问：我靠，那MySQL也太笨了吧，为什么这么死心眼一次只利用一个索引？</p>
+<p>比较粗浅的理由是：你根据拼音查完汉字以后，还会根据偏旁部首再查一遍吗？</p>
+<p>比较正经的理由是：按我个人的理解，索引本身的出发点是“走完一遍索引后，数据库应该返回<strong>精确的结果</strong>或<strong>很小的结果集</strong>”，从成本上考虑，此时再走一遍索引还不如直接遍历结果集来得快。当然，要想一次索引就得到精确的结果集，着实需要下一番苦功夫。给哪个字段加索引好呢？我建议，应该尽可能给区分度高的字段添加索引。</p>
+<p>什么是区分度很高？这就是建索引的第二个原则啦。比如，表中有100w学生数据，你如果在sex列加索引，那么根据sex大概只能过滤掉50w数据，剩下的结果集仍然很大，说明这个索引建得不太合适，区分度太低了。</p>
+<p>第三个原则就是字面意思。比如一本字典根据内容编好目录以后，隔三差五地就有新词汇要往里面加，或者经常要修改汉字读音，一顿操作后必然要连累目录，只能重新编排啦。也就是说，为了保证目录能正确指向对应的汉字，每次增删改后都要额外多一个操作：重新修订目录。</p>
+<p>总之要意识到索引在加快查询的同时几乎必然会对修改产生负担，所以创建索引并没有那么简单，它绝对是一门“平衡的艺术”。</p>
+<p>第四个原则是，比如已经建立a索引，又建立index(a,b,c)联合索引，此时单列索引a就是冗余的，因为联合索引已经可以保证符合条件时会利用a索引。<strong>在物理存储上，a单列索引和index(a, b, c)是两个独立的B+树，</strong>重复的索引会增加维护成本。</p>
+<p>以上四个原则，后面的内容还会重新提到。</p>
+<h1 id="MySQL常用引擎"><a href="#MySQL常用引擎" class="headerlink" title="MySQL常用引擎"></a>MySQL常用引擎</h1><p>MySQL的引擎有很多种，但最常听到的就MyISAM和InnoDB，而实际开发几乎99%选择使用InnoDB，而且MySQL5.6还是哪个版本以后默认引擎就从MyISAM变成了InnoDB，所以这里着重介绍InnoDB，简略介绍MyISAM。</p>
+<p>对于两种引擎的介绍，可以看：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1RE41187Yo?p=9">存储引擎简介</a></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589527342910-49ca1484-7ba5-4924-944f-d1008cd46e85-20210923151312836.png" alt="img"></p>
+<p>这里主要想和大家讨论MyISAM和InnoDB在索引组织上的区别。大家应该都已经知道，MyISAM和InnoDB存储数据的方式是不同的。</p>
+<p>MyISAM的每张表在存储时会分为3个文件：</p>
+<ul>
+<li><p>表结构</p>
+</li>
+<li><p>表数据</p>
+</li>
+<li><p>索引</p>
+</li>
+</ul>
+<p>也就是说，表数据和索引是分别独立存储的。</p>
+<p>而InnoDB的表数据在存储时只分为2个文件：</p>
+<ul>
+<li>表结构</li>
+<li>表数据+索引</li>
+</ul>
+<p>需要注意的是，InnoDB所有表的数据和索引都在同一个文件里（见下一个小节）。</p>
+<h1 id="聚簇索引与非聚簇索引"><a href="#聚簇索引与非聚簇索引" class="headerlink" title="聚簇索引与非聚簇索引"></a>聚簇索引与非聚簇索引</h1><p>对于BTREE索引而言，从数据的组织形式来看，索引又可以分为两大类：</p>
+<ul>
+<li>聚簇索引</li>
+<li>非聚簇索引</li>
+</ul>
+<p>所谓聚簇索引，可以简单理解为索引和数据是“聚合”在一起的，而非聚簇索引的数据和索引是分开的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589532501128-7bf641bd-946e-446b-9a0f-a581b3f13887-20210923151325454.png" alt="img"></p>
+<p>根据InnoDB引擎的<strong>主键索引</strong>查询时无需回表，每一行完整的数据都直接挂在叶子节点下，可以直接返回。也就是说，对于InnoDB的<strong>主键索引</strong>而言，数据即索引，索引即数据。<img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589586538060-89e3781c-22ed-4b16-a734-d5466af2d6aa-20210923151335790.png" alt="img"></p>
+<p>MyISAM不是很重要，不提了。</p>
+<p>InnoDB的索引也并不是都不需要回表，根据是否需要回表其实可以分为两类：主键索引、辅助索引（或者叫二级索引、普通索引）。</p>
+<p>会什么要做这种区分呢？</p>
+<p>假设一个场景：</p>
+<p>新建一张表后，自然会产生主键索引。但后期发现name字段查询很频繁，于是加了name索引。</p>
+<p><strong>如果name索引也和主键索引一样挂着数据，那么两个索引数据就会重复。想象一下，现在磁盘中有一颗叫name的树和一棵叫id的树，一个以name为节点，一个以id为节点，相同的是最底层叶子节点都挂着完整的表数据。也就是说，磁盘中存了两份一模一样的student数据。且不说数据冗余，更新时还可能产生数据不一致（要同步数据，确保多张表的数据一致性）。</strong></p>
+<p>所以InnoDB的做法是，辅助索引只存储索引列+主键，必要时进行“回表”操作：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1589536446002-5fddd16a-59f2-4928-b10e-088aaa01f927-20210923151343933.png" alt="img"></p>
+<p>由于SELECT * FROM stu WHERE name&#x3D;’bravo’中，查询的数据是*，也就是整行数据。而上面的辅助索引只存了主键+name，所以必须回表：拿着主键再去跑一遍主键索引，最终返回整行数据。</p>
+<p>现在，我们可以给MyISAM和InnoDB的索引分类做个简单的总结：</p>
+<ul>
+<li><p>MyISAM：非聚簇索引，需要回表</p>
+</li>
+<li><p>InnoDB：</p>
+</li>
+<li><ul>
+<li>聚簇索引：主键索引，叶子节点是表数据，不需要回表</li>
+<li>非聚簇索引：辅助索引（唯一索引、普通索引），叶子节点是主键，必要时需要根据主键回表查询</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1608956710604-75cdbc20-a59e-473f-9e98-b963ac3cd49d-20210923151351478.png" alt="img"></p>
+<p>InnoDB每张表只能有一个主键索引，辅助索引则可以有多个。表数据只有一份，挂在主键索引下面。</p>
+<p>需要注意的是，如有可能，应该尽量避免回表。<strong>SQL优化的本质其实就是减少&#x2F;减小磁盘IO</strong>，而回表必然会增加磁盘IO次数。</p>
+<p>举个例子，假设某张表总共就两棵索引树：主键索引+name辅助索引，两棵树高度都是3。由于只有主键索引下才挂着表数据，所以对于SELECT * FROM table WHERE name&#x3D;’xxx’来说，需要先走辅助索引取得id，再根据id走一遍主键索引。假设两棵树需要的数据都在第三层，那么这条SQL需要进行6次逻辑IO访问。而如果直接根据id查询，就可以直接走主键索引，IO次数为3。</p>
+<p>所以，<strong>通常情况下</strong>辅助索引查询都是需要回表的，比主键索引查询多扫描一棵索引树（自身+主键索引），实际编写SQL时，应该尽量走主键索引。</p>
+<p>那么，<strong>什么情况下</strong>辅助索引可以避免回表吗？</p>
+<h1 id="索引覆盖"><a href="#索引覆盖" class="headerlink" title="索引覆盖"></a>索引覆盖</h1><p>索引覆盖这个名字，咋一听不知所云，所以很多初学者一直搞不明白什么意思，其实它最大的作用就是：避免回表。</p>
+<p>下面通过一个案例来说明。</p>
+<p>假设有个需求：前端需要支持<strong>根据用户名模糊搜索订单，</strong>而页面需要的字段如下。</p>
+<table>
+<thead>
+<tr>
+<th><strong>id</strong></th>
+<th><strong>productName</strong></th>
+<th><strong>price</strong></th>
+<th><strong>userName</strong></th>
+<th><strong>userAge</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>iphone12</td>
+<td>5999</td>
+<td>bravo1988</td>
+<td>18</td>
+</tr>
+</tbody></table>
+<p>一个可行的方案是：</p>
+<ol>
+<li><p>在t_user表中根据name搜索用户，得到user_id、user_name、user_age</p>
+</li>
+<li><p>在t_order表中根据user_id查询订单</p>
+</li>
+<li><p>在内存中根据user_id匹配order和user数据后返回</p>
+</li>
+</ol>
+<p>由于t_user表此时的查询条件是user_name，为了加快t_user表的查询速度，可以给user_name加普通索引。但，这样真的好吗？我劝！不要犯这样的聪明，小聪明啊。</p>
+<p>你要知道，此时我们从t_user表查询的可不止user_name，还有user_age和id。如果只是给user_name加了索引，那么此时磁盘中产生的索引树是这样的：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162572296-97295d9c-ab7c-444b-a99a-6c8ea8f106eb-20210923151400366.png" alt="img"></p>
+<p>这棵树的非叶子节点是user_name，叶子节点是id，<strong>也就是说从这棵树上我们只能得到user_name和user_id</strong>，至于user_age，MySQL底层只能跳出name索引树，然后跑到隔壁主键索引获取。整个过程被称为回表，而回表意味着多跑一趟。</p>
+<p>此时我们可以给user_name和user_age加一个联合索引，这样就能产生所谓的“索引覆盖”：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1610162521710-d2586c99-f888-4db1-b713-3a69dc59028d-20210923151409810.png" alt="img"></p>
+<p>当辅助索引上的字段完全满足本次查询的列时，就是所谓的索引覆盖，这是一个好消息，意味着不需要回表，查询效率将会大大提高。这也是为什么SQL优化原则中经常会强调：尽量只取必要的字段，避免SELECT *（提高索引覆盖的几率，查询的字段越多，几率越低）。</p>
+<p>即使目前表中只有两个字段且已经索引覆盖，也不要写SELECT *。因为后期随着业务扩展，这张表会新增其他字段，此时SELECT *将不再覆盖索引！</p>
+<p>为了方便记忆，大家可以把索引覆盖理解为 索引的字段 &gt;&#x3D; 查询需要的字段。比如联合索引的字段是index(a,b,c)，那么此时SELCT a, b就会发生索引覆盖，索引覆盖最大的好处是避免回表。</p>
+<p>需要强调的是，覆盖索引和联合索引没有必然关系。比如我只给user_name加单索引，而我查询语句是</p>
+<p>SELECT id, user_name FROM t_user WHERE name&#x3D;’bravo’;</p>
+<p>此时也是索引覆盖。所以，<strong>能否索引覆盖不取决于索引单方面，需要查询配合。</strong></p>
+<p>关于联合索引，我们放在下一篇介绍。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MySQL/" rel="tag"><i class="fa fa-tag"></i> MySQL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/07/29/%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE/" rel="prev" title="网络传输协议">
+                  <i class="fa fa-angle-left"></i> 网络传输协议
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/08/19/%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%88%86%E6%9E%90%E4%B8%8E%E8%81%94%E5%90%88%E7%B4%A2%E5%BC%95%E5%BA%94%E7%94%A8/" rel="next" title="查询执行计划分析与联合索引应用">
+                  查询执行计划分析与联合索引应用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>

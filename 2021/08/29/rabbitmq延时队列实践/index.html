@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在许多业务场景中，任务的执行需要与时间紧密关联。例如，在电商领域，订单在生成后的一段时间内未支付则需要自动取消，以释放库存并管理订单状态；新店铺创建后若长时间未上传商品，需及时提醒商家以促进平台活跃度；企业财务系统中，账单在规定期限内未支付则要进行自动结算，确保财务流程的顺畅。这些场景的共同点是都涉及到在特定时间点或时间段后触发相应的操作，对时间的准确性和任务的可靠性要求极高。 传统的解决方案如定">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rabbitmq延时队列实践">
+<meta property="og:url" content="http://example.com/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="在许多业务场景中，任务的执行需要与时间紧密关联。例如，在电商领域，订单在生成后的一段时间内未支付则需要自动取消，以释放库存并管理订单状态；新店铺创建后若长时间未上传商品，需及时提醒商家以促进平台活跃度；企业财务系统中，账单在规定期限内未支付则要进行自动结算，确保财务流程的顺畅。这些场景的共同点是都涉及到在特定时间点或时间段后触发相应的操作，对时间的准确性和任务的可靠性要求极高。 传统的解决方案如定">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047092.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047108.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047837.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047418.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047065.png">
+<meta property="article:published_time" content="2021-08-28T16:54:22.000Z">
+<meta property="article:modified_time" content="2024-12-15T12:41:06.133Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="RabbitMQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047092.png">
+
+
+<link rel="canonical" href="http://example.com/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/","path":"2021/08/29/rabbitmq延时队列实践/","title":"rabbitmq延时队列实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>rabbitmq延时队列实践 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%9C%AC%E6%96%87%E5%A4%A7%E7%BA%B2"><span class="nav-number">1.</span> <span class="nav-text">一、本文大纲</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><span class="nav-number">2.</span> <span class="nav-text">二、什么是延时队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.</span> <span class="nav-text">三、延时队列使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81RabbitMQ%E4%B8%AD%E7%9A%84TTL"><span class="nav-number">4.</span> <span class="nav-text">四、RabbitMQ中的TTL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8RabbitMQ%E5%AE%9E%E7%8E%B0%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><span class="nav-number">5.</span> <span class="nav-text">五、如何利用RabbitMQ实现延时队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AD%E3%80%81RabbitMQ%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E4%BC%98%E5%8C%96"><span class="nav-number">6.</span> <span class="nav-text">六、RabbitMQ延时队列优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E5%88%A9%E7%94%A8RabbitMQ%E6%8F%92%E4%BB%B6%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97"><span class="nav-number">7.</span> <span class="nav-text">七、利用RabbitMQ插件实现延迟队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">8.</span> <span class="nav-text">八、总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/29/rabbitmq%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="rabbitmq延时队列实践 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          rabbitmq延时队列实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-29 00:54:22" itemprop="dateCreated datePublished" datetime="2021-08-29T00:54:22+08:00">2021-08-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:41:06" itemprop="dateModified" datetime="2024-12-15T20:41:06+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在许多业务场景中，任务的执行需要与时间紧密关联。例如，在电商领域，订单在生成后的一段时间内未支付则需要自动取消，以释放库存并管理订单状态；新店铺创建后若长时间未上传商品，需及时提醒商家以促进平台活跃度；企业财务系统中，账单在规定期限内未支付则要进行自动结算，确保财务流程的顺畅。这些场景的共同点是都涉及到在特定时间点或时间段后触发相应的操作，对时间的准确性和任务的可靠性要求极高。</p>
+<p>传统的解决方案如定时任务，通过定期轮询数据库来检查任务是否满足执行条件。然而，在数据量较小且对时间精度要求不高的情况下，这种方式或许可行。但当面对大规模数据和高时效性要求时，定时任务的弊端就凸显出来。它需要频繁地查询数据库，这不仅会给数据库带来巨大的压力，影响系统的整体性能，还可能由于查询间隔的限制导致任务执行的延迟，无法满足业务对实时性的严格要求。例如，在电商大促期间，订单量可能瞬间暴增到数百万甚至上千万，如果使用定时任务来检查未支付订单，可能在一秒内无法完成所有订单的检查，导致部分订单未能及时关闭，影响库存管理和用户体验。</p>
+<p>在这样的背景下，消息队列技术应运而生，为解决这类复杂的消息处理需求提供了新的思路和方法。RabbitMQ 作为一款功能强大的消息队列中间件，以其出色的可靠性、灵活性和扩展性，在众多企业的消息处理架构中占据重要地位。它能够实现消息的异步传输，解耦系统组件，提高系统的可伸缩性和响应能力。而延时队列作为 RabbitMQ 的一种特殊应用场景，能够精准地控制消息的延迟处理时间，为上述各种业务场景提供了更为高效、可靠的解决方案，成为企业构建复杂业务逻辑和优化系统性能的关键技术之一。</p>
+<span id="more"></span>
+
+<h3 id="一、本文大纲"><a href="#一、本文大纲" class="headerlink" title="一、本文大纲"></a>一、本文大纲</h3><p>以下是本文大纲：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/07/28/5d3d74d99699d43032.png"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047092.png" alt="1.png"></a></p>
+<p>本文阅读前，需要对RabbitMQ以及死信队列有一个简单的了解。</p>
+<h3 id="二、什么是延时队列"><a href="#二、什么是延时队列" class="headerlink" title="二、什么是延时队列"></a>二、什么是延时队列</h3><p><code>延时队列</code>，首先，它是一种队列，队列意味着内部的元素是<code>有序</code>的，元素出队和入队是有方向性的，元素从一端进入，从另一端取出。</p>
+<p>其次，<code>延时队列</code>，最重要的特性就体现在它的<code>延时</code>属性上，跟普通的队列不一样的是，<code>普通队列中的元素总是等着希望被早点取出处理，而延时队列中的元素则是希望被在指定时间得到取出和处理</code>，所以延时队列中的元素是都是带时间属性的，通常来说是需要被处理的消息或者任务。</p>
+<p>简单来说，延时队列就是用来存放需要在指定时间被处理的元素的队列。</p>
+<h3 id="三、延时队列使用场景"><a href="#三、延时队列使用场景" class="headerlink" title="三、延时队列使用场景"></a>三、延时队列使用场景</h3><p>那么什么时候需要用延时队列呢？考虑一下以下场景：</p>
+<ol>
+<li>订单在十分钟之内未支付则自动取消。</li>
+<li>新创建的店铺，如果在十天内都没有上传过商品，则自动发送消息提醒。</li>
+<li>账单在一周内未支付，则自动结算。</li>
+<li>用户注册成功后，如果三天内没有登陆则进行短信提醒。</li>
+<li>用户发起退款，如果三天内没有得到处理则通知相关运营人员。</li>
+<li>预定会议后，需要在预定的时间点前十分钟通知各个与会人员参加会议。</li>
+</ol>
+<p>这些场景都有一个特点，需要在某个事件发生之后或者之前的指定时间点完成某一项任务，如：发生订单生成事件，在十分钟之后检查该订单支付状态，然后将未支付的订单进行关闭；发生店铺创建事件，十天后检查该店铺上新商品数，然后通知上新数为0的商户；发生账单生成事件，检查账单支付状态，然后自动结算未支付的账单；发生新用户注册事件，三天后检查新注册用户的活动数据，然后通知没有任何活动记录的用户；发生退款事件，在三天之后检查该订单是否已被处理，如仍未被处理，则发送消息给相关运营人员；发生预定会议事件，判断离会议开始是否只有十分钟了，如果是，则通知各个与会人员。</p>
+<p>看起来似乎使用定时任务，一直轮询数据，每秒查一次，取出需要被处理的数据，然后处理不就完事了吗？如果数据量比较少，确实可以这样做，比如：对于“如果账单一周内未支付则进行自动结算”这样的需求，如果对于时间不是严格限制，而是宽松意义上的一周，那么每天晚上跑个定时任务检查一下所有未支付的账单，确实也是一个可行的方案。但对于数据量比较大，并且时效性较强的场景，如：“订单十分钟内未支付则关闭“，短期内未支付的订单数据可能会有很多，活动期间甚至会达到百万甚至千万级别，对这么庞大的数据量仍旧使用轮询的方式显然是不可取的，很可能在一秒内无法完成所有订单的检查，同时会给数据库带来很大压力，无法满足业务要求而且性能低下。</p>
+<p>更重要的一点是，不！优！雅！</p>
+<p>没错，作为一名有追求的程序员，始终应该追求更优雅的架构和更优雅的代码风格，写代码要像写诗一样优美。【滑稽】</p>
+<p>这时候，延时队列就可以闪亮登场了，以上场景，正是延时队列的用武之地。</p>
+<p>既然<code>延时队列</code>可以解决很多特定场景下，带时间属性的任务需求，那么如何构造一个延时队列呢？接下来，本文将介绍如何用RabbitMQ来实现延时队列。</p>
+<h3 id="四、RabbitMQ中的TTL"><a href="#四、RabbitMQ中的TTL" class="headerlink" title="四、RabbitMQ中的TTL"></a>四、RabbitMQ中的TTL</h3><p>在介绍延时队列之前，还需要先介绍一下RabbitMQ中的一个高级特性——<code>TTL（Time To Live）</code>。</p>
+<p><code>TTL</code>是什么呢？<code>TTL</code>是RabbitMQ中一个消息或者队列的属性，表明<code>一条消息或者该队列中的所有消息的最大存活时间</code>，单位是毫秒。换句话说，如果一条消息设置了TTL属性或者进入了设置TTL属性的队列，那么这条消息如果在TTL设置的时间内没有被消费，则会成为“死信”（至于什么是死信，请翻看上一篇）。如果同时配置了队列的TTL和消息的TTL，那么较小的那个值将会被使用。</p>
+<p>那么，如何设置这个TTL值呢？有两种方式，第一种是在创建队列的时候设置队列的“x-message-ttl”属性，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, Object&gt;();</span><br><span class="line">args.put(<span class="string">&quot;x-message-ttl&quot;</span>, <span class="number">6000</span>);</span><br><span class="line">channel.queueDeclare(queueName, durable, exclusive, autoDelete, args);</span><br></pre></td></tr></table></figure>
+
+<p>这样所有被投递到该队列的消息都最多不会存活超过6s。</p>
+<p>另一种方式便是针对每条消息设置TTL，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AMQP.BasicProperties.<span class="type">Builder</span> <span class="variable">builder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AMQP</span>.BasicProperties.Builder();</span><br><span class="line">builder.expiration(<span class="string">&quot;6000&quot;</span>);</span><br><span class="line">AMQP.<span class="type">BasicProperties</span> <span class="variable">properties</span> <span class="operator">=</span> builder.build();</span><br><span class="line">channel.basicPublish(exchangeName, routingKey, mandatory, properties, <span class="string">&quot;msg body&quot;</span>.getBytes());</span><br></pre></td></tr></table></figure>
+
+<p>这样这条消息的过期时间也被设置成了6s。</p>
+<p>但这两种方式是有区别的，<strong>如果设置了队列的TTL属性，那么一旦消息过期，就会被队列丢弃，而第二种方式，消息即使过期，也不一定会被马上丢弃，因为消息是否过期是在即将投递到消费者之前判定的，如果当前队列有严重的消息积压情况，则已过期的消息也许还能存活较长时间。</strong></p>
+<p>另外，还需要注意的一点是，如果不设置TTL，表示消息永远不会过期，如果将TTL设置为0，则表示除非此时可以直接投递该消息到消费者，否则该消息将会被丢弃。</p>
+<h3 id="五、如何利用RabbitMQ实现延时队列"><a href="#五、如何利用RabbitMQ实现延时队列" class="headerlink" title="五、如何利用RabbitMQ实现延时队列"></a>五、如何利用RabbitMQ实现延时队列</h3><p>前一篇里介绍了如果设置死信队列，前文中又介绍了TTL，至此，利用RabbitMQ实现延时队列的两大要素已经集齐，接下来只需要将它们进行调和，再加入一点点调味料，延时队列就可以新鲜出炉了。</p>
+<p>想想看，<code>延时队列</code>，不就是想要消息延迟多久被处理吗，TTL则刚好能让消息在延迟多久之后成为死信，另一方面，成为死信的消息都会被投递到死信队列里，这样只需要消费者一直消费死信队列里的消息就万事大吉了，因为里面的消息都是希望被立即处理的消息。</p>
+<p>从下图可以大致看出消息的流向：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/07/28/5d3d743143ecc85643.png"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047108.png" alt="23.png"></a></p>
+<p>生产者生产一条延时消息，根据需要延时时间的不同，利用不同的routingkey将消息路由到不同的延时队列，每个队列都设置了不同的TTL属性，并绑定在同一个死信交换机中，消息过期后，根据routingkey的不同，又会被路由到不同的死信队列中，消费者只需要监听对应的死信队列进行处理即可。</p>
+<p>下面来看代码：</p>
+<p>先声明交换机、队列以及他们的绑定关系：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitMQConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_EXCHANGE_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.exchange&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_QUEUEA_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.queuea&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_QUEUEB_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.queueb&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_QUEUEA_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.queuea.routingkey&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_QUEUEB_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.queueb.routingkey&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_EXCHANGE</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.exchange&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_QUEUEA_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.delay_10s.routingkey&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_QUEUEB_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.delay_60s.routingkey&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_QUEUEA_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.queuea&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_QUEUEB_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.queueb&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时Exchange</span></span><br><span class="line">    <span class="meta">@Bean(&quot;delayExchange&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> DirectExchange <span class="title function_">delayExchange</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectExchange</span>(DELAY_EXCHANGE_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信Exchange</span></span><br><span class="line">    <span class="meta">@Bean(&quot;deadLetterExchange&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> DirectExchange <span class="title function_">deadLetterExchange</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectExchange</span>(DEAD_LETTER_EXCHANGE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时队列A 延时10s</span></span><br><span class="line">    <span class="comment">// 并绑定到对应的死信交换机</span></span><br><span class="line">    <span class="meta">@Bean(&quot;delayQueueA&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">delayQueueA</span><span class="params">()</span>&#123;</span><br><span class="line">        Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">2</span>);</span><br><span class="line">        <span class="comment">// x-dead-letter-exchange    这里声明当前队列绑定的死信交换机</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, DEAD_LETTER_EXCHANGE);</span><br><span class="line">        <span class="comment">// x-dead-letter-routing-key  这里声明当前队列的死信路由key</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, DEAD_LETTER_QUEUEA_ROUTING_KEY);</span><br><span class="line">        <span class="comment">// x-message-ttl  声明队列的TTL</span></span><br><span class="line">        args.put(<span class="string">&quot;x-message-ttl&quot;</span>, <span class="number">6000</span>);</span><br><span class="line">        <span class="keyword">return</span> QueueBuilder.durable(DELAY_QUEUEA_NAME).withArguments(args).build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时队列B 延时 60s</span></span><br><span class="line">    <span class="comment">// 并绑定到对应的死信交换机</span></span><br><span class="line">    <span class="meta">@Bean(&quot;delayQueueB&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">delayQueueB</span><span class="params">()</span>&#123;</span><br><span class="line">        Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">2</span>);</span><br><span class="line">        <span class="comment">// x-dead-letter-exchange    这里声明当前队列绑定的死信交换机</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, DEAD_LETTER_EXCHANGE);</span><br><span class="line">        <span class="comment">// x-dead-letter-routing-key  这里声明当前队列的死信路由key</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, DEAD_LETTER_QUEUEB_ROUTING_KEY);</span><br><span class="line">        <span class="comment">// x-message-ttl  声明队列的TTL</span></span><br><span class="line">        args.put(<span class="string">&quot;x-message-ttl&quot;</span>, <span class="number">60000</span>);</span><br><span class="line">        <span class="keyword">return</span> QueueBuilder.durable(DELAY_QUEUEB_NAME).withArguments(args).build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信队列A 用于接收延时10s处理的消息</span></span><br><span class="line">    <span class="meta">@Bean(&quot;deadLetterQueueA&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">deadLetterQueueA</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(DEAD_LETTER_QUEUEA_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信队列B 用于接收延时60s处理的消息</span></span><br><span class="line">    <span class="meta">@Bean(&quot;deadLetterQueueB&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">deadLetterQueueB</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(DEAD_LETTER_QUEUEB_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时队列A绑定关系</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">delayBindingA</span><span class="params">(<span class="meta">@Qualifier(&quot;delayQueueA&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                    <span class="meta">@Qualifier(&quot;delayExchange&quot;)</span> DirectExchange exchange)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DELAY_QUEUEA_ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明业务队列B绑定关系</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">delayBindingB</span><span class="params">(<span class="meta">@Qualifier(&quot;delayQueueB&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                    <span class="meta">@Qualifier(&quot;delayExchange&quot;)</span> DirectExchange exchange)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DELAY_QUEUEB_ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信队列A绑定关系</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">deadLetterBindingA</span><span class="params">(<span class="meta">@Qualifier(&quot;deadLetterQueueA&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                    <span class="meta">@Qualifier(&quot;deadLetterExchange&quot;)</span> DirectExchange exchange)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEA_ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信队列B绑定关系</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">deadLetterBindingB</span><span class="params">(<span class="meta">@Qualifier(&quot;deadLetterQueueB&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                      <span class="meta">@Qualifier(&quot;deadLetterExchange&quot;)</span> DirectExchange exchange)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEB_ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来，创建两个消费者，分别对两个死信队列的消息进行消费：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeadLetterQueueConsumer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RabbitListener(queues = DEAD_LETTER_QUEUEA_NAME)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">receiveA</span><span class="params">(Message message, Channel channel)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">String</span>(message.getBody());</span><br><span class="line">        log.info(<span class="string">&quot;当前时间：&#123;&#125;,死信队列A收到消息：&#123;&#125;&quot;</span>, <span class="keyword">new</span> <span class="title class_">Date</span>().toString(), msg);</span><br><span class="line">        channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RabbitListener(queues = DEAD_LETTER_QUEUEB_NAME)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">receiveB</span><span class="params">(Message message, Channel channel)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">String</span>(message.getBody());</span><br><span class="line">        log.info(<span class="string">&quot;当前时间：&#123;&#125;,死信队列B收到消息：&#123;&#125;&quot;</span>, <span class="keyword">new</span> <span class="title class_">Date</span>().toString(), msg);</span><br><span class="line">        channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后是消息的生产者：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DelayMessageSender</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RabbitTemplate rabbitTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">sendMsg</span><span class="params">(String msg, DelayTypeEnum type)</span>&#123;</span><br><span class="line">        <span class="keyword">switch</span> (type)&#123;</span><br><span class="line">            <span class="keyword">case</span> DELAY_10s:</span><br><span class="line">                rabbitTemplate.convertAndSend(DELAY_EXCHANGE_NAME, DELAY_QUEUEA_ROUTING_KEY, msg);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> DELAY_60s:</span><br><span class="line">                rabbitTemplate.convertAndSend(DELAY_EXCHANGE_NAME, DELAY_QUEUEB_ROUTING_KEY, msg);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来，我们暴露一个web接口来生产消息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;rabbitmq&quot;)</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitMQMsgController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> DelayMessageSender sender;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;sendmsg&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">sendMsg</span><span class="params">(String msg, Integer delayType)</span>&#123;</span><br><span class="line">        log.info(<span class="string">&quot;当前时间：&#123;&#125;,收到请求，msg:&#123;&#125;,delayType:&#123;&#125;&quot;</span>, <span class="keyword">new</span> <span class="title class_">Date</span>(), msg, delayType);</span><br><span class="line">        sender.sendMsg(msg, Objects.requireNonNull(DelayTypeEnum.getDelayTypeEnumByValue(delayType)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>准备就绪，启动！</p>
+<p>打开rabbitMQ的<a target="_blank" rel="noopener" href="http://localhost:15672/">管理后台</a>，可以看到我们刚才创建的交换机和队列信息：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/07/28/5d3d54e15534398514.png"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047837.png" alt="2.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/07/28/5d3d54e17df8183993.png"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047418.png" alt="4.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/07/28/5d3d54e16952546955.png"><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202111250047065.png" alt="3.png"></a></p>
+<p>接下来，我们来发送几条消息</p>
+<p><a target="_blank" rel="noopener" href="http://localhost:8080/rabbitmq/sendmsg?msg=testMsg1&delayType=1">http://localhost:8080/rabbitmq/sendmsg?msg=testMsg1&amp;delayType=1</a></p>
+<p> <a target="_blank" rel="noopener" href="http://localhost:8080/rabbitmq/sendmsg?msg=testMsg2&delayType=2">http://localhost:8080/rabbitmq/sendmsg?msg=testMsg2&amp;delayType=2</a></p>
+<p>日志如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">2019-07-28 16:02:19.813  INFO 3860 --- [nio-8080-exec-9] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 16:02:19 CST 2019,收到请求，msg:testMsg1,delayType:1</span><br><span class="line">2019-07-28 16:02:19.815  INFO 3860 --- [nio-8080-exec-9] .l.DirectReplyToMessageListenerContainer : SimpleConsumer [queue=amq.rabbitmq.reply-to, consumerTag=amq.ctag-o-qPpkWIkRm73DIrOIVhig identity=766339] started</span><br><span class="line">2019-07-28 16:02:25.829  INFO 3860 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 16:02:25 CST 2019,死信队列A收到消息：testMsg1</span><br><span class="line">2019-07-28 16:02:41.326  INFO 3860 --- [nio-8080-exec-1] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 16:02:41 CST 2019,收到请求，msg:testMsg2,delayType:2</span><br><span class="line">2019-07-28 16:03:41.329  INFO 3860 --- [ntContainer#0-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 16:03:41 CST 2019,死信队列B收到消息：testMsg2</span><br></pre></td></tr></table></figure>
+
+<p>第一条消息在6s后变成了死信消息，然后被消费者消费掉，第二条消息在60s之后变成了死信消息，然后被消费掉，这样，一个还算ok的延时队列就打造完成了。</p>
+<p>不过，等等，如果这样使用的话，岂不是每增加一个新的时间需求，就要新增一个队列，这里只有6s和60s两个时间选项，如果需要一个小时后处理，那么就需要增加TTL为一个小时的队列，如果是预定会议室然后提前通知这样的场景，岂不是要增加无数个队列才能满足需求？？</p>
+<p>嗯，仔细想想，事情并不简单。</p>
+<h3 id="六、RabbitMQ延时队列优化"><a href="#六、RabbitMQ延时队列优化" class="headerlink" title="六、RabbitMQ延时队列优化"></a>六、RabbitMQ延时队列优化</h3><p>显然，需要一种更通用的方案才能满足需求，那么就只能将TTL设置在消息属性里了。我们来试一试。</p>
+<p>增加一个延时队列，用于接收设置为任意延时时长的消息，增加一个相应的死信队列和routingkey：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitMQConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_EXCHANGE_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.exchange&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_QUEUEC_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.queuec&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAY_QUEUEC_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.business.queuec.routingkey&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_EXCHANGE</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.exchange&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_QUEUEC_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.delay_anytime.routingkey&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEAD_LETTER_QUEUEC_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.deadletter.queuec&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时Exchange</span></span><br><span class="line">    <span class="meta">@Bean(&quot;delayExchange&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> DirectExchange <span class="title function_">delayExchange</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectExchange</span>(DELAY_EXCHANGE_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信Exchange</span></span><br><span class="line">    <span class="meta">@Bean(&quot;deadLetterExchange&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> DirectExchange <span class="title function_">deadLetterExchange</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectExchange</span>(DEAD_LETTER_EXCHANGE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时队列C 不设置TTL</span></span><br><span class="line">    <span class="comment">// 并绑定到对应的死信交换机</span></span><br><span class="line">    <span class="meta">@Bean(&quot;delayQueueC&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">delayQueueC</span><span class="params">()</span>&#123;</span><br><span class="line">        Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">3</span>);</span><br><span class="line">        <span class="comment">// x-dead-letter-exchange    这里声明当前队列绑定的死信交换机</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, DEAD_LETTER_EXCHANGE);</span><br><span class="line">        <span class="comment">// x-dead-letter-routing-key  这里声明当前队列的死信路由key</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, DEAD_LETTER_QUEUEC_ROUTING_KEY);</span><br><span class="line">        <span class="keyword">return</span> QueueBuilder.durable(DELAY_QUEUEC_NAME).withArguments(args).build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信队列C 用于接收延时任意时长处理的消息</span></span><br><span class="line">    <span class="meta">@Bean(&quot;deadLetterQueueC&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">deadLetterQueueC</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(DEAD_LETTER_QUEUEC_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明延时列C绑定关系</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">delayBindingC</span><span class="params">(<span class="meta">@Qualifier(&quot;delayQueueC&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                 <span class="meta">@Qualifier(&quot;delayExchange&quot;)</span> DirectExchange exchange)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DELAY_QUEUEC_ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明死信队列C绑定关系</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">deadLetterBindingC</span><span class="params">(<span class="meta">@Qualifier(&quot;deadLetterQueueC&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                      <span class="meta">@Qualifier(&quot;deadLetterExchange&quot;)</span> DirectExchange exchange)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(DEAD_LETTER_QUEUEC_ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>增加一个死信队列C的消费者：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RabbitListener(queues = DEAD_LETTER_QUEUEC_NAME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">receiveC</span><span class="params">(Message message, Channel channel)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">String</span>(message.getBody());</span><br><span class="line">    log.info(<span class="string">&quot;当前时间：&#123;&#125;,死信队列C收到消息：&#123;&#125;&quot;</span>, <span class="keyword">new</span> <span class="title class_">Date</span>().toString(), msg);</span><br><span class="line">    channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再次启动！然后访问：<a target="_blank" rel="noopener" href="http://localhost:8080/rabbitmq/delayMsg?msg=testMsg1delayTime=5000">http://localhost:8080/rabbitmq/delayMsg?msg=testMsg1delayTime=5000</a> 来生产消息，注意这里的单位是毫秒。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2019-07-28 16:45:07.033  INFO 31468 --- [nio-8080-exec-4] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 16:45:07 CST 2019,收到请求，msg:testMsg1,delayTime:5000</span><br><span class="line">2019-07-28 16:45:11.694  INFO 31468 --- [nio-8080-exec-5] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 16:45:11 CST 2019,收到请求，msg:testMsg2,delayTime:5000</span><br><span class="line">2019-07-28 16:45:12.048  INFO 31468 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 16:45:12 CST 2019,死信队列C收到消息：testMsg1</span><br><span class="line">2019-07-28 16:45:16.709  INFO 31468 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 16:45:16 CST 2019,死信队列C收到消息：testMsg2</span><br></pre></td></tr></table></figure>
+
+<p>看起来似乎没什么问题，但不要高兴的太早，在最开始的时候，就介绍过，如果使用在消息属性上设置TTL的方式，消息可能并不会按时“死亡“，因为RabbitMQ只会检查第一个消息是否过期，如果过期则丢到死信队列，索引如果第一个消息的延时时长很长，而第二个消息的延时时长很短，则第二个消息并不会优先得到执行。</p>
+<p>实验一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2019-07-28 16:49:02.957  INFO 31468 --- [nio-8080-exec-8] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 16:49:02 CST 2019,收到请求，msg:longDelayedMsg,delayTime:20000</span><br><span class="line">2019-07-28 16:49:10.671  INFO 31468 --- [nio-8080-exec-9] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 16:49:10 CST 2019,收到请求，msg:shortDelayedMsg,delayTime:2000</span><br><span class="line">2019-07-28 16:49:22.969  INFO 31468 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 16:49:22 CST 2019,死信队列C收到消息：longDelayedMsg</span><br><span class="line">2019-07-28 16:49:22.970  INFO 31468 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 16:49:22 CST 2019,死信队列C收到消息：shortDelayedMsg</span><br></pre></td></tr></table></figure>
+
+<p>我们先发了一个延时时长为20s的消息，然后发了一个延时时长为2s的消息，结果显示，第二个消息会在等第一个消息成为死信后才会“死亡“。</p>
+<h3 id="七、利用RabbitMQ插件实现延迟队列"><a href="#七、利用RabbitMQ插件实现延迟队列" class="headerlink" title="七、利用RabbitMQ插件实现延迟队列"></a>七、利用RabbitMQ插件实现延迟队列</h3><p>上文中提到的问题，确实是一个硬伤，如果不能实现在消息粒度上添加TTL，并使其在设置的TTL时间及时死亡，就无法设计成一个通用的延时队列。</p>
+<p>那如何解决这个问题呢？不要慌，安装一个插件即可：<a target="_blank" rel="noopener" href="https://www.rabbitmq.com/community-plugins.html">https://www.rabbitmq.com/community-plugins.html</a> ，下载rabbitmq_delayed_message_exchange插件，然后解压放置到RabbitMQ的插件目录。</p>
+<p>接下来，进入RabbitMQ的安装目录下的sbin目录，执行下面命令让该插件生效，然后重启RabbitMQ。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmq-plugins enable rabbitmq_delayed_message_exchange</span><br></pre></td></tr></table></figure>
+
+<p>然后，我们再声明几个Bean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DelayedRabbitMQConfig</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAYED_QUEUE_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.delay.queue&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAYED_EXCHANGE_NAME</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.delay.exchange&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DELAYED_ROUTING_KEY</span> <span class="operator">=</span> <span class="string">&quot;delay.queue.demo.delay.routingkey&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">immediateQueue</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(DELAYED_QUEUE_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> CustomExchange <span class="title function_">customExchange</span><span class="params">()</span> &#123;</span><br><span class="line">        Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        args.put(<span class="string">&quot;x-delayed-type&quot;</span>, <span class="string">&quot;direct&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">CustomExchange</span>(DELAYED_EXCHANGE_NAME, <span class="string">&quot;x-delayed-message&quot;</span>, <span class="literal">true</span>, <span class="literal">false</span>, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">bindingNotify</span><span class="params">(<span class="meta">@Qualifier(&quot;immediateQueue&quot;)</span> Queue queue,</span></span><br><span class="line"><span class="params">                                 <span class="meta">@Qualifier(&quot;customExchange&quot;)</span> CustomExchange customExchange)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(queue).to(customExchange).with(DELAYED_ROUTING_KEY).noargs();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>controller层再添加一个入口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(&quot;delayMsg2&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">delayMsg2</span><span class="params">(String msg, Integer delayTime)</span> &#123;</span><br><span class="line">    log.info(<span class="string">&quot;当前时间：&#123;&#125;,收到请求，msg:&#123;&#125;,delayTime:&#123;&#125;&quot;</span>, <span class="keyword">new</span> <span class="title class_">Date</span>(), msg, delayTime);</span><br><span class="line">    sender.sendDelayMsg(msg, delayTime);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>消息生产者的代码也需要修改：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">sendDelayMsg</span><span class="params">(String msg, Integer delayTime)</span> &#123;</span><br><span class="line">    rabbitTemplate.convertAndSend(DELAYED_EXCHANGE_NAME, DELAYED_ROUTING_KEY, msg, a -&gt;&#123;</span><br><span class="line">        a.getMessageProperties().setDelay(delayTime);</span><br><span class="line">        <span class="keyword">return</span> a;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后，再创建一个消费者：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RabbitListener(queues = DELAYED_QUEUE_NAME)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">receiveD</span><span class="params">(Message message, Channel channel)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">String</span>(message.getBody());</span><br><span class="line">    log.info(<span class="string">&quot;当前时间：&#123;&#125;,延时队列收到消息：&#123;&#125;&quot;</span>, <span class="keyword">new</span> <span class="title class_">Date</span>().toString(), msg);</span><br><span class="line">    channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="literal">false</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一切准备就绪，启动！然后分别访问以下链接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/rabbitmq/delayMsg2?msg=msg1&amp;delayTime=20000</span><br><span class="line">http://localhost:8080/rabbitmq/delayMsg2?msg=msg2&amp;delayTime=2000</span><br></pre></td></tr></table></figure>
+
+<p>日志如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2019-07-28 17:28:13.729  INFO 25804 --- [nio-8080-exec-2] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 17:28:13 CST 2019,收到请求，msg:msg1,delayTime:20000</span><br><span class="line">2019-07-28 17:28:20.607  INFO 25804 --- [nio-8080-exec-1] c.m.d.controller.RabbitMQMsgController   : 当前时间：Sun Jul 28 17:28:20 CST 2019,收到请求，msg:msg2,delayTime:2000</span><br><span class="line">2019-07-28 17:28:22.624  INFO 25804 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 17:28:22 CST 2019,延时队列收到消息：msg2</span><br><span class="line">2019-07-28 17:28:33.751  INFO 25804 --- [ntContainer#1-1] c.m.d.mq.DeadLetterQueueConsumer         : 当前时间：Sun Jul 28 17:28:33 CST 2019,延时队列收到消息：msg1</span><br></pre></td></tr></table></figure>
+
+<p>第二个消息被先消费掉了，符合预期。至此，RabbitMQ实现延时队列的部分就完结了。</p>
+<h3 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h3><p>延时队列在需要延时处理的场景下非常有用，使用RabbitMQ来实现延时队列可以很好的利用RabbitMQ的特性，如：消息可靠发送、消息可靠投递、死信队列来保障消息至少被消费一次以及未被正确处理的消息不会被丢弃。另外，通过RabbitMQ集群的特性，可以很好的解决单点故障问题，不会因为单个节点挂掉导致延时队列不可用或者消息丢失。</p>
+<p>当然，延时队列还有很多其它选择，比如利用Java的DelayQueu，利用Redis的zset，利用Quartz或者利用kafka的时间轮，这些方式各有特点，但就像炉石传说一般，这些知识就好比手里的卡牌，知道的越多，可以用的卡牌也就越多，遇到问题便能游刃有余，所以需要大量的知识储备和经验积累才能打造出更出色的卡牌组合，让自己解决问题的能力得到更好的提升。</p>
+<p>但另一方面，随着时间的流逝和阅历的增长，越来越感觉到自己的能力有限，无法独自面对纷繁复杂且多变的业务需求，在很多方面需要其他人的协助才能很好的完成任务。也知道闻道有先后，术业有专攻，不会再狂妄自大，觉得自己能把所有事情都搞定，也将重心慢慢转移到研究如何有效的进行团队合作上来，我相信一个高度协调的团队永远比一个人战斗要更有价值。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RabbitMQ/" rel="tag"><i class="fa fa-tag"></i> RabbitMQ</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/08/28/rabbitmq%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97%E5%AE%9E%E8%B7%B5/" rel="prev" title="rabbitmq死信队列实践">
+                  <i class="fa fa-angle-left"></i> rabbitmq死信队列实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/09/23/%E7%B4%A2%E5%BC%95%E4%B8%8EB+%E6%A0%91/" rel="next" title="">
+                   <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>

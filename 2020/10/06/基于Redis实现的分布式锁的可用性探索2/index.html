@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在上篇文章中，我们深入探讨了 Redis 分布式锁的基本概念，包括其在分布式系统中的重要性以及与传统 JVM 锁的区别，并初步了解了 Redis 如何通过其原子操作特性实现简单的分布式锁逻辑。然而，在实际应用场景中，仅仅依靠 Redis 的基本命令来实现分布式锁存在诸多问题。 自定义 Redis 分布式锁在实现过程中面临着一些关键操作无法保证原子性的困境。例如，加锁操作通常需要执行 SETNX（设">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Redis实现的分布式锁的可用性探索2">
+<meta property="og:url" content="http://example.com/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="在上篇文章中，我们深入探讨了 Redis 分布式锁的基本概念，包括其在分布式系统中的重要性以及与传统 JVM 锁的区别，并初步了解了 Redis 如何通过其原子操作特性实现简单的分布式锁逻辑。然而，在实际应用场景中，仅仅依靠 Redis 的基本命令来实现分布式锁存在诸多问题。 自定义 Redis 分布式锁在实现过程中面临着一些关键操作无法保证原子性的困境。例如，加锁操作通常需要执行 SETNX（设">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604497239038-11bf2996-86c7-4672-8c14-97003ad03379-20210923224039242.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605942078377-4709a4b0-b840-46af-8790-eec570ccc526-20210923224051964.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605944419389-2d72efb4-3f0d-4082-9836-27729be483ca-20210923224114637.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606004955240-09b70762-48c9-48db-b5ce-594f57f8037d-20210923224127881.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605943038778-2e521c6d-d2eb-4bf8-bfee-85386d52683f-20210923224137688.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605945261112-585bd28f-7670-4518-af85-8440d044153b-20210923224146607.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605945347715-e77ca098-bd7a-4dee-beda-1e325c6247fa-20210923224152657.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606005458029-94f26b64-780d-4324-910c-f36f7dd7ccaf-20210923224200340.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952885069-f4e16307-9030-4a38-b154-30cd4f7f5a74-20210923224243500.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952773563-dca85b18-f11c-4511-8fdb-a737075fb5fd-20210923224252102.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952860890-484897da-0ee6-45ea-8179-ddf6f357316a-20210923224340729.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952928238-e1dc233d-d877-423f-8561-f121c821d5c8-20210923224347621.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952952657-d35ba600-5996-4a67-adee-0c39535f728c-20210923224354124.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952984223-bf8c4bda-866f-406f-b7f8-c369b6d9b1ea-20210923224359530.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605953023756-2fc503b2-44bb-47c9-baf6-a095fef000e1-20210923224410403.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605953051967-7f6f6fb5-cfba-46a5-80d1-e83f19efb80c-20210923224418693.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605956150610-2ce6fbe0-577a-4ab1-9540-a1d176038d02-20210923224433312.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605957127624-694aaebe-2293-4641-83e8-8649823ec961-20210923224458173.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605406493819-8575b4ca-57e6-4afc-aba7-4840bee68138-20210923224505808.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605958482130-e4ac51fd-c7c6-4a1c-9b8d-bc9ce3fab6a6-20210923224532665.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605958677303-5991020a-4ff9-4399-a71c-cefd1824931c-20210923224542928.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605958821470-c3a87de8-f677-4990-8a52-a42e572696d0-20210923224550800.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605959979086-b4d49fc5-a37b-4872-a0d4-3f9c5a560f9d-20210923224610738.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605960740451-f70e601b-0432-44a1-8e3c-34ff56b3b1c9-20210923224618495.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969467749-64ac2a12-3b6d-4762-abf8-b457be9dc0e5-20210923224633703.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969607142-5897d87e-0841-4647-8ad1-02b308a7e66c-20210923224640385.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969777097-2f955c29-3f28-4ce2-a12a-b76455fb1e1e-20210923224647544.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969804198-7d2b61c3-da1b-4de1-aecd-5777a4994ee5-20210923224657200.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969855073-00958650-adfb-49c5-972e-37e797f5f23d-20210923224708071.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969922018-f5dc76c3-0566-4d14-9018-1ea86f17ff1c-20210923224716263.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605961851949-8de820bf-97f6-4330-a580-da4003cc2123-20210923224729646.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605970707587-a80fb37d-b89e-4742-b675-4bfe03ca8b0c-20210923224741535.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605975498344-dd4657b8-5442-4fcd-8693-9f5e81d09531-20210923224753386.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605975635261-dc6265a9-2950-433f-a7f1-d46445d0a01b-20210923224803834.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605975844381-fff7bf1c-36e2-4f63-9fc8-f5af8ebc0e0a-20210923224809682.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606010300656-f21b35bd-bd46-4f02-bf73-e2913664af28-20210923224832043.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606010321812-3803dd5d-3411-4060-84f1-2f797f56946e-20210923224838169.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605976920059-cd4945a2-0932-4cc6-a2b5-9beac14475f9-20210923224857619.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605977159145-10176f3a-8e5c-4d34-9f82-d5a9a684c15e-20210923224909434.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605978662886-e09f2b51-ccb8-4fdb-b7f2-b2b162d0c57d-20210923224924265.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605978761456-207d8919-5a9e-451e-9460-3b4498f1b86c-20210923224932016.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606181778959-3b05f3f9-ba72-4ada-9d4b-cb17f2871d91-20210923224943457.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979113544-fd5fd678-27b0-4ee8-af1b-bb8e82b6cf5b-20210923224950350.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979480581-3f3ecda4-159e-475a-80d3-9854b1affea3-20210923225001508.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979506461-ae56c20c-6a92-44be-ac30-0944c8caaa47-20210923225007411.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979722684-793f715f-e2ed-498f-98e1-68b8d69519e8-20210923225013679.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606183066878-ce4cc7de-8cc1-4dd1-995a-b663df428550-20210923225020644.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612490364124-289ef177-9b03-4cc0-9168-f6270728cff9-20210923225025657.jpeg">
+<meta property="article:published_time" content="2020-10-05T18:14:32.000Z">
+<meta property="article:modified_time" content="2024-12-15T12:00:18.363Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="分布式锁">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604497239038-11bf2996-86c7-4672-8c14-97003ad03379-20210923224039242.png">
+
+
+<link rel="canonical" href="http://example.com/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/","path":"2020/10/06/基于Redis实现的分布式锁的可用性探索2/","title":"基于Redis实现的分布式锁的可用性探索2"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>基于Redis实现的分布式锁的可用性探索2 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89Redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%BC%8A%E7%AB%AF"><span class="nav-number">1.</span> <span class="nav-text">自定义Redis分布式锁的弊端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redisson%E6%A1%88%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">Redisson案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Redisson%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">2.1.</span> <span class="nav-text">Redisson环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lock-%E6%96%B9%E6%B3%95%E5%88%9D%E6%8E%A2"><span class="nav-number">2.2.</span> <span class="nav-text">lock()方法初探</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lock-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">2.3.</span> <span class="nav-text">lock()源码解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A7%88"><span class="nav-number">2.4.</span> <span class="nav-text">流程概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lua%E8%84%9A%E6%9C%AC%E8%A7%A3%E8%AF%BB"><span class="nav-number">2.5.</span> <span class="nav-text">lua脚本解读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9E%E8%B0%83%E5%87%BD%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">2.6.</span> <span class="nav-text">回调函数的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redisson%E5%BC%82%E6%AD%A5%E5%9B%9E%E8%B0%83%E6%9C%BA%E5%88%B6"><span class="nav-number">2.7.</span> <span class="nav-text">Redisson异步回调机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redisson%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%94%81%E7%BB%AD%E6%9C%9F"><span class="nav-number">2.8.</span> <span class="nav-text">Redisson如何实现锁续期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unLock-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">2.9.</span> <span class="nav-text">unLock()源码解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lock-leaseTime-unit-%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4%E3%80%81%E4%B8%94%E4%B8%8D%E7%BB%AD%E6%9C%9F"><span class="nav-number">2.10.</span> <span class="nav-text">lock(leaseTime, unit)：自定义过期时间、且不续期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tryLock-%E7%B3%BB%E5%88%97%EF%BC%9A%E8%AE%A9%E8%B0%83%E7%94%A8%E8%80%85%E8%87%AA%E8%A1%8C%E5%86%B3%E5%AE%9A%E5%8A%A0%E9%94%81%E5%A4%B1%E8%B4%A5%E5%90%8E%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="nav-number">2.11.</span> <span class="nav-text">tryLock()系列：让调用者自行决定加锁失败后的操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redisson%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="nav-number">3.</span> <span class="nav-text">Redisson分布式锁的缺陷</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/06/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A22/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="基于Redis实现的分布式锁的可用性探索2 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          基于Redis实现的分布式锁的可用性探索2
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-10-06 02:14:32" itemprop="dateCreated datePublished" datetime="2020-10-06T02:14:32+08:00">2020-10-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 20:00:18" itemprop="dateModified" datetime="2024-12-15T20:00:18+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在上篇文章中，我们深入探讨了 Redis 分布式锁的基本概念，包括其在分布式系统中的重要性以及与传统 JVM 锁的区别，并初步了解了 Redis 如何通过其原子操作特性实现简单的分布式锁逻辑。然而，在实际应用场景中，仅仅依靠 Redis 的基本命令来实现分布式锁存在诸多问题。</p>
+<p>自定义 Redis 分布式锁在实现过程中面临着一些关键操作无法保证原子性的困境。例如，加锁操作通常需要执行 SETNX（设置键值对，当键不存在时）和 EXPIRE（设置键的过期时间）两个步骤，如果在这两个步骤之间发生系统故障或异常，可能导致锁无法正确设置或永远不会过期，从而引发死锁情况，使系统陷入瘫痪。解锁操作同样存在风险，非原子性的解锁可能导致不同节点之间误删对方的锁，造成数据混乱和并发冲突加剧。</p>
+<p>除了原子性问题，锁续期也是一个不容忽视的挑战。在分布式系统中，业务执行时间往往是不确定的，如果锁的持有时间过短，业务未完成时锁就已过期，可能导致其他节点获取锁并执行相同的业务逻辑，破坏数据一致性；反之，若锁持有时间过长，又会降低系统的并发性能，影响系统整体效率。因此，如何根据业务实际执行时间动态地为锁续期，成为确保分布式锁有效性和系统稳定性的关键因素之一。</p>
+<p>为了应对这些复杂的问题，提高 Redis 分布式锁的可靠性和实用性，Redisson 应运而生。Redisson 是一个功能强大的 Java 驻内存数据网格（In-Memory Data Grid），它在 Redis 基础上提供了一系列分布式对象和服务，其中包括高度优化和可靠的分布式锁实现。Redisson 不仅解决了自定义 Redis 分布式锁的原子性问题，通过使用 Lua 脚本将复杂的操作封装为原子操作，确保加锁、解锁和锁续期等操作的完整性和一致性，还提供了诸如锁自动续期、可重入锁、公平锁等丰富的特性，大大简化了分布式锁的使用难度，提高了分布式系统的开发效率和可靠性。通过深入研究 Redisson 分布式锁的实现原理，我们可以更好地理解和应用分布式锁技术，为构建健壮的分布式系统提供有力支持。</p>
+<span id="more"></span>
+
+<h2 id="自定义Redis分布式锁的弊端"><a href="#自定义Redis分布式锁的弊端" class="headerlink" title="自定义Redis分布式锁的弊端"></a>自定义Redis分布式锁的弊端</h2><p>在上一篇我们自定义了一个Redis分布式锁，用来解决多节点定时任务的拉取问题（避免任务重复执行）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1604497239038-11bf2996-86c7-4672-8c14-97003ad03379-20210923224039242.png" alt="img"></p>
+<p>但仍然存在很多问题：</p>
+<ul>
+<li>加锁操作不是原子性的（setnx和expire两步操作不是原子性的，中间宕机会导致死锁）</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">tryLock</span><span class="params">(String lockKey, String value, <span class="type">long</span> expireTime, TimeUnit timeUnit)</span> &#123;</span><br><span class="line">    <span class="comment">// 1.先setnx</span></span><br><span class="line">    <span class="type">Boolean</span> <span class="variable">lock</span> <span class="operator">=</span> redisTemplate.opsForValue().setIfAbsent(lockKey, value);</span><br><span class="line">    <span class="keyword">if</span> (lock != <span class="literal">null</span> &amp;&amp; lock) &#123;</span><br><span class="line">        <span class="comment">// 2.再expire</span></span><br><span class="line">        redisTemplate.expire(lockKey, expireTime, timeUnit);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605942078377-4709a4b0-b840-46af-8790-eec570ccc526-20210923224051964.png" alt="img"></p>
+<p>当然啦，高版本的SpringBoot Redis依赖其实提供了加锁的原子性操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 尝试上锁：setNX + expire</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> lockKey    锁</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> value      对应的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> expireTime 过期时间</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> timeUnit   时间单位</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">tryLock</span><span class="params">(String lockKey, String value, <span class="type">long</span> expireTime, TimeUnit timeUnit)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 可以设置4个参数，一步到位</span></span><br><span class="line">        redisTemplate.opsForValue().set(lockKey, value, expireTime, timeUnit);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从 Redis 2.6.12 版本开始（现在6.x了…）， <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/set.html#set">SET</a> 命令的行为可以通过一系列参数来修改，也因为 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/set.html#set">SET</a> 命令可以通过参数来实现和 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/setnx.html#setnx">SETNX</a> 、 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/setex.html#setex">SETEX</a> 和 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/psetex.html#psetex">PSETEX</a> 三个命令的效果，所以将来的 Redis 版本可能会废弃并最终移除 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/setnx.html#setnx">SETNX</a> 、 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/setex.html#setex">SETEX</a> 和 <a target="_blank" rel="noopener" href="http://doc.redisfans.com/string/psetex.html#psetex">PSETEX</a> 这三个命令。</p>
+<ul>
+<li>解锁操作不是原子性的（可能造成不同节点之间互相删锁）</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605944419389-2d72efb4-3f0d-4082-9836-27729be483ca-20210923224114637.png" alt="img"></p>
+<p>虽然上一篇设计的unLock()不是原子操作，但可以避免不同节点之间互相删锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">unLock</span><span class="params">(String lockKey, String value)</span> &#123;</span><br><span class="line">    <span class="comment">// 1.获取锁的value，存的是MACHINE_ID</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">machineId</span> <span class="operator">=</span> (String) redisTemplate.opsForValue().get(lockKey);</span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isNotEmpty(machineId) &amp;&amp; machineId.equals(value)) &#123;</span><br><span class="line">        <span class="comment">// 2.只能删除当前节点设置的锁</span></span><br><span class="line">        redisTemplate.delete(lockKey);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>畏难情绪作祟，不想考虑锁续期的问题，企图采用队列的方式缩减定时任务执行时间，直接把任务丢到队列中。但实际上可能存在任务堆积，个别情况下会出现：上次已经拉取某个任务并丢到Redis队列中，但由于队列比较繁忙，该任务还未被执行，数据库状态也尚未更改为status&#x3D;1（已执行），结果下次又拉取一遍，重复执行（简单的解决策略是：虽然无法阻止入队，但是出队消费时可以判断where status&#x3D;0后执行）</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606004955240-09b70762-48c9-48db-b5ce-594f57f8037d-20210923224127881.png" alt="img"></p>
+<p>引入Redis Message Queue会让系统变得更加复杂，我之前就因为使用了上面的模型导致各种偶发性的BUG，非常不好排查。一般来说，定时任务应该设计得简单点：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605943038778-2e521c6d-d2eb-4bf8-bfee-85386d52683f-20210923224137688.png" alt="img"></p>
+<p>也就是说，绕来绕去，想要设计一个较完备的Redis分布式锁，必须至少解决3个问题：</p>
+<ul>
+<li><p>加锁原子性（setnx和expire要保证原子性，否则会容易发生死锁）</p>
+</li>
+<li><p>解锁原子性（不能误删别人的锁）</p>
+</li>
+<li><p>需要考虑业务&#x2F;定时任务执行的时间，并为锁续期</p>
+</li>
+</ul>
+<p>如果不考虑性能啥的，加解锁原子性都可以通过lua脚本实现（利用Redis单线程的特性）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605945261112-585bd28f-7670-4518-af85-8440d044153b-20210923224146607.png" alt="img"></p>
+<p>一次执行一个脚本，要么成功要么失败，不会和其他指令交错执行。</p>
+<p>最难的是如何根据实际业务的执行时间给锁续期！虽然我们已经通过判断MACHINE_ID避免了不同节点互相删除锁：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605945347715-e77ca098-bd7a-4dee-beda-1e325c6247fa-20210923224152657.png" alt="img"></p>
+<p>但本质上我们需要的是：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606005458029-94f26b64-780d-4324-910c-f36f7dd7ccaf-20210923224200340.png" alt="img"></p>
+<p>本文我们的主要目标就是实现锁续期！</p>
+<p>好在Redisson已经实现了，所以目标又变成：了解Redisson的锁续期机制。</p>
+<h2 id="Redisson案例"><a href="#Redisson案例" class="headerlink" title="Redisson案例"></a>Redisson案例</h2><h3 id="Redisson环境搭建"><a href="#Redisson环境搭建" class="headerlink" title="Redisson环境搭建"></a>Redisson环境搭建</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">server:</span><br><span class="line">  port: 8080</span><br><span class="line"></span><br><span class="line">spring:</span><br><span class="line">  redis:</span><br><span class="line">    host: # 见小册开头《阿里云服务账号》</span><br><span class="line">    password: # 见小册开头《阿里云服务账号》</span><br><span class="line">    database: 1</span><br><span class="line">    </span><br><span class="line"># 调整控制台日志格式，稍微精简一些（非必要操作）</span><br><span class="line">logging:</span><br><span class="line">  pattern:</span><br><span class="line">    console: &quot;%d&#123;yyyy-MM-dd HH:mm:ss&#125; - %thread - %msg%n&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">optional</span>&gt;</span>true<span class="tag">&lt;/<span class="name">optional</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--大家也可以单独引入Redisson依赖，然后通过@Configuration自己配置RedissonClient--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.redisson<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>redisson-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.13.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后就可以在test包下测试了~</p>
+<h3 id="lock-方法初探"><a href="#lock-方法初探" class="headerlink" title="lock()方法初探"></a>lock()方法初探</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@RunWith(SpringRunner.class)</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RLockTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedissonClient redissonClient;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testRLock</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="built_in">this</span>::testLockOne).start();</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="built_in">this</span>::testLockTwo).start();</span><br><span class="line"></span><br><span class="line">        TimeUnit.SECONDS.sleep(<span class="number">200</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testLockOne</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;bravo1988_distributed_lock&quot;</span>);</span><br><span class="line">            log.info(<span class="string">&quot;testLockOne尝试加锁...&quot;</span>);</span><br><span class="line">            lock.lock();</span><br><span class="line">            log.info(<span class="string">&quot;testLockOne加锁成功...&quot;</span>);</span><br><span class="line">            log.info(<span class="string">&quot;testLockOne业务开始...&quot;</span>);</span><br><span class="line">            TimeUnit.SECONDS.sleep(<span class="number">50</span>);</span><br><span class="line">            log.info(<span class="string">&quot;testLockOne业务结束...&quot;</span>);</span><br><span class="line">            lock.unlock();</span><br><span class="line">            log.info(<span class="string">&quot;testLockOne解锁成功...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testLockTwo</span><span class="params">()</span>  &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;bravo1988_distributed_lock&quot;</span>);</span><br><span class="line">            log.info(<span class="string">&quot;testLockTwo尝试加锁...&quot;</span>);</span><br><span class="line">            lock.lock();</span><br><span class="line">            log.info(<span class="string">&quot;testLockTwo加锁成功...&quot;</span>);</span><br><span class="line">            log.info(<span class="string">&quot;testLockTwo业务开始...&quot;</span>);</span><br><span class="line">            TimeUnit.SECONDS.sleep(<span class="number">50</span>);</span><br><span class="line">            log.info(<span class="string">&quot;testLockTwo业务结束...&quot;</span>);</span><br><span class="line">            lock.unlock();</span><br><span class="line">            log.info(<span class="string">&quot;testLockTwo解锁成功...&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果</p>
+<p>2020-11-21 14:24:33 - Thread-3 - testLockTwo尝试加锁…</p>
+<p>2020-11-21 14:24:33 - Thread-2 - testLockOne尝试加锁…</p>
+<p>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&gt; testLockOne()执行过程中，testLockTwo()一直阻塞 &lt;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<p>2020-11-21 14:24:33 - Thread-2 - testLockOne加锁成功…</p>
+<p>2020-11-21 14:24:33 - Thread-2 - testLockOne业务开始…</p>
+<p>2020-11-21 14:25:23 - Thread-2 - testLockOne业务结束…</p>
+<p>2020-11-21 14:25:23 - Thread-2 - testLockOne解锁成功…</p>
+<p>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&gt; testLockOne()执行结束释放锁，testLockTwo()抢到锁 &lt;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<p>2020-11-21 14:25:23 - Thread-3 - testLockTwo加锁成功…</p>
+<p>2020-11-21 14:25:23 - Thread-3 - testLockTwo业务开始…</p>
+<p>2020-11-21 14:26:13 - Thread-3 - testLockTwo业务结束…</p>
+<p>2020-11-21 14:26:13 - Thread-3 - testLockTwo解锁成功…</p>
+<p>通过上面的代码，我们有以下疑问：</p>
+<ul>
+<li><p>lock()方法是原子性的吗？</p>
+</li>
+<li><p>lock()有设置过期时间吗？是多少？</p>
+</li>
+<li><p>lock()实现锁续期了吗？</p>
+</li>
+<li><p>lock()方法怎么实现阻塞的？又怎么被唤醒？</p>
+</li>
+</ul>
+<p>先忘了这些，跟着我们走一遍lock()源码就明白了。</p>
+<h3 id="lock-源码解析"><a href="#lock-源码解析" class="headerlink" title="lock()源码解析"></a>lock()源码解析</h3><p>lock()加锁，去除异常的情况，无非加锁成功、加锁失败两种情况，我们先看加锁成功的情况。</p>
+<h3 id="流程概览"><a href="#流程概览" class="headerlink" title="流程概览"></a>流程概览</h3><p>我们从这段最简单的代码入手：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@RunWith(SpringRunner.class)</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RLockTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedissonClient redissonClient;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testLockSuccess</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;bravo1988_distributed_lock&quot;</span>);</span><br><span class="line">        log.info(<span class="string">&quot;准备加锁...&quot;</span>);</span><br><span class="line">        lock.lock();</span><br><span class="line">        log.info(<span class="string">&quot;加锁成功...&quot;</span>);</span><br><span class="line">        TimeUnit.SECONDS.sleep(<span class="number">300</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大家跟着我们先打几个断点（SpringBoot2.3.4）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952885069-f4e16307-9030-4a38-b154-30cd4f7f5a74-20210923224243500.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952773563-dca85b18-f11c-4511-8fdb-a737075fb5fd-20210923224252102.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952860890-484897da-0ee6-45ea-8179-ddf6f357316a-20210923224340729.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952928238-e1dc233d-d877-423f-8561-f121c821d5c8-20210923224347621.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952952657-d35ba600-5996-4a67-adee-0c39535f728c-20210923224354124.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605952984223-bf8c4bda-866f-406f-b7f8-c369b6d9b1ea-20210923224359530.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605953023756-2fc503b2-44bb-47c9-baf6-a095fef000e1-20210923224410403.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605953051967-7f6f6fb5-cfba-46a5-80d1-e83f19efb80c-20210923224418693.png" alt="img"></p>
+<p>注意啊，把截图中能看到的断点都打上。</p>
+<p>OK，接着大家自己启动DEBUG，感受一下大致流程，然后看下面的注释：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// redisson.lock()</span></span><br><span class="line">Override</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        lock(-<span class="number">1</span>, <span class="literal">null</span>, <span class="literal">false</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 为了方便辨认，我直接把传进来的参数写在参数列表上</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">(<span class="type">long</span> leaseTime=-<span class="number">1</span>, TimeUnit unit=<span class="literal">null</span>, <span class="type">boolean</span> interruptibly=<span class="literal">false</span>)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="comment">// 获取当前线程id</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">threadId</span> <span class="operator">=</span> Thread.currentThread().getId();</span><br><span class="line">    <span class="comment">// 尝试上锁。上锁成功返回null，上锁失败返回ttl</span></span><br><span class="line">    <span class="type">Long</span> <span class="variable">ttl</span> <span class="operator">=</span> tryAcquire(-<span class="number">1</span>, leaseTime=-<span class="number">1</span>, unit=<span class="literal">null</span>, threadId=<span class="number">666</span>);</span><br><span class="line">    <span class="comment">// 上锁成功，方法结束，回到主线程执行业务啦（后台有个定时任务在给当前锁续期）</span></span><br><span class="line">    <span class="keyword">if</span> (ttl == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 上锁成功就不走下面的流程了，所以这里直接省略</span></span><br><span class="line">    <span class="comment">// 略：加锁失败后续流程...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 尝试上锁。上锁成功返回null，上锁失败返回【当前已经存在的锁】的ttl，方便调用者判断多久之后能重新获取锁</span></span><br><span class="line"><span class="keyword">private</span> Long <span class="title function_">tryAcquire</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=-<span class="number">1</span>, TimeUnit unit=<span class="literal">null</span>, <span class="type">long</span> threadId=<span class="number">666</span>)</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 有两次调用：1.tryAcquireAsync()返回Future 2.从Future获取异步结果（异步结果就是ttl）</span></span><br><span class="line"><span class="comment">    * 重点是tryAcquireAsync()</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">return</span> get(tryAcquireAsync(waitTime=-<span class="number">1</span>, leaseTime=-<span class="number">1</span>, unit=<span class="literal">null</span>, threadId=<span class="number">666</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取过期时间（非重点）</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">final</span> &lt;V&gt; V <span class="title function_">get</span><span class="params">(RFuture&lt;V&gt; future)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> commandExecutor.get(future);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 重点，加锁后返回RFuture，内部包含ttl。调用本方法可能加锁成功，也可能加锁失败，外界可以通过ttl判断</span></span><br><span class="line"><span class="keyword">private</span> &lt;T&gt; RFuture&lt;Long&gt; <span class="title function_">tryAcquireAsync</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=-<span class="number">1</span>, TimeUnit unit=<span class="literal">null</span>, <span class="type">long</span> threadId=<span class="number">666</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// lock()默认leaseTime=-1，所以会跳过if</span></span><br><span class="line">    <span class="keyword">if</span> (leaseTime != -<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> tryLockInnerAsync(waitTime, leaseTime, unit, threadId, RedisCommands.EVAL_LONG);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行lua脚本，尝试加锁并返回RFuture。这个方法是异步的，其实是把任务提交给线程池</span></span><br><span class="line">    RFuture&lt;Long&gt; ttlRemainingFuture = tryLockInnerAsync(</span><br><span class="line">                                            waitTime=-<span class="number">1</span>,</span><br><span class="line">                                            commandExecutor.getConnectionManager().getCfg().getLockWatchdogTimeout()=<span class="number">30</span>秒,</span><br><span class="line">                                            TimeUnit.MILLISECONDS, </span><br><span class="line">                                            threadId=<span class="number">666</span>, </span><br><span class="line">                                            RedisCommands.EVAL_LONG);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置回调方法，异步线程与Redis交互得到结果后会回调BiConsumer#accept()</span></span><br><span class="line">    ttlRemainingFuture.onComplete((ttlRemaining, e) -&gt; &#123;</span><br><span class="line">        <span class="comment">// 发生异常时直接return</span></span><br><span class="line">        <span class="keyword">if</span> (e != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 说明加锁成功</span></span><br><span class="line">        <span class="keyword">if</span> (ttlRemaining == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 启动额外的线程，按照一定规则给当前锁续期</span></span><br><span class="line">            scheduleExpirationRenewal(threadId);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回RFuture，里面有ttlRemaining</span></span><br><span class="line">    <span class="keyword">return</span> ttlRemainingFuture;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行lua脚本尝试上锁</span></span><br><span class="line">&lt;T&gt; RFuture&lt;T&gt; <span class="title function_">tryLockInnerAsync</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=<span class="number">30</span>*<span class="number">1000</span>, TimeUnit unit=毫秒, <span class="type">long</span> threadId=<span class="number">666</span>, RedisStrictCommand&lt;T&gt; command)</span> &#123;</span><br><span class="line">    internalLockLeaseTime = unit.toMillis(leaseTime);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 大家去看一下evalWriteAsync()的参数列表，看看每个参数都代表什么，就能理解KEYS[]和ARGV[]以及整个脚本什么意思了</span></span><br><span class="line"><span class="comment">     * 如果你仔细看lua脚本，就会明白：加锁成功时返回ttlRemaining=null，加锁失败时返回ttlRemaining=xxx（上一个锁还剩多少时间）</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 另外，我们自定义的Redis分布式锁采用了IdUtil生成节点id，和getLockName(threadId)本质是一样的</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">return</span> evalWriteAsync(getName(), LongCodec.INSTANCE, command,</span><br><span class="line">            <span class="string">&quot;if (redis.call(&#x27;exists&#x27;, KEYS[1]) == 0) then &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;redis.call(&#x27;hincrby&#x27;, KEYS[1], ARGV[2], 1); &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;redis.call(&#x27;pexpire&#x27;, KEYS[1], ARGV[1]); &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;return nil; &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;end; &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;if (redis.call(&#x27;hexists&#x27;, KEYS[1], ARGV[2]) == 1) then &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;redis.call(&#x27;hincrby&#x27;, KEYS[1], ARGV[2], 1); &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;redis.call(&#x27;pexpire&#x27;, KEYS[1], ARGV[1]); &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;return nil; &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;end; &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;return redis.call(&#x27;pttl&#x27;, KEYS[1]);&quot;</span>,</span><br><span class="line">            Collections.singletonList(getName()), internalLockLeaseTime, getLockName(threadId));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 向Redis服务器发送脚本并返回RFuture，大家可以近似看成：往线程池提交一个任务，然后将异步结果封装到CompletableFuture</span></span><br><span class="line"><span class="keyword">protected</span> &lt;T&gt; RFuture&lt;T&gt; <span class="title function_">evalWriteAsync</span><span class="params">(String key, Codec codec, RedisCommand&lt;T&gt; evalCommandType, String script, List&lt;Object&gt; keys, Object... params)</span> &#123;</span><br><span class="line">    <span class="type">CommandBatchService</span> <span class="variable">executorService</span> <span class="operator">=</span> createCommandBatchService();</span><br><span class="line">    RFuture&lt;T&gt; result = executorService.evalWriteAsync(key, codec, evalCommandType, script, keys, params);</span><br><span class="line">    <span class="keyword">if</span> (!(commandExecutor <span class="keyword">instanceof</span> CommandBatchService)) &#123;</span><br><span class="line">        executorService.executeAsync();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示意图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605956150610-2ce6fbe0-577a-4ab1-9540-a1d176038d02-20210923224433312.png" alt="img"></p>
+<p>整个流程比较简单，只有两个难点：</p>
+<ul>
+<li>lua脚本写了啥</li>
+<li>ttlRemainingFuture.onComplete()有什么作用</li>
+</ul>
+<h3 id="lua脚本解读"><a href="#lua脚本解读" class="headerlink" title="lua脚本解读"></a>lua脚本解读</h3><p>大家可以通过evalWriteAsync()的参数列表推导出KEYS、ARGV分别是什么：</p>
+<p>KEYS[] &#x3D;&gt; Collections.singletonList(getName())</p>
+<p>ARGV[] &#x3D;&gt; internalLockLeaseTime, getLockName(threadId)</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 如果不存在锁：&quot;bravo1988_distributed_lock&quot;</span></span><br><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;exists&#x27;</span>, KEYS[<span class="number">1</span>]) == <span class="number">0</span>) <span class="keyword">then</span></span><br><span class="line">    <span class="comment">-- 使用hincrby设置锁：hincrby bravo1988_distributed_lock a1b2c3d4:666 1</span></span><br><span class="line">    redis.call(<span class="string">&#x27;hincrby&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">2</span>], <span class="number">1</span>); </span><br><span class="line">    <span class="comment">-- 设置过期时间。ARGV[1]==internalLockLeaseTime</span></span><br><span class="line">    redis.call(<span class="string">&#x27;pexpire&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">1</span>]); </span><br><span class="line">    <span class="comment">-- 返回null</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>; </span><br><span class="line">    <span class="keyword">end</span>; </span><br><span class="line"></span><br><span class="line"><span class="comment">-- 如果当前节点已经设置&quot;bravo1988_distributed_lock&quot;（注意，传了ARGV[2]==节点id）</span></span><br><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;hexists&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">2</span>]) == <span class="number">1</span>) <span class="keyword">then</span> </span><br><span class="line">    <span class="comment">-- 就COUNT++，可重入锁</span></span><br><span class="line">    redis.call(<span class="string">&#x27;hincrby&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">2</span>], <span class="number">1</span>); </span><br><span class="line">    <span class="comment">-- 设置过期时间。ARGV[1]==internalLockLeaseTime</span></span><br><span class="line">    redis.call(<span class="string">&#x27;pexpire&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">1</span>]); </span><br><span class="line">  	<span class="comment">-- 返回null</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">end</span>; </span><br><span class="line"></span><br><span class="line"><span class="comment">-- 已经存在锁，且不是当前节点设置的，就返回锁的过期时间ttl</span></span><br><span class="line"><span class="keyword">return</span> redis.call(<span class="string">&#x27;pttl&#x27;</span>, KEYS[<span class="number">1</span>]);</span><br></pre></td></tr></table></figure>
+
+<p>总的来说，Redisson设计的分布式锁是采用hash结构：</p>
+<p><strong>LOCK_NAME</strong>（锁的KEY）+ <strong>CLIENT_ID</strong>（节点ID）+ <strong>COUNT</strong>（重入次数）</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605957127624-694aaebe-2293-4641-83e8-8649823ec961-20210923224458173.png" alt="img"></p>
+<h3 id="回调函数的作用"><a href="#回调函数的作用" class="headerlink" title="回调函数的作用"></a>回调函数的作用</h3><p>之前我们已经学过CompletableFuture的回调机制：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605406493819-8575b4ca-57e6-4afc-aba7-4840bee68138-20210923224505808.png" alt="img">RFuture#onComplete()和它很相似：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ttlRemainingFuture.onComplete((ttlRemaining, e) -&gt; &#123;</span><br><span class="line">        <span class="comment">// 发生异常时直接return</span></span><br><span class="line">        <span class="keyword">if</span> (e != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 说明加锁成功</span></span><br><span class="line">        <span class="keyword">if</span> (ttlRemaining == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 启动额外的线程，按照一定规则给当前锁续期</span></span><br><span class="line">            scheduleExpirationRenewal(threadId);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>onComplete()应该也是把回调函数推到stack中，方便后面异步线程弹栈执行。</p>
+<p>至此，我们已经解决了之前的两个问题：</p>
+<ul>
+<li>lua脚本是什么意思（见注释）</li>
+<li>ttlRemainingFuture.onComplete()有什么作用（设置回调函数，等会儿会有线程调用）</li>
+</ul>
+<p>虽然在CompletableFuture中已经强调过，这里还是要提一下：<strong>被回调的不是onComplete(BiConsumer)，而是****BiConsumer#accept()。</strong>主线程在调用onComplete(BiConsumer)时把它作为参数传入，然后被推入栈中<strong>：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">BiConsumer</span> <span class="variable">consumer</span> <span class="operator">=</span> (ttlRemaining, e) -&gt; &#123;</span><br><span class="line">    <span class="comment">// 发生异常时直接return</span></span><br><span class="line">    <span class="keyword">if</span> (e != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 说明加锁成功</span></span><br><span class="line">    <span class="keyword">if</span> (ttlRemaining == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 启动额外的线程，按照一定规则给当前锁续期</span></span><br><span class="line">        scheduleExpirationRenewal(threadId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Redisson异步回调机制"><a href="#Redisson异步回调机制" class="headerlink" title="Redisson异步回调机制"></a>Redisson异步回调机制</h3><p>现在已经确定了尝试加锁后会返回RFuture，并且我们可以通过RFuture做两件事：</p>
+<ul>
+<li>通过RFuture获取ttlRemaining，也就是上一个锁的过期时间，如果为null则本次加锁成功，否则加锁失败，需要等待</li>
+<li>通过RFuture设置回调函数</li>
+</ul>
+<p>现在疑问是：</p>
+<ul>
+<li><p>异步线程是谁，哪来的？</p>
+</li>
+<li><p>onComplete()设置的回调函数是干嘛的？</p>
+</li>
+<li><p>回调时的参数(ttlRemaining, e)哪来的？</p>
+</li>
+</ul>
+<p>1、3两个问题非常难，源码比较绕，这里就带大家感性地体验一下，有兴趣可以自己跟源码了解。清除刚才的全部断点，只留下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605958482130-e4ac51fd-c7c6-4a1c-9b8d-bc9ce3fab6a6-20210923224532665.png" alt="img"></p>
+<p>再次DEBUG，线程会先到达return ttlRemainingFuture，随后回调BiConsumer#accept()：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605958677303-5991020a-4ff9-4399-a71c-cefd1824931c-20210923224542928.png" alt="img"></p>
+<p>回调时线程变了：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605958821470-c3a87de8-f677-4990-8a52-a42e572696d0-20210923224550800.png" alt="img"></p>
+<p>大家有兴趣可以自己顺着调用栈逆推回去，还是比较复杂的，涉及到NIO、Promise等，源头还是在线程池，但其中又设计了Listeners的收集和循环唤醒：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> &lt;T&gt; RFuture&lt;T&gt; <span class="title function_">evalWriteAsync</span><span class="params">(String key, Codec codec, RedisCommand&lt;T&gt; evalCommandType, String script, List&lt;Object&gt; keys, Object... params)</span> &#123;</span><br><span class="line">    <span class="type">CommandBatchService</span> <span class="variable">executorService</span> <span class="operator">=</span> createCommandBatchService();</span><br><span class="line">    RFuture&lt;T&gt; result = executorService.evalWriteAsync(key, codec, evalCommandType, script, keys, params);</span><br><span class="line">    <span class="keyword">if</span> (!(commandExecutor <span class="keyword">instanceof</span> CommandBatchService)) &#123;</span><br><span class="line">        executorService.executeAsync();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总之，目前为止我们只需要知道：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605959979086-b4d49fc5-a37b-4872-a0d4-3f9c5a560f9d-20210923224610738.png" alt="img"></p>
+<p>我们虽然不知道onComplete()具体如何实现回调（比CompletableFuture复杂得多），但是我们知道锁续期和RFuture的回调机制相关！</p>
+<h3 id="Redisson如何实现锁续期"><a href="#Redisson如何实现锁续期" class="headerlink" title="Redisson如何实现锁续期"></a>Redisson如何实现锁续期</h3><p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605960740451-f70e601b-0432-44a1-8e3c-34ff56b3b1c9-20210923224618495.png" alt="img"></p>
+<p>最终会进入：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">renewExpiration</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">ExpirationEntry</span> <span class="variable">ee</span> <span class="operator">=</span> EXPIRATION_RENEWAL_MAP.get(getEntryName());</span><br><span class="line">    <span class="keyword">if</span> (ee == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 启动一个定时器：Timeout newTimeout(TimerTask task, long delay, TimeUnit unit);</span></span><br><span class="line"><span class="comment">    * 执行规则是：延迟internalLockLeaseTime/3后执行</span></span><br><span class="line"><span class="comment">    * 注意啊，每一个定时任务只执行一遍，而且是延迟执行。</span></span><br><span class="line"><span class="comment">    * </span></span><br><span class="line"><span class="comment">    * 那么问题就来了：</span></span><br><span class="line"><span class="comment">    * 1.internalLockLeaseTime/3是多久呢？</span></span><br><span class="line"><span class="comment">    * 2.如果定时任务只执行一遍，似乎解决不了问题啊，本质上和我们手动设置过期时间一样：多久合适呢？</span></span><br><span class="line"><span class="comment">    */</span> </span><br><span class="line">    <span class="type">Timeout</span> <span class="variable">task</span> <span class="operator">=</span> commandExecutor.getConnectionManager().newTimeout(<span class="keyword">new</span> <span class="title class_">TimerTask</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(Timeout timeout)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">            <span class="type">ExpirationEntry</span> <span class="variable">ent</span> <span class="operator">=</span> EXPIRATION_RENEWAL_MAP.get(getEntryName());</span><br><span class="line">            <span class="keyword">if</span> (ent == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="type">Long</span> <span class="variable">threadId</span> <span class="operator">=</span> ent.getFirstThreadId();</span><br><span class="line">            <span class="keyword">if</span> (threadId == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 定时任务的目的是：重新执行一遍lua脚本，完成锁续期，把锁的ttl拨回到30s</span></span><br><span class="line">            RFuture&lt;Boolean&gt; future = renewExpirationAsync(threadId);</span><br><span class="line">            <span class="comment">// 设置了一个回调</span></span><br><span class="line">            future.onComplete((res, e) -&gt; &#123;</span><br><span class="line">                <span class="keyword">if</span> (e != <span class="literal">null</span>) &#123;</span><br><span class="line">                    log.error(<span class="string">&quot;Can&#x27;t update lock &quot;</span> + getName() + <span class="string">&quot; expiration&quot;</span>, e);</span><br><span class="line">                    <span class="comment">// 如果宕机了，就不会续期了</span></span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 如果锁还存在（没有unLock，说明业务还没结束），递归调用当前方法，不断续期</span></span><br><span class="line">                <span class="keyword">if</span> (res) &#123;</span><br><span class="line">                    <span class="comment">// reschedule itself</span></span><br><span class="line">                    renewExpiration();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, internalLockLeaseTime / <span class="number">3</span>, TimeUnit.MILLISECONDS);</span><br><span class="line">    </span><br><span class="line">    ee.setTimeout(task);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 重新执行evalWriteAsync()，和加锁时的lua脚本比较类似，但有点不同</span></span><br><span class="line"><span class="comment">* 这里设置expire的参数也是internalLockLeaseTime</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* 看来我们不得不去调查一下internalLockLeaseTime了！</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">protected</span> RFuture&lt;Boolean&gt; <span class="title function_">renewExpirationAsync</span><span class="params">(<span class="type">long</span> threadId)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> evalWriteAsync(getName(), LongCodec.INSTANCE, RedisCommands.EVAL_BOOLEAN,</span><br><span class="line">            <span class="string">&quot;if (redis.call(&#x27;hexists&#x27;, KEYS[1], ARGV[2]) == 1) then &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;redis.call(&#x27;pexpire&#x27;, KEYS[1], ARGV[1]); &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;return 1; &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;end; &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;return 0;&quot;</span>,</span><br><span class="line">            Collections.singletonList(getName()),</span><br><span class="line">            internalLockLeaseTime, getLockName(threadId));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果你给renewExpirationAsync()打上断点，会发现每隔10秒，定时任务就会执行一遍：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969467749-64ac2a12-3b6d-4762-abf8-b457be9dc0e5-20210923224633703.png" alt="img"></p>
+<p>联想到定时任务的delay是internalLockLeaseTime&#x2F;3，所以推测internalLockLeaseTime为30秒。</p>
+<p>点击internalLockLeaseTime，很容易跳转到对应的字段：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969607142-5897d87e-0841-4647-8ad1-02b308a7e66c-20210923224640385.png" alt="img"></p>
+<p>再顺着getLockWatchdogTimeout()跳转，很快就会发现</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969777097-2f955c29-3f28-4ce2-a12a-b76455fb1e1e-20210923224647544.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969804198-7d2b61c3-da1b-4de1-aecd-5777a4994ee5-20210923224657200.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969855073-00958650-adfb-49c5-972e-37e797f5f23d-20210923224708071.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605969922018-f5dc76c3-0566-4d14-9018-1ea86f17ff1c-20210923224716263.png" alt="img"></p>
+<p>确实是30秒。</p>
+<p>梳理一下所谓的Watchdog锁续期机制：</p>
+<ul>
+<li>lock()第一次成功加锁时，设置的锁过期时间默认30秒，这个值来自Watchdog变量</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 重点</span></span><br><span class="line"><span class="keyword">private</span> &lt;T&gt; RFuture&lt;Long&gt; <span class="title function_">tryAcquireAsync</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=-<span class="number">1</span>, TimeUnit unit=<span class="literal">null</span>, <span class="type">long</span> threadId=<span class="number">666</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// lock()默认leaseTime=-1，所以会跳过if</span></span><br><span class="line">    <span class="keyword">if</span> (leaseTime != -<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> tryLockInnerAsync(waitTime, leaseTime, unit, threadId, RedisCommands.EVAL_LONG);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行lua脚本加锁，返回RFuture。第二个参数就是leaseTime，来自LockWatchdogTimeout！！！</span></span><br><span class="line">    RFuture&lt;Long&gt; ttlRemainingFuture = tryLockInnerAsync(</span><br><span class="line">                                            waitTime=-<span class="number">1</span>,</span><br><span class="line">                                            commandExecutor.getConnectionManager().getCfg().getLockWatchdogTimeout()=<span class="number">30</span>秒,</span><br><span class="line">                                            TimeUnit.MILLISECONDS, </span><br><span class="line">                                            threadId=<span class="number">666</span>, </span><br><span class="line">                                            RedisCommands.EVAL_LONG);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置回调方法</span></span><br><span class="line">    ttlRemainingFuture.onComplete((ttlRemaining, e) -&gt; &#123;</span><br><span class="line">        <span class="comment">// 发生异常时直接return</span></span><br><span class="line">        <span class="keyword">if</span> (e != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 说明加锁成功</span></span><br><span class="line">        <span class="keyword">if</span> (ttlRemaining == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 启动额外的线程，按照一定规则给当前锁续期</span></span><br><span class="line">            scheduleExpirationRenewal(threadId);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回RFuture，里面有ttlRemaining</span></span><br><span class="line">    <span class="keyword">return</span> ttlRemainingFuture;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行lua脚本上锁</span></span><br><span class="line">&lt;T&gt; RFuture&lt;T&gt; <span class="title function_">tryLockInnerAsync</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=<span class="number">30</span>*<span class="number">1000</span>, TimeUnit unit=毫秒, <span class="type">long</span> threadId=<span class="number">666</span>, RedisStrictCommand&lt;T&gt; command)</span> &#123;</span><br><span class="line">    <span class="comment">// 略...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>onComplete()设置回调，等Redis调用回来后，异步线程回调BiConsumer#accept()，进入scheduleExpirationRenewal(threadId)，开始<strong>每隔internalLockLeaseTime&#x2F;3时间就给锁续期</strong></li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605961851949-8de820bf-97f6-4330-a580-da4003cc2123-20210923224729646.png" alt="img"></p>
+<p>和加锁一样，执行lua脚本其实很快，所以这里的future.onComplete()虽说是异步，但很快就会被调用，然后就会递归调用renewExpiration()，然后又是一个TimerTask()，<strong>隔****internalLockLeaseTime&#x2F;3后又给锁续期。</strong></p>
+<p><strong>也就是说，Redisson的Watchdog定时任务虽然只延迟执行一次，但每次调用都会递归，所以相当于：重复延迟执行。</strong></p>
+<p>还记得之前学习CompletableFuture时我写的一行注释吗：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605970707587-a80fb37d-b89e-4742-b675-4bfe03ca8b0c-20210923224741535.png" alt="img"></p>
+<p>也就是说，只要主线程的任务不结束，就会一直给锁续期。</p>
+<p>锁释放有两种情况：</p>
+<ul>
+<li>任务结束，主动unLock()删除锁</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redisson.lock();</span><br><span class="line">task();</span><br><span class="line">redisson.unLock();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>任务结束，不调用unLock()，但由于守护线程已经结束，不会有后台线程继续给锁续期，过了30秒自动过期</li>
+</ul>
+<p>上面我们探讨的都是加锁成功的流程，直接ttl&#x3D;null就返回了，后面一大坨都是加锁失败时的判断逻辑，其中涉及到：</p>
+<ul>
+<li><p>while(true)死循环</p>
+</li>
+<li><p>阻塞等待</p>
+</li>
+<li><p>释放锁时Redis的Publish通知（在后面的unLock流程会看到）</p>
+</li>
+<li><p>其他节点收到锁释放的信号后重新争抢锁</p>
+</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605975498344-dd4657b8-5442-4fcd-8693-9f5e81d09531-20210923224753386.png" alt="img"></p>
+<p>整个过程还是非常复杂的，大家有精力可以自行百度了解，后面介绍unLock()时也会涉及一部分加锁失败相关内容。</p>
+<h3 id="unLock-源码解析"><a href="#unLock-源码解析" class="headerlink" title="unLock()源码解析"></a>unLock()源码解析</h3><p>有了lock()的经验，unLock()就简单多了：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605975635261-dc6265a9-2950-433f-a7f1-d46445d0a01b-20210923224803834.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605975844381-fff7bf1c-36e2-4f63-9fc8-f5af8ebc0e0a-20210923224809682.png" alt="img"></p>
+<p>相信大家还是能推断出KEYS[]和ARGV[]，这里就直接给出答案了：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 参数解释：</span></span><br><span class="line"><span class="comment">-- KEYS[1] =&gt; &quot;bravo1988_distributed_lock&quot;</span></span><br><span class="line"><span class="comment">-- KEYS[2] =&gt; getChannelName()</span></span><br><span class="line"><span class="comment">-- ARGV[1] =&gt; LockPubSub.UNLOCK_MESSAGE</span></span><br><span class="line"><span class="comment">-- ARGV[2] =&gt; internalLockLeaseTime</span></span><br><span class="line"><span class="comment">-- ARGV[3] =&gt; getLockName(threadId)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 锁已经不存在，返回null</span></span><br><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;hexists&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">3</span>]) == <span class="number">0</span>) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">    <span class="keyword">end</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 锁还存在，执行COUNT--（重入锁的反向操作）</span></span><br><span class="line"><span class="keyword">local</span> counter = redis.call(<span class="string">&#x27;hincrby&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">3</span>], <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- COUNT--后仍然大于0（之前可能重入了多次）</span></span><br><span class="line"><span class="keyword">if</span> (counter &gt; <span class="number">0</span>) <span class="keyword">then</span></span><br><span class="line">    <span class="comment">-- 设置过期时间</span></span><br><span class="line">    redis.call(<span class="string">&#x27;pexpire&#x27;</span>, KEYS[<span class="number">1</span>], ARGV[<span class="number">2</span>]);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"><span class="comment">-- COUNT--后小于等于0，删除锁，并向对应的Channel发送消息（NIO），消息类型是LockPubSub.UNLOCK_MESSAGE（锁释放啦，快来抢~）</span></span><br><span class="line"><span class="keyword">else</span> </span><br><span class="line">    redis.call(<span class="string">&#x27;del&#x27;</span>, KEYS[<span class="number">1</span>]);</span><br><span class="line">    redis.call(<span class="string">&#x27;publish&#x27;</span>, KEYS[<span class="number">2</span>], ARGV[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">end</span>;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">return</span> <span class="literal">nil</span>;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，当一个锁被释放时，原先持有锁的节点会通过NIO的Channel发送LockPubSub.UNLOCK_MESSAGE，告诉其他订阅的Client：我已经释放锁啦，快来抢啊！此时原本阻塞的其他节点就会重新竞争锁。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606010300656-f21b35bd-bd46-4f02-bf73-e2913664af28-20210923224832043.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606010321812-3803dd5d-3411-4060-84f1-2f797f56946e-20210923224838169.png" alt="img"></p>
+<p>而所谓重入和反重入，简单来说就是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 加锁三次</span></span><br><span class="line">redisson.lock();</span><br><span class="line">redisson.lock();</span><br><span class="line">redisson.lock();</span><br><span class="line"><span class="comment">// 执行业务</span></span><br><span class="line">executeTask();</span><br><span class="line"><span class="comment">// 相应的，就要解锁三次</span></span><br><span class="line">redisson.unLock();</span><br><span class="line">redisson.unLock();</span><br><span class="line">redisson.unLock();</span><br></pre></td></tr></table></figure>
+
+<p>实际开发不会这样调用，但有时会出现子父类方法调用或者同一个线程反复调用使用同一把锁的多个方法，就会发生锁的重入（COUNT++），而当这些方法执行完毕逐个弹栈的过程中就会逐个unLock()解锁（COUNT–）。</p>
+<h3 id="lock-leaseTime-unit-：自定义过期时间、且不续期"><a href="#lock-leaseTime-unit-：自定义过期时间、且不续期" class="headerlink" title="lock(leaseTime, unit)：自定义过期时间、且不续期"></a>lock(leaseTime, unit)：自定义过期时间、且不续期</h3><p>lock()默认会开启定时任务对锁进行续期，但Redisson还提供了另一个lock方法：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605976920059-cd4945a2-0932-4cc6-a2b5-9beac14475f9-20210923224857619.png" alt="img"></p>
+<p>两个lock()唯一的区别是，内部调用lock()时，一个传了leaseTime&#x3D;-1，另一个传了我们自己的leaseTime。对于外部调用者来说：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redisson.lock();</span><br><span class="line">redisson.lock(-<span class="number">1</span>, <span class="literal">null</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这两种写法其实一样。</p>
+<p>当然了，通常会传入有意义的leaseTime：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605977159145-10176f3a-8e5c-4d34-9f82-d5a9a684c15e-20210923224909434.png" alt="img"></p>
+<p><strong>这种写法除了更改了锁的默认ttl时间外，还阉割了锁续期功能。</strong>也就是说，10秒后如果任务还没执行完，就会和我们手写的Redis分布式锁一样，自动释放锁。</p>
+<p>为什么锁续期的功能失效了呢？留给大家自己解答，这里只给出参考答案：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 重点</span></span><br><span class="line"><span class="keyword">private</span> &lt;T&gt; RFuture&lt;Long&gt; <span class="title function_">tryAcquireAsync</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=-<span class="number">1</span>, TimeUnit unit=<span class="literal">null</span>, <span class="type">long</span> threadId=<span class="number">666</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// lock()默认leaseTime=-1，会跳过这个if执行后面的代码。但如果是lock(10, TimeUnit.SECONDS)，会执行if并跳过后面的代码。</span></span><br><span class="line">    <span class="keyword">if</span> (leaseTime != -<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">// 其实和下面的tryLockInnerAsync()除了时间不一样外，没什么差别</span></span><br><span class="line">        <span class="keyword">return</span> tryLockInnerAsync(waitTime, leaseTime, unit, threadId, RedisCommands.EVAL_LONG);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 但由于上面直接return了，所以下面的都不会执行！！</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    RFuture&lt;Long&gt; ttlRemainingFuture = tryLockInnerAsync(</span></span><br><span class="line"><span class="comment">                                            waitTime=-1,</span></span><br><span class="line"><span class="comment">                                            commandExecutor.getConnectionManager().getCfg().getLockWatchdogTimeout()=30秒,</span></span><br><span class="line"><span class="comment">                                            TimeUnit.MILLISECONDS, </span></span><br><span class="line"><span class="comment">                                            threadId=666, </span></span><br><span class="line"><span class="comment">                                            RedisCommands.EVAL_LONG);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    // 设置回调方法（不会执行！！）</span></span><br><span class="line"><span class="comment">    ttlRemainingFuture.onComplete((ttlRemaining, e) -&gt; &#123;</span></span><br><span class="line"><span class="comment">        // 发生异常时直接return</span></span><br><span class="line"><span class="comment">        if (e != null) &#123;</span></span><br><span class="line"><span class="comment">            return;</span></span><br><span class="line"><span class="comment">        &#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">        // 说明加锁成功</span></span><br><span class="line"><span class="comment">        if (ttlRemaining == null) &#123;</span></span><br><span class="line"><span class="comment">            // 启动额外的线程，按照一定规则给当前锁续期</span></span><br><span class="line"><span class="comment">            scheduleExpirationRenewal(threadId);</span></span><br><span class="line"><span class="comment">        &#125;</span></span><br><span class="line"><span class="comment">    &#125;);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    // 不会执行！！</span></span><br><span class="line"><span class="comment">    return ttlRemainingFuture;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行lua脚本加锁</span></span><br><span class="line">&lt;T&gt; RFuture&lt;T&gt; <span class="title function_">tryLockInnerAsync</span><span class="params">(<span class="type">long</span> waitTime=-<span class="number">1</span>, <span class="type">long</span> leaseTime=<span class="number">30</span>*<span class="number">1000</span>, TimeUnit unit=毫秒, <span class="type">long</span> threadId=<span class="number">666</span>, RedisStrictCommand&lt;T&gt; command)</span> &#123;</span><br><span class="line">    <span class="comment">// 略...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，直接执行lua加锁就返回了，没有机会启动定时任务和递归…</p>
+<h3 id="tryLock-系列：让调用者自行决定加锁失败后的操作"><a href="#tryLock-系列：让调用者自行决定加锁失败后的操作" class="headerlink" title="tryLock()系列：让调用者自行决定加锁失败后的操作"></a>tryLock()系列：让调用者自行决定加锁失败后的操作</h3><p>之前我们已经观察到，如果多个节点都调用lock()，那么没获取到锁的节点线程会<strong>阻塞</strong>，直到原先持有锁的节点删除锁并publish LockPubSub.UNLOCK_MESSAGE 。</p>
+<p>但如果调用者不希望阻塞呢？他有可能想着：如果加锁失败，我就直接放弃。</p>
+<p>是啊，毕竟尝试加锁的目的可能完全相反：</p>
+<ul>
+<li>在保证线程安全的前提下，尽量让所有线程都执行成功</li>
+<li>在保证线程安全的前提下，只让一个线程执行成功</li>
+</ul>
+<p>前者适用于秒杀、下单等操作，希望尽最大努力达成；后者适用于定时任务，只要让一个节点去执行，没有获取锁的节点应该fast-fail（快速失败）。</p>
+<p>也就是说，节点获锁失败后，理论上可以有各种各样的处理方式：</p>
+<ul>
+<li><p>阻塞等待</p>
+</li>
+<li><p>直接放弃</p>
+</li>
+<li><p>试N次再放弃</p>
+</li>
+<li><p>…</p>
+</li>
+</ul>
+<p><strong>但lock、****lock(leaseTime, timeUnit)替我们写死了：阻塞等待。</strong>即使lock(leaseTime, unit)，其实也是阻塞等待，只不过不会像lock()一样不断续期。</p>
+<p>究其原因，主要是lock()这些方法对于加锁失败的判断是在内部写死的：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605978662886-e09f2b51-ccb8-4fdb-b7f2-b2b162d0c57d-20210923224924265.png" alt="img"></p>
+<p>而tryLock()方法则去掉了这层中间判断，<strong>把结果直接呈递到调用者面前，让调用者自己决定加锁失败后如何处理：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605978761456-207d8919-5a9e-451e-9460-3b4498f1b86c-20210923224932016.png" alt="img"></p>
+<p>tryLock()直接返回true（加锁成功）和false（加锁失败），后续如何处理，全凭各个节点自己做出决定。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testTryLock</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;bravo1988_distributed_lock&quot;</span>);</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">b</span> <span class="operator">=</span> lock.tryLock();</span><br><span class="line">    <span class="keyword">if</span> (b) &#123;</span><br><span class="line">        <span class="comment">// 业务操作...</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 调用立即结束，不阻塞</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样讲可能有点抽象，大家可以分别点进lock()和tryLock()，自行体会。总之，tryLock()中间少了一大块逻辑，因为它不插手结果的判断。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606181778959-3b05f3f9-ba72-4ada-9d4b-cb17f2871d91-20210923224943457.png" alt="img"></p>
+<p>另外，tryLock()在加锁成功的情况下，其实和lock()是一样的，也会触发锁续期：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979113544-fd5fd678-27b0-4ee8-af1b-bb8e82b6cf5b-20210923224950350.png" alt="img"></p>
+<p>如果你不希望触发锁续期，可以像lock(leaseTime, unit)一样指定过期时间，还可以指定加锁失败后等待多久：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">testLockSuccess</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(<span class="string">&quot;bravo1988_distributed_lock&quot;</span>);</span><br><span class="line">    <span class="comment">// 基本等同于lock()，加锁成功也【会自动锁续期】，但获锁失败【立即返回false】，交给调用者判断是否阻塞或放弃</span></span><br><span class="line">    lock.tryLock();</span><br><span class="line">    <span class="comment">// 加锁成功仍然【会自动锁续期】，但获锁失败【会等待10秒】，看看这10秒内当前锁是否释放，如果是否则尝试加锁</span></span><br><span class="line">    lock.tryLock(<span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">    <span class="comment">// 加锁成功【不会锁续期】，加锁失败【会等待10秒】，看看这10秒内当前锁是否释放，如果是否则尝试加锁</span></span><br><span class="line">    lock.tryLock(<span class="number">10</span>, <span class="number">30</span>, TimeUnit.SECONDS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意哈，只传两个参数时，那个time其实是传给waitTime的：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979480581-3f3ecda4-159e-475a-80d3-9854b1affea3-20210923225001508.png" alt="img"></p>
+<p>我们之前操作的都是leaseTime，此时还是-1，也就是说如果加锁成功，还是会锁续期。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979506461-ae56c20c-6a92-44be-ac30-0944c8caaa47-20210923225007411.png" alt="img"></p>
+<p>那waitTime是用来控制什么的呢？</p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1605979722684-793f715f-e2ed-498f-98e1-68b8d69519e8-20210923225013679.png" alt="img"></p>
+<p>简而言之：</p>
+<ul>
+<li>tryLock()加锁失败会立即返回false，而加了waitTime可以手动指定阻塞等待的时间（等一等，万一行呢）</li>
+<li>leaseTime的作用没变，控制的是加锁成功后要不要续期</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1606183066878-ce4cc7de-8cc1-4dd1-995a-b663df428550-20210923225020644.png" alt="img"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/XS-RYAN/pic/ryan/1612490364124-289ef177-9b03-4cc0-9168-f6270728cff9-20210923225025657.jpeg" alt="img"></p>
+<p>至此，分布式锁章节暂时告一段段落。大家有兴趣的话，可以把上一篇花里胡哨的定时任务用Redisson改写，去掉Redis Message Queue（但定时任务最好还是用xxl-job等）。</p>
+<h2 id="Redisson分布式锁的缺陷"><a href="#Redisson分布式锁的缺陷" class="headerlink" title="Redisson分布式锁的缺陷"></a>Redisson分布式锁的缺陷</h2><p>在哨兵模式或者主从模式下，如果master实例宕机，可能导致多个节点同时完成加锁。</p>
+<p>以主从模式为例，由于所有的写操作都是先在master上进行，然后再同步给各个slave节点，所以master与各个slave节点之间的数据具有一定的延迟性。对于Redisson分布式锁而言，比如客户端刚对master写入Redisson锁，然后master异步复制给各个slave节点，但这个过程中master节点宕机了，其中一个slave节点经过选举变成了master节点，好巧不巧，这个slave还没同步到Reddison锁，所以其他客户端可能再次加锁。</p>
+<p>具体情况，大家可以百度看看，解决方案也比较多。</p>
+<p>还是那句话，但凡涉及到分布式，都没那么简单。有时引入一个解决方案后，我们不得不面对另一个问题。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag"><i class="fa fa-tag"></i> 分布式锁</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/10/05/%E5%9F%BA%E4%BA%8ERedis%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%8F%AF%E7%94%A8%E6%80%A7%E6%8E%A2%E7%B4%A21/" rel="prev" title="基于Redis实现的分布式锁的可用性探索1">
+                  <i class="fa fa-angle-left"></i> 基于Redis实现的分布式锁的可用性探索1
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/11/22/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6-%E5%AF%B9%E8%B1%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/" rel="next" title="转载:Java垃圾回收机制-对象管理与内存优化">
+                  转载:Java垃圾回收机制-对象管理与内存优化 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>
