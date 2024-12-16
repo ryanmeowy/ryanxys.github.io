@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Elasticsearch 虽提供强大搜索功能，但默认排序在复杂业务场景下渐显局限。电商需综合商品热度、评分等因素排序；新闻平台看重时效性与权威性；企业知识管理系统要考虑文档重要性等。Function Score Query 应运而生，它允许开发者依据业务规则自定义打分机制，实现精准个性化排序，以满足多样化需求，提升用户搜索体验与业务竞争力。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES自定义搜索结果打分机制">
+<meta property="og:url" content="http://example.com/2022/11/07/ES%E8%87%AA%E5%AE%9A%E4%B9%89%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E6%89%93%E5%88%86%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="Elasticsearch 虽提供强大搜索功能，但默认排序在复杂业务场景下渐显局限。电商需综合商品热度、评分等因素排序；新闻平台看重时效性与权威性；企业知识管理系统要考虑文档重要性等。Function Score Query 应运而生，它允许开发者依据业务规则自定义打分机制，实现精准个性化排序，以满足多样化需求，提升用户搜索体验与业务竞争力。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205262020259.png">
+<meta property="article:published_time" content="2022-11-07T07:22:10.000Z">
+<meta property="article:modified_time" content="2024-12-15T15:38:30.393Z">
+<meta property="article:author" content="RYAN">
+<meta property="article:tag" content="Elasticsearch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205262020259.png">
+
+
+<link rel="canonical" href="http://example.com/2022/11/07/ES%E8%87%AA%E5%AE%9A%E4%B9%89%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E6%89%93%E5%88%86%E6%9C%BA%E5%88%B6/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/11/07/ES%E8%87%AA%E5%AE%9A%E4%B9%89%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E6%89%93%E5%88%86%E6%9C%BA%E5%88%B6/","path":"2022/11/07/ES自定义搜索结果打分机制/","title":"ES自定义搜索结果打分机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ES自定义搜索结果打分机制 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%88%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.</span> <span class="nav-text">打分逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%88%86%E5%87%BD%E6%95%B0"><span class="nav-number">2.</span> <span class="nav-text">打分函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9D%83%E9%87%8D-weight"><span class="nav-number">2.1.</span> <span class="nav-text">权重 weight</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E6%89%93%E5%88%86-random-score"><span class="nav-number">2.2.</span> <span class="nav-text">随机打分 random_score</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E6%AE%B5%E5%80%BC%E6%89%93%E5%88%86-field-value-factor"><span class="nav-number">2.3.</span> <span class="nav-text">字段值打分 field_value_factor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%B0%E5%87%8F%E5%87%BD%E6%95%B0-decay-function"><span class="nav-number">2.4.</span> <span class="nav-text">衰减函数 decay_function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#script-score-%E8%84%9A%E6%9C%AC%E6%89%93%E5%88%86"><span class="nav-number">2.5.</span> <span class="nav-text">script_score 脚本打分</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/11/07/ES%E8%87%AA%E5%AE%9A%E4%B9%89%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E6%89%93%E5%88%86%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ES自定义搜索结果打分机制 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ES自定义搜索结果打分机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-11-07 15:22:10" itemprop="dateCreated datePublished" datetime="2022-11-07T15:22:10+08:00">2022-11-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-12-15 23:38:30" itemprop="dateModified" datetime="2024-12-15T23:38:30+08:00">2024-12-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Elasticsearch 虽提供强大搜索功能，但默认排序在复杂业务场景下渐显局限。电商需综合商品热度、评分等因素排序；新闻平台看重时效性与权威性；企业知识管理系统要考虑文档重要性等。Function Score Query 应运而生，它允许开发者依据业务规则自定义打分机制，实现精准个性化排序，以满足多样化需求，提升用户搜索体验与业务竞争力。</p>
+<span id="more"></span>
+
+<p>ES的query结果中的存在一个相关度得分score,默认按照score从高到低排序</p>
+<p>Function score query可以实现对最终score的自定义打分</p>
+<h2 id="打分逻辑"><a href="#打分逻辑" class="headerlink" title="打分逻辑"></a>打分逻辑</h2><p>三个名词概念, 本文中将会用到</p>
+<ul>
+<li>ES的默认打分 def_score</li>
+<li>函数打分值 fun_score</li>
+<li>最终文档排序使用的打分  ult_score</li>
+</ul>
+<p>在不使用function score query的情况下  def_score 等于 ult_score</p>
+<p>使用function score query后, ult_score的计算过程如下:</p>
+<ol>
+<li>执行query获取 def_score</li>
+<li>执行自定义的打分函数,每个文档获取一个新的打分值,记为 fun_score</li>
+<li>fun_score 和 def_score 按照某种计算方式(默认相乘),计算得出 ult_score</li>
+</ol>
+<p>基本使用方式:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="attr">&quot;material_no&quot;</span><span class="punctuation">:</span> <span class="string">&quot;acti&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;boost_mode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;multiply&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>计算方式由boost_mode定义</p>
+<ul>
+<li>multiply : 相乘（默认），ult_score &#x3D; def_score * fun_score</li>
+<li>replace : 替换，ult_score &#x3D; fun_score</li>
+<li>sum : 相加，ult_score &#x3D; def_score + fun_score</li>
+<li>avg : 取两者的平均值，ult_score &#x3D; Avg(def_score, fun_score)</li>
+<li>max : 取两者之中的最大值，ult_score &#x3D; Max(def_score, fun_score)</li>
+<li>min : 取两者之中的最小值，ult_score &#x3D; Min(def_score, fun_score)</li>
+</ul>
+<h2 id="打分函数"><a href="#打分函数" class="headerlink" title="打分函数"></a>打分函数</h2><h3 id="权重-weight"><a href="#权重-weight" class="headerlink" title="权重 weight"></a>权重 weight</h3><p>基本使用:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;material_no&quot;</span><span class="punctuation">:</span><span class="string">&quot;acti&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;weight&quot;</span><span class="punctuation">:</span><span class="number">5</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>这种方式会给所有匹配文档加权, 等于是将所有def_score进行了等比放大,并不会影响排序结果</p>
+<p>通过filter去控制哪些文档进行加权</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="string">&quot;query:&quot;</span><span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;material_no&quot;</span><span class="punctuation">:</span><span class="string">&quot;acti&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;functions&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;brand_name&quot;</span><span class="punctuation">:</span><span class="string">&quot;西门子&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;weight&quot;</span><span class="punctuation">:</span><span class="number">5</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这种情况下,只有brand_name 等于 西门子的文档的def_score会被加权, 这种方式可以让我们想要的文档排序是排到前面去</p>
+<h3 id="随机打分-random-score"><a href="#随机打分-random-score" class="headerlink" title="随机打分 random_score"></a>随机打分 random_score</h3><p>random_score函数会生成 [0,1) 区间的随机数</p>
+<p>基本使用</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;material_no&quot;</span><span class="punctuation">:</span><span class="string">&quot;acti&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;random_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这种情况下,每次的排序结果都会不同</p>
+<p>如果在某些情况下需要同一用户的随机结果保持前后一致,可以通过为每个用户指定seed来实现</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;material_no&quot;</span><span class="punctuation">:</span><span class="string">&quot;acti&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;random_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;seed&quot;</span><span class="punctuation">:</span><span class="number">10</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这种写法可以实现我们上面的要求,但是es会报警告</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205262020259.png" alt="image-2022052682009192 PM"></p>
+<p>大概意思为7.0之后,设置seed必须提供field参数</p>
+<p>这是因为不设置field时,会使用Lucene doc ids作为随机源,会消耗大量内存</p>
+<p>官方建议设置field为 _seq_no (索引序列号)</p>
+<p>注意 : 如果索引进行了更新,则_seq_no也会进行更新,则随机数也会改变</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;material_no&quot;</span><span class="punctuation">:</span><span class="string">&quot;acti&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;random_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;seed&quot;</span><span class="punctuation">:</span><span class="number">10</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span><span class="string">&quot;_seq_no&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="字段值打分-field-value-factor"><a href="#字段值打分-field-value-factor" class="headerlink" title="字段值打分 field_value_factor"></a>字段值打分 field_value_factor</h3><p>使用文档中指定字段的值计算ult_score</p>
+<p>比如brand表中有用于排序的sort字段,我们想要匹配文档按照sort字段进行排序,可以这么写</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;field_value_factor&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span><span class="string">&quot;sort&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;factor&quot;</span><span class="punctuation">:</span><span class="number">1.5</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;missing&quot;</span><span class="punctuation">:</span><span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;modifier&quot;</span><span class="punctuation">:</span><span class="string">&quot;ln&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>field : 指定字段</li>
+<li>factor : 乘积因子, 与指定字段值相乘, 默认为1</li>
+<li>missing : 缺省值, 如果field不存在,则使用missing值</li>
+<li>modifier : 计算函数，为了避免分数相差过大，用于平滑分数,有如下几种<ul>
+<li>none : 不处理，默认</li>
+<li>log : 自然对数,   log(factor * field_value)</li>
+<li>log1p :自然对数,  log(1 + factor * field_value)</li>
+<li>log2p :自然对数 , log(2 + factor * field_value)</li>
+<li>ln : 自然对数,    ln(factor * field_value)</li>
+<li>ln1p : 自然对数,  ln(1 + factor * field_value)</li>
+<li>ln2p : 自然对数,  ln(2 + factor * field_value)</li>
+<li>square : 平方，   (factor * field_value)^2</li>
+<li>sqrt : 开方，     sqrt(factor * field_value)</li>
+<li>reciprocal : 倒数，1&#x2F;(factor * field_value)</li>
+</ul>
+</li>
+</ul>
+<p>在上面的写法中 , 假设文档A的 def_score &#x3D; 0.8 ,  sort &#x3D; 5</p>
+<p>则 ult_score &#x3D; 0.8 *  ln( 1.5 * 5 ) &#x3D;  1.612</p>
+<h3 id="衰减函数-decay-function"><a href="#衰减函数-decay-function" class="headerlink" title="衰减函数 decay_function"></a>衰减函数 decay_function</h3><p>以某一数值(日期,数值,位置)作为中心点, 按照设置的比例逐渐衰减</p>
+<p>基本使用</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;gauss&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;created_at&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;origin&quot;</span><span class="punctuation">:</span><span class="string">&quot;2000-01-05&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;scale&quot;</span><span class="punctuation">:</span><span class="string">&quot;10d&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;offset&quot;</span><span class="punctuation">:</span><span class="string">&quot;5d&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;decay&quot;</span><span class="punctuation">:</span><span class="number">0.5</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>三种函数 :</p>
+<ul>
+<li>linear :线性函数</li>
+<li>exp: 指数函数</li>
+<li>gauss: 高斯函数</li>
+</ul>
+<p>参数含义:</p>
+<ul>
+<li>origin : 中心点 (数值, 日期 ,坐标 )</li>
+<li>scale : 到中心点的距离</li>
+<li>offset : 偏移量</li>
+<li>decay: 衰减指数</li>
+</ul>
+<p>origin 等于 2000-01-05, scale 等于 10天</p>
+<p>意味着 created_at 在 2000-01-01 到 2000-01-10  区间内的文档的权重为 1</p>
+<p>created_at在 scale + offset &#x3D; 15天 之外的文档的权重为0.5</p>
+<h3 id="script-score-脚本打分"><a href="#script-score-脚本打分" class="headerlink" title="script_score 脚本打分"></a>script_score 脚本打分</h3><p>自由度最高的一种打分函数</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;script_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;script&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;source&quot;</span><span class="punctuation">:</span><span class="string">&quot;Math.log(2+doc[&#x27;sort&#x27;].value)&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 doc[‘field_name’].value 引用指定字段的值</p>
+<p>source可以设置为任意的算法</p>
+<p>&lt;更新&gt;</p>
+<p>去除硬编码, 使用params参数使脚本更灵活,使source不用重复编译</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST index/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;script_score&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;script&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;source&quot;</span><span class="punctuation">:</span><span class="string">&quot;Math.log(&#x27;multiplier&#x27;+doc[&#x27;sort&#x27;].value)&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;multiplier&quot;</span><span class="punctuation">:</span><span class="number">2</span><span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>注意:脚本编译有频率限制,编译非常耗时,这是es的自我保护机制  ;  默认情况下，每 5 分钟最多可以编译 150 个脚本</p>
+<p>调整方法:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PUT _cluster/settings</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;transient&quot;</span> <span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="attr">&quot;script.max_compilations_rate&quot;</span> <span class="punctuation">:</span> <span class="string">&quot;100/1m&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用存储脚本的API来存储和检索脚本  , 存储的脚本可缩短编译时间并加快搜索速度。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">POST /_scripts/calc_score</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;script&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;lang&quot;</span><span class="punctuation">:</span> <span class="string">&quot;painless&quot;</span><span class="punctuation">,</span> </span><br><span class="line">    <span class="attr">&quot;source&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Math.log(_score * 2) + params[&#x27;multiplier&#x27;]&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用存储的脚本</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">POST product4/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;function_score&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;script_score&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;script&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;calc_score&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="attr">&quot;multiplier&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>删除</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DELETE _scripts/calc_score</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Elasticsearch/" rel="tag"><i class="fa fa-tag"></i> Elasticsearch</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/06/12/%E5%9F%BA%E4%BA%8EIK%E5%88%86%E8%AF%8D%E5%99%A8%E4%BA%8C%E5%BC%80%E7%9A%84%E4%B8%80%E7%82%B9%E5%BD%92%E7%BA%B3/" rel="prev" title="基于IK分词器二开的一点归纳">
+                  <i class="fa fa-angle-left"></i> 基于IK分词器二开的一点归纳
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/05/11/%E5%8D%B3%E6%97%B6%E7%BC%96%E8%AF%91JIT/" rel="next" title="即时编译JIT">
+                  即时编译JIT <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>
