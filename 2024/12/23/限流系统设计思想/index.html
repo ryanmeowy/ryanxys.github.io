@@ -27,7 +27,7 @@
 <meta property="og:description" content="在当今高并发的互联网环境中,限流系统扮演着至关重要的角色。请设计一个可靠、高效的限流系统,能够有效控制API的访问频率,防止系统被滥用或过载。你的设计应该能够适应不同的限流策略,并在分布式环境中保持一致性。此外,考虑如何处理突发流量,以及如何与现有的API网关无缝集成。假设系统需要每秒处理10万次请求,并支持多种限流粒度(如按用户、IP或API端点)。请在你的设计中解释如何实现这些需求,并讨论可能">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-12-23T13:44:10.000Z">
-<meta property="article:modified_time" content="2024-12-23T14:54:04.622Z">
+<meta property="article:modified_time" content="2024-12-23T15:21:51.355Z">
 <meta property="article:author" content="RYAN">
 <meta property="article:tag" content="限流系统">
 <meta name="twitter:card" content="summary">
@@ -112,7 +112,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">1.需求分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%B9%E9%87%8F%E4%BC%B0%E7%AE%97"><span class="nav-number">2.</span> <span class="nav-text">2.容量估算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-API%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">3.API设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%A6%81%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.</span> <span class="nav-text">4.系统概要设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">4.1.</span> <span class="nav-text">4.1.架构图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-%E8%AF%B7%E6%B1%82%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 请求数据流</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E8%AF%A6%E7%BB%86%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">5.详细设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="nav-number">5.1.</span> <span class="nav-text">5.1数据模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95"><span class="nav-number">5.2.</span> <span class="nav-text">5.2限流算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3%E5%88%86%E5%B8%83%E5%BC%8F%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.3.</span> <span class="nav-text">5.3分布式实现</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%8A%80%E6%9C%AF%E9%80%89%E6%8B%A9%E4%B8%8E%E6%9D%83%E8%A1%A1%E5%8F%96%E8%88%8D"><span class="nav-number">6.</span> <span class="nav-text">6.技术选择与权衡取舍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86"><span class="nav-number">7.</span> <span class="nav-text">7.故障处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E6%89%A9%E5%B1%95%E6%80%A7%E5%92%8C%E6%9C%AA%E6%9D%A5%E6%94%B9%E8%BF%9B"><span class="nav-number">8.</span> <span class="nav-text">8.扩展性和未来改进</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">需求分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%B9%E9%87%8F%E4%BC%B0%E7%AE%97"><span class="nav-number">2.</span> <span class="nav-text">容量估算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">API设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%A6%81%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.</span> <span class="nav-text">系统概要设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">4.1.</span> <span class="nav-text">架构图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="nav-number">4.2.</span> <span class="nav-text">请求数据流</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%A6%E7%BB%86%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">详细设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="nav-number">5.1.</span> <span class="nav-text">数据模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95"><span class="nav-number">5.2.</span> <span class="nav-text">限流算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.3.</span> <span class="nav-text">分布式实现</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E9%80%89%E6%8B%A9%E4%B8%8E%E6%9D%83%E8%A1%A1%E5%8F%96%E8%88%8D"><span class="nav-number">6.</span> <span class="nav-text">技术选择与权衡取舍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86"><span class="nav-number">7.</span> <span class="nav-text">故障处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E6%80%A7%E5%92%8C%E6%9C%AA%E6%9D%A5%E6%94%B9%E8%BF%9B"><span class="nav-number">8.</span> <span class="nav-text">扩展性和未来改进</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -204,7 +204,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2024-12-23 21:44:10 / 修改时间：22:54:04" itemprop="dateCreated datePublished" datetime="2024-12-23T21:44:10+08:00">2024-12-23</time>
+      <time title="创建时间：2024-12-23 21:44:10 / 修改时间：23:21:51" itemprop="dateCreated datePublished" datetime="2024-12-23T21:44:10+08:00">2024-12-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -233,9 +233,8 @@
 <p>💡提示3<br>限流算法是系统的核心。固定窗口、滑动窗口、漏桶、令牌桶等算法各有特点,如何选择或组合使用这些算法来满足不同的限流需求?</p>
 <p>💡提示4<br>在分布式环境中实现一致的限流是一个挑战。考虑使用分布式缓存或共识算法来解决这个问题。同时,思考如何在保证致性的同时不影响系统性能。</p>
 <p>💡提示5<br>系统的可观测性和可维护性也很重要。设计一个健壮的监控和告警系统,使运维团队能够快速发现和解决问题。同时,考虑如何支持动态调整限流规则,以适应不断变化的业务需求。</p>
-<p>请从1.需求分析, 2.容量估算, 3.API设计, 4.系统概要设计, 4.1架构图, 4.2请求数据流, 5.详细设计, 5.1数据模型, 5.2限流算法, 5.3分布式实现, 6.技术选择与权衡取舍, 7.故障处理, 8扩展性和未来改进,这几方面来回来</p>
 <hr>
-<h3 id="1-需求分析"><a href="#1-需求分析" class="headerlink" title="1.需求分析"></a>1.需求分析</h3><ul>
+<h3 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h3><ul>
 <li>功能性需求<ul>
 <li><strong>多粒度限流</strong>：支持按用户、IP、API 端点等不同维度进行访问频率限制，精准控制各类请求来源和目标的流量。</li>
 <li><strong>多种限流策略适配</strong>：可运用如固定窗口、滑动窗口、漏桶、令牌桶等不同限流算法，或者将它们组合使用，以应对不同业务场景下的限流需求，例如平滑流量、限制突发流量等。</li>
@@ -251,11 +250,11 @@
 </ul>
 </li>
 </ul>
-<h3 id="2-容量估算"><a href="#2-容量估算" class="headerlink" title="2.容量估算"></a>2.容量估算</h3><ul>
+<h3 id="容量估算"><a href="#容量估算" class="headerlink" title="容量估算"></a>容量估算</h3><ul>
 <li><strong>请求处理能力</strong>：已知系统需要每秒处理 10 万次请求，基于此，在硬件资源规划上，需考虑服务器的 CPU 核心数、内存大小以及网络带宽等因素。例如，选用多核高性能 CPU，配置足够的内存（如根据经验和测试预估每万次请求处理需占用一定内存量来综合确定总内存容量），确保网络带宽能够满足每秒 10 万次请求及相应响应数据的传输需求（考虑请求和响应数据的平均大小来估算带宽）。</li>
 <li><strong>存储容量估算</strong>：对于存储限流规则、各维度请求统计数据、缓存数据等方面，要根据预计的限流规则数量、不同粒度下统计数据的保存时长（如按分钟、小时等统计的请求次数等数据保留一定时间范围）以及缓存的使用策略等来估算所需的数据库存储空间和缓存容量。比如，若有大量不同的 API 端点、用户和 IP 需要进行限流，相应的规则配置数据量会较大，需分配足够的数据库空间用于存储；同时，缓存要能容纳各限流维度的实时状态数据，防止频繁的缓存淘汰和写入对性能产生影响。</li>
 </ul>
-<h3 id="3-API设计"><a href="#3-API设计" class="headerlink" title="3.API设计"></a>3.API设计</h3><ul>
+<h3 id="API设计"><a href="#API设计" class="headerlink" title="API设计"></a>API设计</h3><ul>
 <li>规则配置 API<ul>
 <li><code>POST /rate-limiting/rules</code>：用于创建新的限流规则，请求体中包含 <code>granularity</code>（限流粒度，取值如 <code>user</code>、<code>ip</code>、<code>api-endpoint</code> 等）、<code>algorithm</code>（限流算法，如 <code>fixed-window</code>、<code>sliding-window</code>、<code>leaky-bucket</code>、<code>token-bucket</code> 等）、<code>threshold</code>（限流阈值，根据不同算法和场景设定单位时间内的请求数量等限制条件）、<code>time-unit</code>（时间单位，如 <code>second</code>、<code>minute</code> 等）等参数，方便运维人员或自动化配置系统创建各种限流规则。</li>
 <li><code>PUT /rate-limiting/rules/&#123;rule-id&#125;</code>：通过指定规则的 <code>rule-id</code>，可更新对应限流规则的部分或全部参数，如修改阈值、更换算法等，满足业务变化后对规则调整的需求。</li>
@@ -271,7 +270,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="4-系统概要设计"><a href="#4-系统概要设计" class="headerlink" title="4.系统概要设计"></a>4.系统概要设计</h3><ul>
+<h3 id="系统概要设计"><a href="#系统概要设计" class="headerlink" title="系统概要设计"></a>系统概要设计</h3><ul>
 <li><strong>API 网关集成层</strong>：通过开发适配插件或中间件的形式，与现有的 API 网关进行对接，拦截发往后端服务的 API 请求，并将请求传递给限流处理层。同时，将限流处理的结果（允许或拒绝访问）及时反馈给客户端，确保整个过程对业务系统的透明性和无缝衔接。</li>
 <li>限流处理层<ul>
 <li><strong>规则获取模块</strong>：从规则配置存储中读取相应的限流规则，根据请求的不同限流粒度（用户、IP、API 端点等）查找匹配的规则，为后续限流判断提供依据。</li>
@@ -287,34 +286,34 @@
 </ul>
 </li>
 </ul>
-<h4 id="4-1-架构图"><a href="#4-1-架构图" class="headerlink" title="4.1.架构图"></a>4.1.架构图</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">graph TD;</span><br><span class="line">    subgraph 客户端层</span><br><span class="line">        A[客户端请求] --&gt; B[API网关]</span><br><span class="line">    end</span><br><span class="line">    subgraph 限流处理层</span><br><span class="line">        B --&gt; C[限流中间件/插件]</span><br><span class="line">        C --&gt;|获取规则| D[规则配置中心]</span><br><span class="line">        C --&gt;|获取状态| E[分布式缓存]</span><br><span class="line">        C --&gt; F[限流算法引擎]</span><br><span class="line">        F --&gt;|允许请求| G[请求转发至后端服务]</span><br><span class="line">        F --&gt;|拒绝请求| H[返回限流响应至客户端]</span><br><span class="line">    end</span><br><span class="line">    subgraph 数据存储与监控层</span><br><span class="line">        D --&gt; I[关系型数据库]</span><br><span class="line">        E --&gt; J[分布式缓存集群]</span><br><span class="line">        K[监控与告警模块] --&gt;|收集数据| C</span><br><span class="line">        K --&gt;|收集数据| E</span><br><span class="line">        K --&gt;|收集数据| G</span><br><span class="line">        K --&gt;|触发告警| L[运维人员]</span><br><span class="line">    end</span><br><span class="line">    subgraph 后端服务层</span><br><span class="line">        G --&gt; M[后端业务服务]</span><br><span class="line">        M --&gt; N[响应返回至API网关]</span><br><span class="line">        N --&gt; B</span><br><span class="line">        B --&gt; O[响应返回至客户端]</span><br><span class="line">    end</span><br></pre></td></tr></table></figure>
+<h4 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">graph TD;</span><br><span class="line">    subgraph 客户端层</span><br><span class="line">        A[客户端请求] --&gt; B[API网关]</span><br><span class="line">    end</span><br><span class="line">    subgraph 限流处理层</span><br><span class="line">        B --&gt; C[限流中间件/插件]</span><br><span class="line">        C --&gt;|获取规则| D[规则配置中心]</span><br><span class="line">        C --&gt;|获取状态| E[分布式缓存]</span><br><span class="line">        C --&gt; F[限流算法引擎]</span><br><span class="line">        F --&gt;|允许请求| G[请求转发至后端服务]</span><br><span class="line">        F --&gt;|拒绝请求| H[返回限流响应至客户端]</span><br><span class="line">    end</span><br><span class="line">    subgraph 数据存储与监控层</span><br><span class="line">        D --&gt; I[关系型数据库]</span><br><span class="line">        E --&gt; J[分布式缓存集群]</span><br><span class="line">        K[监控与告警模块] --&gt;|收集数据| C</span><br><span class="line">        K --&gt;|收集数据| E</span><br><span class="line">        K --&gt;|收集数据| G</span><br><span class="line">        K --&gt;|触发告警| L[运维人员]</span><br><span class="line">    end</span><br><span class="line">    subgraph 后端服务层</span><br><span class="line">        G --&gt; M[后端业务服务]</span><br><span class="line">        M --&gt; N[响应返回至API网关]</span><br><span class="line">        N --&gt; B</span><br><span class="line">        B --&gt; O[响应返回至客户端]</span><br><span class="line">    end</span><br></pre></td></tr></table></figure>
 
-<h4 id="4-2-请求数据流"><a href="#4-2-请求数据流" class="headerlink" title="4.2 请求数据流"></a>4.2 请求数据流</h4><!--TODO-->
+<h4 id="请求数据流"><a href="#请求数据流" class="headerlink" title="请求数据流"></a>请求数据流</h4><!--TODO-->
 
-<h3 id="5-详细设计"><a href="#5-详细设计" class="headerlink" title="5.详细设计"></a>5.详细设计</h3><h4 id="5-1数据模型"><a href="#5-1数据模型" class="headerlink" title="5.1数据模型"></a>5.1数据模型</h4><ul>
+<h3 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h3><h4 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h4><ul>
 <li><strong>限流规则表</strong>：记录每条限流规则的详细信息，包括规则 ID、限流粒度（用户 ID、IP、API 端点等字段标识）、限流阈值（如每分钟请求次数数值）、限流策略（算法类型标识）、生效时间范围等字段，方便进行规则的管理和查询。</li>
 <li><strong>访问计数表</strong>：针对不同的限流粒度分别记录其访问次数统计信息，包含限流维度标识（与限流规则表对应）、时间窗口（如按分钟划分的时间戳）、已访问次数等字段，用于实时判断是否达到限流条件。</li>
 </ul>
-<h4 id="5-2限流算法"><a href="#5-2限流算法" class="headerlink" title="5.2限流算法"></a>5.2限流算法</h4><ul>
+<h4 id="限流算法"><a href="#限流算法" class="headerlink" title="限流算法"></a>限流算法</h4><ul>
 <li><strong>令牌桶算法</strong>：适用于应对突发流量场景。系统以固定的速率往桶中放入令牌，每个请求需要获取一个令牌才能被处理，如果桶中没有令牌则表示达到限流阈值，请求被拒绝。令牌桶可以设置合适的桶容量，允许在短时间内积攒一定的令牌，从而应对突发的高流量请求，避免瞬间大量请求被全部拒绝。</li>
 <li><strong>滑动窗口算法</strong>：相较于固定窗口算法，能更平滑地控制流量，避免窗口边界处的流量尖峰问题。将时间划分为多个小的时间窗口，统计每个窗口内的请求次数，通过滑动窗口的方式动态计算最近一段时间内的请求总量，判断是否超过限流阈值，更精准地实现限流，尤其适用于对流量控制精度要求较高的场景。</li>
 <li><strong>组合使用</strong>：可以根据不同的 API 端点或者业务重要性等因素，灵活选择不同的算法或者组合使用。例如对于重要的核心 API 采用滑动窗口算法精确控制流量，对于一些允许一定突发流量的非关键 API 使用令牌桶算法，以提高系统整体的资源利用率和用户体验。</li>
 </ul>
-<h4 id="5-3分布式实现"><a href="#5-3分布式实现" class="headerlink" title="5.3分布式实现"></a>5.3分布式实现</h4><ul>
+<h4 id="分布式实现"><a href="#分布式实现" class="headerlink" title="分布式实现"></a>分布式实现</h4><ul>
 <li><strong>分布式缓存（如 Redis）</strong>：利用 Redis 的原子操作特性，将各限流维度下的访问计数等关键数据存储在 Redis 中，不同节点的限流模块在处理请求时，通过 Redis 进行数据的读写操作，保证在分布式环境下数据的一致性和准确性。例如，使用 Redis 的 INCR 命令对访问次数进行原子自增操作，然后与限流阈值比较来判断是否限流。</li>
 <li><strong>分布式锁（如基于 Redis 的分布式锁）</strong>：在更新限流规则等涉及并发操作的场景下，使用分布式锁来保证同一时刻只有一个节点能进行规则的修改操作，避免数据不一致问题。同时，要注意合理设置锁的超时时间等参数，防止出现死锁情况。</li>
 </ul>
-<h3 id="6-技术选择与权衡取舍"><a href="#6-技术选择与权衡取舍" class="headerlink" title="6.技术选择与权衡取舍"></a>6.技术选择与权衡取舍</h3><ul>
+<h3 id="技术选择与权衡取舍"><a href="#技术选择与权衡取舍" class="headerlink" title="技术选择与权衡取舍"></a>技术选择与权衡取舍</h3><ul>
 <li><strong>接入层与 API 网关集成</strong>：选择与现有 API 网关适配性好的技术框架，如使用插件机制或者中间件方式进行集成，权衡是采用开源的网关插件还是自研的集成方案，考虑开源方案的社区支持和功能丰富度以及自研方案的定制性和安全性等因素。</li>
 <li><strong>限流核心算法实现</strong>：选择高效、成熟的编程语言（如 Java、Go 等）来实现限流算法，Java 具有丰富的类库和生态，但相对内存占用可能稍高；Go 语言在高并发处理上性能优势明显且内存占用少，但生态相对没有 Java 那么丰富。权衡语言特性和团队技术栈来进行选择。</li>
 <li><strong>数据存储</strong>：使用 Redis 作为分布式缓存，看重其高性能、支持多种数据结构以及原子操作等优点，但要注意其内存使用限制以及数据持久化策略的配置，避免数据丢失。搭配关系型数据库（如 MySQL）用于持久化重要配置和统计数据，权衡查询性能和数据一致性等方面的需求。</li>
 </ul>
-<h3 id="7-故障处理"><a href="#7-故障处理" class="headerlink" title="7.故障处理"></a>7.故障处理</h3><ul>
+<h3 id="故障处理"><a href="#故障处理" class="headerlink" title="故障处理"></a>故障处理</h3><ul>
 <li><strong>缓存故障</strong>：如果分布式缓存（如 Redis）出现故障，可设置缓存降级机制，临时从本地内存或者备用缓存中读取限流相关数据（可能数据不是最新的，但能保证基本限流功能），同时及时告警，让运维人员尽快修复 Redis 故障，恢复正常的数据同步和更新机制。</li>
 <li><strong>算法异常</strong>：针对限流算法可能出现的边界情况或者逻辑错误导致的异常，如令牌桶算法中令牌数量计算错误等，在代码中添加完善的异常捕获和日志记录机制，方便定位问题。同时可以设置兜底的限流策略（如统一采用较为严格的固定阈值限流），防止因算法异常导致系统被过度请求冲击。</li>
 <li><strong>网络故障</strong>：在接入层与 API 网关或者限流核心层与数据存储层等之间的网络出现问题时，启用网络重试机制（设置合理的重试次数和时间间隔），同时切换到备用网络链路（如果有配置）或者进行降级处理，保证系统能在一定程度上继续运行，减少对业务的影响。</li>
 </ul>
-<h3 id="8-扩展性和未来改进"><a href="#8-扩展性和未来改进" class="headerlink" title="8.扩展性和未来改进"></a>8.扩展性和未来改进</h3><ul>
+<h3 id="扩展性和未来改进"><a href="#扩展性和未来改进" class="headerlink" title="扩展性和未来改进"></a>扩展性和未来改进</h3><ul>
 <li><strong>横向扩展</strong>：随着业务发展，流量不断增加，可通过增加服务器节点的方式对限流系统进行横向扩展，在分布式架构下，只需要将新节点配置好接入到现有系统中，利用负载均衡机制（如 Nginx 等）均匀分配请求到各个节点，就能提升系统整体的处理能力，满足更高的并发请求需求。</li>
 <li><strong>功能扩展</strong>：未来可以考虑增加更多的限流维度，如根据用户的地域、设备类型等进行限流，或者与身份认证、授权系统更深度结合，实现更精细化的访问控制。同时，进一步优化监控告警系统，增加更多维度的指标分析和智能告警功能，如根据流量趋势自动调整限流规则等，提升系统的自动化运维水平。</li>
 </ul>
