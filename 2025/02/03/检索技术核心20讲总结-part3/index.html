@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="title:检索技术核心20讲总结-part3category:搜推技术tags:[笔记]date:2024-03-06 00:54:22本文为极客时间《检索技术核心20讲》课程第四章的总结笔记,第四章聚焦于多种检索系统，全面深入地剖析了LevelDB、搜索引擎、广告系统和推荐引擎的架构设计、工作原理、优化策略以及它们在不同场景下的应用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Low Gravity">
+<meta property="og:url" content="http://example.com/2025/02/03/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A0%B8%E5%BF%8320%E8%AE%B2%E6%80%BB%E7%BB%93-part3/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="title:检索技术核心20讲总结-part3category:搜推技术tags:[笔记]date:2024-03-06 00:54:22本文为极客时间《检索技术核心20讲》课程第四章的总结笔记,第四章聚焦于多种检索系统，全面深入地剖析了LevelDB、搜索引擎、广告系统和推荐引擎的架构设计、工作原理、优化策略以及它们在不同场景下的应用。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-02-03T12:49:40.420Z">
+<meta property="article:modified_time" content="2025-02-03T12:55:13.281Z">
+<meta property="article:author" content="RYAN">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2025/02/03/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A0%B8%E5%BF%8320%E8%AE%B2%E6%80%BB%E7%BB%93-part3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/03/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A0%B8%E5%BF%8320%E8%AE%B2%E6%80%BB%E7%BB%93-part3/","path":"2025/02/03/检索技术核心20讲总结-part3/","title":""}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title> | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#title-%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A0%B8%E5%BF%8320%E8%AE%B2%E6%80%BB%E7%BB%93-part3category-%E6%90%9C%E6%8E%A8%E6%8A%80%E6%9C%AFtags-%E7%AC%94%E8%AE%B0-date-2024-03-06-00-54-22"><span class="nav-number">1.</span> <span class="nav-text">title:检索技术核心20讲总结-part3category:搜推技术tags:[笔记]date:2024-03-06 00:54:22</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">RYAN</p>
+  <div class="site-description" itemprop="description">一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/03/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A0%B8%E5%BF%8320%E8%AE%B2%E6%80%BB%E7%BB%93-part3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="RYAN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="一位专注于将复杂问题简化为优雅代码的开发者;一位致力于将思想转化为现实的开发者">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-02-03 20:49:40 / 修改时间：20:55:13" itemprop="dateCreated datePublished" datetime="2025-02-03T20:49:40+08:00">2025-02-03</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><hr>
+<h2 id="title-检索技术核心20讲总结-part3category-搜推技术tags-笔记-date-2024-03-06-00-54-22"><a href="#title-检索技术核心20讲总结-part3category-搜推技术tags-笔记-date-2024-03-06-00-54-22" class="headerlink" title="title:检索技术核心20讲总结-part3category:搜推技术tags:[笔记]date:2024-03-06 00:54:22"></a>title:检索技术核心20讲总结-part3<br>category:搜推技术<br>tags:[笔记]<br>date:2024-03-06 00:54:22</h2><p>本文为极客时间《检索技术核心20讲》课程第四章的总结笔记,第四章聚焦于多种检索系统，全面深入地剖析了LevelDB、搜索引擎、广告系统和推荐引擎的架构设计、工作原理、优化策略以及它们在不同场景下的应用。</p>
+<span id="more"></span>
+
+<ol>
+<li><strong>LevelDB存储系统</strong><ul>
+<li><strong>优化内存检索</strong>：LevelDB是基于LSM树优化的存储系统，在内存检索方面，使用跳表代替B + 树来实现内存中的C0树。跳表的结构特点使其在内存数据检索时比B + 树更高效，能更快地定位和获取数据，这是LevelDB提升内存检索效率的重要举措。</li>
+<li><strong>内存数据落盘策略</strong>：为解决内存数据高效存储到磁盘的问题，LevelDB采用了读写分离设计。将内存中的数据分为可读可写的MemTable和只读的Immutable MemTable，二者数据结构均为跳表。当MemTable存储数据达到上限时，直接转换为Immutable MemTable，同时生成新的MemTable用于新数据的写入和查询。由于Immutable MemTable是只读的，无需加锁即可高效写入磁盘，避免了数据一致性管理问题和加锁带来的检索效率降低。此外，LevelDB采用延迟合并设计。在原始LSM树设计中，内存索引写入磁盘时直接和磁盘中的C1树进行归并，存在合并代价高和合并频率频繁的问题，会导致大量磁盘I&#x2F;O。LevelDB先将Immutable MemTable顺序快速写入磁盘，变成一个个SSTable文件，之后再对这些文件进行合并，避免了C0树和C1树直接合并的高代价。</li>
+<li><strong>SSTable管理与检索</strong>：SSTable文件的管理和检索是LevelDB的关键环节。由于SSTable文件间数据可能重叠，为提高检索效率，LevelDB对其进行分层管理和滚动合并。Level 0层最多可存放4个SSTable文件，当满时进行多路归并生成Level 1层文件。为控制合并代价，给Level 1及以下各层设定文件总容量上限，如Level 1层默认总容量上限为10M，当达到上限时，按轮流选择的逻辑选择一个SSTable文件并入下一层，下一层容量上限翻倍。在磁盘检索数据时，先在MemTable和Immutable MemTable中查找，若未找到则到磁盘查找。从Level 0层开始查找，Level 0层SSTable文件覆盖范围有重合，需检查所有符合条件的文件；Level 1层及以下通过二分查找定位唯一的SSTable文件。定位到文件后，LevelDB利用索引与数据分离的设计思想，将SSTable分为数据存储区和数据索引区。读取时先读数据索引区，减少磁盘I&#x2F;O次数。利用BloomFilter技术，可快速确定SSTable是否包含查询元素，若不包含则跳过该文件，若包含再进行精确查找。精确查找时，读出Index Block，其中记录了每个Data Block的最小分隔key、起始位置和大小，通过二分查找找到目标Key对应的Data block。为进一步加速检索，LevelDB设计了table cache和block cache两个缓存。table cache将最近使用的SSTable的Index Block加载在内存中，block cache将最近使用的Data Block加载在内存中，二者均使用LRU机制进行替换管理。读取Index Block和Data Block时，先在相应缓存中查找，若未命中再读磁盘，减少了磁盘I&#x2F;O操作，提升了检索速度。</li>
+</ul>
+</li>
+<li><strong>搜索引擎</strong><ul>
+<li><strong>核心架构与工作流程</strong>：搜索引擎主要由爬虫系统、索引系统和检索系统组成。爬虫系统负责通过高性能爬虫持续抓取网页，并将抓取到的网页存入基于LSM树的HBase中，以支持数据的高效读写，为后续的索引构建提供数据基础。索引系统对抓取的网页进行预处理，包括相似网页去重、网页质量分析和分词处理等工作，同时进行反作弊分析，避免作弊网页干扰搜索结果。然后进行索引拆分，根据网页预处理结果分离出高质量和普通质量的网页集合，再进行基于文档的拆分以便生成索引。接着使用MapReduce服务为每个索引分片生成任务，构建倒排索引文件，并通过全量索引结合增量索引的机制，使用滚动合并法完成索引更新。检索系统在用户输入查询词后，先进行查询分析，理解用户意图，对错误查询词进行纠错，对意图不明的查询词进行推荐。然后通过倒排索引进行检索，将查询词发送给相应索引分片，索引分片返回结果后，根据相关性分析和质量分析，使用机器学习进行打分，选出Top K个结果返回给用户。</li>
+<li><strong>查询处理技术</strong>：查询分析是搜索引擎理解用户意图的重要步骤，主要包括分词粒度分析、词的属性分析和用户需求分析。在中文搜索中，分词粒度分析尤为关键，因为中文词与词之间没有明确分隔标志。一般采用混合粒度的分词方式，将默认标准分词粒度与整个短语结合作为检索关键词去倒排索引中检索，如“极客时间”会被分为【极客、时间、极客时间】。若检索结果数量不足，再查询更细粒度的单字组合【极、客、时、间】。当用户输入有误时，搜索引擎通过查询纠错功能进行处理，该过程分为错误判断、候选召回和打分排序三个步骤。错误判断阶段，传统方式是根据人工编辑和搜索日志挖掘得到常见字典和混淆字典，使用哈希表或字典树等结构索引，判断检索词是否正确；近年来，基于语言模型和机器学习的方式逐渐被广泛应用，通过对用户输入检索词进行置信度判断，得分过低时进入后续纠错过程。候选召回阶段，根据中文输入常见的出错情况，如同音、字形相似等，分别采取相应策略召回候选集，还可根据编辑距离和机器学习等方式召回。最后通过各种机器学习和深度学习算法对候选结果进行打分排序，返回得分最高的纠错结果。查询推荐则是通过分析搜索日志，利用“查询会话”“点击图”等技术，找出检索词之间的相关性，为用户提供更多关键词，帮助召回更多结果，通常在关键词不足或作为补充提示时启用。在短语检索时，如果以完整短语作为关键词在倒排索引中查找无果，搜索引擎会使用更细粒度的分词结果进行两次检索，然后将结果求交集合并。但简单求交集可能导致最终结果不包含目标文档，为此采用位置信息索引法。通过记录关键词在文档中的位置，判断两个关键词的接近程度，位置越近相关性越高。对于两个以上关键词联合查询，将同时包含所有关键词的最小片段称为最小窗口，通过衡量最小窗口长度判断关键词是否接近，并按最小窗口长度对搜索结果排序，留下相关性最高的结果，从而完成短语检索。</li>
+</ul>
+</li>
+<li><strong>广告系统</strong><ul>
+<li><strong>广告引擎架构与工作过程</strong>：广告引擎是广告系统的核心部分，负责处理广告请求并返回合适的广告。互联网广告分为搜索广告和展示广告，二者后台广告引擎本质相似，主要区别在于约束条件不同。展示广告引擎的工作过程从用户浏览网页发起广告请求开始，服务端接到请求后进行请求解析，通过用户唯一ID、网站地址和广告位ID查询相关扩展信息。这些信息来源于系统对用户长期行为的收集和分析，以及对网页和广告位的分类信息，提前保存在Key - value数据库中，以便快速查询。广告主投放广告时会进行广告设置，添加定向投放条件，如地域、年龄、兴趣等，这些条件用标签表示，广告设置本质上是一系列标签的组合。广告引擎处理广告请求的过程，就是根据用户广告请求信息，找出标签匹配的广告设置，并将广告进行排序返回。返回广告后，还需收集广告的后续监测数据，如曝光、点击等，涉及广告计费时，需及时修改系统中的广告数据，确保广告主预算花完后停止投放。广告引擎的核心检索流程与搜索引擎类似，包括索引构建、检索召回候选集和排序返回，但广告引擎在构造倒排索引上更灵活，因为没有明确的关键词限制。</li>
+<li><strong>检索优化方案</strong>：在标签检索方面，广告引擎将广告设置的标签作为Key构建倒排索引，为标签进行ID编号以提高系统处理效率。但并非所有标签都适合作为倒排索引的Key，对于区分度低的标签，如“媒体类型:App”（假设所有广告都投放在App上），不将其加入倒排索引，而是放入过滤列表，在检索结果遍历阶段进行检查，确保符合广告主投放设置要求。对于具有少量标签值但每个值有大规模区分度的设置维度，如“媒体类型”“性别”“操作系统”等，采用树形结构划分索引空间。以“媒体类型”为例，将PC网站和App作为分叉，对不同分叉下的广告设置分别建立倒排索引，减少检索时的遍历范围，提升检索效率。随着广告业务发展，向量检索被应用于广告引擎。它摆脱了标签的限制，将广告设置和用户兴趣表示为高维空间向量，使用最近邻检索技术挖掘合适广告。例如，当广告主想将广告投放给“喜欢篮球的人”，若用户标签只有“喜欢运动”，向量检索可使广告引擎针对该用户投放广告，而传统标签检索可能无法做到。为保证向量检索效率，采用聚类 + 倒排索引 + 乘积量化的技术进行加速。在打分排序环节，由于展示广告业务通常只返回一条广告结果，对匹配精准度要求极高，因此使用复杂的深度学习模型进行打分排序。但如果对召回的大量候选广告全部使用深度学习模型打分，难以在0.1秒内完成单次检索，还会造成资源浪费。为此，在召回和精准打分排序之间加入非精准打分环节，基于简单机器学习模型（如逻辑回归模型、梯度提升决策树、因子分解机等）配合少量特征，将候选广告数量限制在几十个量级，再使用深度学习模型进行精准打分，选出分数最高的广告进行投放，节省计算资源，提升检索效率。考虑到广告设置状态变化频繁，如限定投放时间段、预算变化等，广告引擎在索引构建环节将过滤条件前置。在离线构建索引时，过滤掉审核未通过、排期未到和预算受限的广告设置，仅为当前有效的广告设置进行索引，大幅缩小检索空间。同时，由于广告投放设置体量相对较小，可全部加载到内存中，通过全量索引结合增量索引的更新机制，保证线上索引实时更新，确保广告投放的准确性和及时性。</li>
+</ul>
+</li>
+<li><strong>推荐引擎</strong><ul>
+<li><strong>架构与工作流程</strong>：推荐引擎主要应用于资讯类App等场景，为用户推荐感兴趣的内容。与搜索引擎和广告引擎不同，推荐引擎外界输入的检索约束条件极少，只有用户的“下拉刷新”动作，这使得它具有更灵活的检索能力。推荐引擎通过收集用户对文章的曝光、点击、阅读、收藏、点赞和评论等行为数据，在离线环节挖掘用户兴趣，根据兴趣对用户进行分类，生成完整的用户画像。用户画像中包含不同标签，标签权重会随时间衰减，以反映用户兴趣的变化。同时，对文章进行关键词提取、内容语义分析，如文章分类、主题词提取和主题提取等，为每篇文章生成文章画像。基于用户画像、文章画像和用户行为记录，推荐引擎使用基于统计的静态召回算法和个性化召回算法为用户推荐文章。基于统计的静态召回根据系统对文章的统计数据进行推荐，如提前统计点击量最大、评论最多、收藏最多、收藏率上升最快的文章等，在线上环节推荐给所有用户，可作为个性化召回不足时的补充方案。</li>
+<li><strong>个性化召回算法</strong>：基于内容的召回是根据文章内容判断是否符合用户喜好。通过判断用户画像和文章画像中的标签或关键词是否相同来召回文章，可将标签和关键词作为Key建立倒排索引。为提高召回灵活性，还可使用向量空间模型，将标签匹配转换为高维向量空间的最近邻检索问题。该方法优点是不需要其他用户数据，能针对小众用户个性化推荐，还可推荐冷启动新文章；缺点是依赖用户画像和文章画像系统，无法挖掘用户潜在兴趣，不能为冷启动新用户推荐文章。基于协同过滤的召回分为基于用户和基于物品的协同过滤。基于用户的协同过滤思想是将相似用户看过的文章推荐给当前用户。通过计算用户对文章的喜爱程度（可根据点击次数、收藏、评论和转发等行为计算）构建向量空间，使用余弦距离计算用户间相似度，找出最相似的一批用户，将他们看过但当前用户未看过的文章进行加权打分排序推荐。例如，User 1与User 3、User 4因看过相同文章而相似，User 3和User 4看过的Item 3和Item 4可推荐给User 1。为解决实时计算相似度耗时问题，可将相似计算放在离线环节，为每个用户计算推荐列表并存储在Key - value数据库中，实时环节通过查表获取推荐文章；也可在实时阶段使用聚类 + 倒排索引 + 乘积量化的方案，快速检索出最近邻的k个用户，进行加权打分排序推荐，该方案实时性好但结果不够精确。基于物品的协同过滤是基于用户之前看过的物品，找出相似物品并推荐。通过构建以用户为维度的向量空间，计算物品间相似度。例如，User 1看过Item 1和Item 2，寻找Item 1和Item 2的相似物品并推荐给User 1。在实际实现中，将寻找相似物品列表放在离线环节，以Item ID为Key，相似物品列表为posting list生成倒排索引存入数据库；实时环节根据用户看过的物品取出推荐列表合并排序。基于物品的协同过滤更注重用户兴趣传承，新闻资讯类App更倾向使用基于用户的协同过滤算法，电商平台更倾向使用基于物品的协同过滤算法。实际应用中，推荐引擎采用混合推荐法，结合多种召回方案，如热点召回、基于用户的协同过滤、基于物品的协同过滤和基于内容召回等。由于每种召回方案都会返回大量候选集，为降低排序计算代价，采用分层打分过滤的排序方式。每个召回通路先使用非精准打分算法截取千级别候选集，然后合并多个召回通路的结果，再次使用简单机器学习模型非精准打分，选出上百个结果，最后使用精准的深度学习模型，选出几十个结果返回给用户，确保推荐结果的质量和检索性能。</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/02/03/%E6%A3%80%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A0%B8%E5%BF%8320%E8%AE%B2%E6%80%BB%E7%BB%93-part2/" rel="prev" title="">
+                  <i class="fa fa-angle-left"></i> 
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments utterances-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">RYAN</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="utterances" type="application/json">{"enable":true,"repo":"ryanmeowy/comments4blog","issue_term":"pathname","theme":"github-light"}</script>
+<script src="/js/third-party/comments/utterances.js"></script>
+
+</body>
+</html>
