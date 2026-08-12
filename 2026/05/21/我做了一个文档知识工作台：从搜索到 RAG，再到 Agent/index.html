@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="最开始做 Anchr，我想解决的问题很具体：手里的文档越来越多以后，怎么把里面的信息重新找出来、用起来？ 目录能解决文件放在哪里，系统自带的全文搜索则要求我记得原文里的词。资料少时这些都够用，多起来以后，情况往往变成了：我记得某份文档讲过这件事，却忘了文件名，也不记得当时用了什么表达。 Anchr 于是从文档搜索开始。搜索基本可用后，我才在检索结果上生成回答；再往后，一次检索覆盖不了跨文档问题，A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我做了一个文档知识工作台：从搜索到 RAG，再到 Agent">
+<meta property="og:url" content="http://example.com/2026/05/21/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="最开始做 Anchr，我想解决的问题很具体：手里的文档越来越多以后，怎么把里面的信息重新找出来、用起来？ 目录能解决文件放在哪里，系统自带的全文搜索则要求我记得原文里的词。资料少时这些都够用，多起来以后，情况往往变成了：我记得某份文档讲过这件事，却忘了文件名，也不记得当时用了什么表达。 Anchr 于是从文档搜索开始。搜索基本可用后，我才在检索结果上生成回答；再往后，一次检索覆盖不了跨文档问题，A">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-12T13:58:04.800Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Elasticsearch">
+<meta property="article:tag" content="Knowledge Base">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2026/05/21/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2026/05/21/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/","path":"2026/05/21/我做了一个文档知识工作台：从搜索到 RAG，再到 Agent/","title":"我做了一个文档知识工作台：从搜索到 RAG，再到 Agent"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>我做了一个文档知识工作台：从搜索到 RAG，再到 Agent | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E8%AE%A9%E4%B8%80%E4%BB%BD%E6%96%87%E6%A1%A3%E5%8F%98%E6%88%90%E5%8F%AF%E5%AE%9A%E4%BD%8D%E7%9A%84%E5%86%85%E5%AE%B9"><span class="nav-number">1.</span> <span class="nav-text">先让一份文档变成可定位的内容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E5%86%99%E5%AE%8C%E4%B9%8B%E5%89%8D%EF%BC%8C%E5%8D%8A%E6%88%90%E5%93%81%E4%B8%8D%E5%BA%94%E8%AF%A5%E8%A2%AB%E6%90%9C%E5%88%B0"><span class="nav-number">2.</span> <span class="nav-text">索引写完之前，半成品不应该被搜到</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E6%AC%A1%E6%90%9C%E7%B4%A2%EF%BC%8C%E8%A6%81%E5%90%8C%E6%97%B6%E8%A6%86%E7%9B%96%E2%80%9C%E5%8E%9F%E8%AF%8D%E2%80%9D%E5%92%8C%E2%80%9C%E5%A4%A7%E6%84%8F%E2%80%9D"><span class="nav-number">3.</span> <span class="nav-text">一次搜索，要同时覆盖“原词”和“大意”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E8%BF%98%E8%A6%81%E5%86%8D%E6%94%B6%E6%95%9B%EF%BC%8C%E6%89%8D%E4%BC%9A%E6%88%90%E4%B8%BA%E6%A8%A1%E5%9E%8B%E8%AF%81%E6%8D%AE"><span class="nav-number">4.</span> <span class="nav-text">搜索结果还要再收敛，才会成为模型证据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%BE%93%E5%87%BA%E5%8F%AA%E6%98%AF%E5%80%99%E9%80%89%E5%9B%9E%E7%AD%94"><span class="nav-number">5.</span> <span class="nav-text">模型输出只是候选回答</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E6%9D%A1-RAG-%E9%93%BE%E8%B7%AF%E8%BF%98%E5%9C%A8%E7%BB%A7%E7%BB%AD%E8%A1%A5%E9%BD%90"><span class="nav-number">6.</span> <span class="nav-text">这条 RAG 链路还在继续补齐</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/05/21/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="我做了一个文档知识工作台：从搜索到 RAG，再到 Agent | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          我做了一个文档知识工作台：从搜索到 RAG，再到 Agent
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-05-21 00:00:00" itemprop="dateCreated datePublished" datetime="2026-05-21T00:00:00+08:00">2026-05-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">AI 工程化</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>最开始做 Anchr，我想解决的问题很具体：手里的文档越来越多以后，怎么把里面的信息重新找出来、用起来？</p>
+<p>目录能解决文件放在哪里，系统自带的全文搜索则要求我记得原文里的词。资料少时这些都够用，多起来以后，情况往往变成了：我记得某份文档讲过这件事，却忘了文件名，也不记得当时用了什么表达。</p>
+<p>Anchr 于是从文档搜索开始。搜索基本可用后，我才在检索结果上生成回答；再往后，一次检索覆盖不了跨文档问题，Agent 才加进来。表面上是功能从 Search 增加到 RAG 和 Agent，实际开发时，工作重心一直是同一条链路：让原始资源稳定地变成模型可以使用、用户又能回到原文核对的证据。</p>
+<span id="more"></span>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">原始资源</span><br><span class="line">   ↓</span><br><span class="line">解析与结构提取</span><br><span class="line">   ↓</span><br><span class="line">分段与 Embedding</span><br><span class="line">   ↓</span><br><span class="line">版本化写入索引</span><br><span class="line">   ↓</span><br><span class="line">查询改写 → 多路召回 → 融合 → 重排</span><br><span class="line">   ↓</span><br><span class="line">可追溯证据</span><br><span class="line">   ↓</span><br><span class="line">模型回答 → 引用校验 → 持久化与展示</span><br></pre></td></tr></table></figure>
+
+<p>这条链路里，前一步的输出都是后一步的输入。解析时丢掉了表格和页码，搜索再准也难以还原原文；分段把条件和结论切开，模型拿到的就只是半句话；新旧版本同时参与召回，后面的 Rerank 也分不清哪一份才是当前有效的内容。RAG 的问题很少只发生在 Prompt 里。</p>
+<p>技术文档尤其容易暴露这些问题。一个结论往往同时受版本、前置条件和运行环境限定：“默认开启”可能只适用于某个大版本，“会自动重试”可能只针对幂等请求。只要上游处理丢掉了其中一个限定，模型就可能用一段真实原文组织出一个看似合理、实际不完整的回答。</p>
+<h2 id="先让一份文档变成可定位的内容"><a href="#先让一份文档变成可定位的内容" class="headerlink" title="先让一份文档变成可定位的内容"></a>先让一份文档变成可定位的内容</h2><p>用户看到的是 PDF、Markdown、纯文本或图片，检索系统需要的却不是一个文件名和一大段字符串。它需要知道文档里哪些内容属于同一段，它们出现在第几页、前后顺序如何，以及图片和文字之间有没有关联。</p>
+<p>在 Anchr 里，所有进入入库任务的资源都由 Python sidecar Anchr Docling 解析。主服务提交任务、跟踪状态并接收结构化结果，后续的分段和检索都以这份结果为起点。</p>
+<p>把入口统一起来后，后面的链路不需要分别理解“PDF 的第三页”和“Markdown 的第二个二级标题”。它只消费解析后的文本块、图片、页码、标题和位置。格式差异由解析阶段吸收，但原始文档中用于回溯的结构不能因此被抹平。</p>
+<p>统一入口不代表每种资源都一样容易处理。Markdown 和纯文本天然带有阅读顺序，PDF 更像一张排好的画布，文字、表格和图片要靠页面位置组成语义。假设一份分布式事务协议说明用表格列出执行阶段、参与者状态、持久化记录和故障恢复动作，如果只按 PDF 内部存储顺序抽取文字，<code>prepared</code> 状态的恢复动作很可能会和 <code>committed</code> 状态拼在一起。Docling 会尽量恢复这些结构，并为 PDF 内容保留页码和页面位置等信息。</p>
+<p>解析结果不会整份写成一条搜索数据，而是继续被映射成一组 Segment。文本段落、图片 OCR 和文档中的图片可以形成不同类型的检索单元，各自携带文档、页码、顺序和位置信息。需要向量检索的内容，再按当前的 Embedding 能力生成向量。</p>
+<p>这里没有把所有内容强行压成同一种文本。普通段落用正文生成文本向量，图片中识别出的字符可以作为 OCR 文本参与检索，支持多模态 Embedding 时，原始图片还可以保留独立的视觉表示。一张展示协调者故障恢复过程的时序图，可能因图中的 <code>prepare</code>、<code>commit</code> 被全文检索命中，也可能因整体交互结构被向量检索找到。两条路径最后仍然指向同一份原始资源和对应位置。</p>
+<p>分段在这里从来不只是一个长度参数。切得太小，“参与者进入 <code>prepared</code> 状态后必须保留锁和事务日志”和“直到收到最终决定或完成故障恢复”可能落在两个片段里；前一句失去后面的终止条件，就很容易被理解成无限期保留。切得太大，一个片段又会混入正常提交、协调者恢复和启发式处理等多条路径，全文相关性与向量表示都会变得模糊。Anchr 中的 Segment 更像一个搜索入口，它要足够精确，同时保留向前后恢复上下文的可能。</p>
+<p>因此，“搜索命中了哪一段”和“用户需要阅读多少内容”被分成了两个问题。搜索先用较小的 Segment 定位，用户点开原文或后续需要更多证据时，再沿着顺序取回相邻片段。这比单纯把 Chunk 放大更灵活，也让搜索、Citation 和后续阅读使用同一套位置信息。</p>
+<p>这些页码、顺序和位置信息暂时还没有出现在回答里，但它们会沿着整条链路一直传到 Citation 和原文预览。在此之前，这批 Segment 还要先安全地进入索引。</p>
+<h2 id="索引写完之前，半成品不应该被搜到"><a href="#索引写完之前，半成品不应该被搜到" class="headerlink" title="索引写完之前，半成品不应该被搜到"></a>索引写完之前，半成品不应该被搜到</h2><p>文档解析、Embedding 和索引写入都可能访问进程外服务，耗时也很不稳定。如果上传请求一直等到整条链路结束，一份复杂 PDF 或一次 Embedding 限流就可能长时间占着连接。所以 Anchr 把入库做成后台任务，上传成功只说明原始资源已经交给系统，不代表它已经可以参与检索。</p>
+<p>一个批次里的每份资源都有独立处理项，阶段会随着解析、Embedding 和写入索引向前推进。这样一批文档中某一份处理失败时，已经成功的文档不会被一起拖住；页面上显示的进度也有真实阶段对应，而不是用一条动画遮住不确定的等待。</p>
+<p>阶段拆开之后，失败也不再只是一个笼统的“入库失败”。Docling 没能取回原文件、解析结果为空、Embedding 服务限流，以及 Elasticsearch 写入未完成，处理位置和后续动作都不一样。Anchr 会在进程内对一些短暂的 Docling 和 Embedding 错误做有界重试；处理项最终失败后，则保留失败阶段和原因，由用户重新发起整份文档的处理。</p>
+<p>新文档首次入库只需要等待这条链路完成。支持重新解析和重新向量化后，问题就变了：旧内容什么时候不再可见，新内容又从哪一刻开始参与搜索？</p>
+<p>假设某份部署手册把服务的运行时要求从 JDK 17 调整到 JDK 21。如果重新处理时先删旧索引，新版本建好前，这份手册会暂时从搜索中消失；如果新旧 Segment 边写边覆盖，用户又可能同时搜到“JDK 17”和“JDK 21”。对搜索来说，最危险的不是索引里暂时有两份数据，而是它们在同一次查询中同时可见。</p>
+<p>Anchr 为每次内容处理分配独立的 <code>generation</code>。旧 generation 继续提供搜索，新 generation 在后台完成解析、向量化和索引写入。只有写入数量和目标版本经过检查，新版本才会被激活；旧版本和激活失败的新数据，之后再由后台清理。</p>
+<p>激活不是“最后一次 ES 请求没报错”就算成功。写入完成后，主服务还会核对返回的写入结果是否属于当前文档和目标 generation，可读 Segment 是否已经完整写入。真正切换时会再锁定当前文档状态：如果文档在这段时间已被删除，或者这次处理已经被另一个更新版本超过，新 generation 不会被激活。这道检查避免了一个较慢的后台任务在结束时把已删除或已更新的文档“写回来”。</p>
+<p>这里没有让 MySQL 和 Elasticsearch 参与同一个分布式事务。MySQL 记录当前生效的 generation，Elasticsearch 保存可重建的 Segment 投影。查询可以从 Elasticsearch 召回到多个版本的候选，但只有与 MySQL 中当前版本一致的 Segment 才能继续向后流转。这一道可见性检查，把入库的版本控制连到了下一步检索。</p>
+<p>这个分工还决定了失败时该信谁。Elasticsearch 里暂时多出一个未激活 generation，不会改变用户能看到的文档版本；清理任务短暂失败，也不应该把当前已生效内容判为不可用。业务上的“当前版本”由 MySQL 决定，ES 中暂留的投影由后台事件继续收拾。这样不能让两个存储产生强事务，但可以把用户可见性压缩到一个清楚的切换点上。</p>
+<h2 id="一次搜索，要同时覆盖“原词”和“大意”"><a href="#一次搜索，要同时覆盖“原词”和“大意”" class="headerlink" title="一次搜索，要同时覆盖“原词”和“大意”"></a>一次搜索，要同时覆盖“原词”和“大意”</h2><p>真正开始召回之前，系统要先确定这次搜索可以落在哪些文档上。用户是在整个知识库里提问，还是只查看某一份技术手册；当前会话有没有选定资源，这些范围必须先收敛下来。查询改写只能改变“拿什么话去搜”，不能把搜索范围悄悄扩大。否则一句为了提高召回率而补全的查询，就可能把不在当前上下文里的资料混进答案。</p>
+<p>范围确定后，下一个问题才是用户这句话到底在问什么，而不是先争论用 BM25 还是向量。在连续对话里，用户可能先问“PostgreSQL 的 Serializable 隔离级别为什么还会让事务失败”，接着只问“只读事务也会吗？”。搜索如果直接使用后半句，就丢了数据库、隔离级别和序列化冲突这些前提。Anchr 会结合最近对话改写查询，如果改写模型超时或输出不合法，则退回用户的原问题继续查找。改写在这里是一层召回辅助，不会替换用户真正提出的问题，后面的回答仍然以原问题为准。</p>
+<p>改写后的查询会进入多路召回。全文检索擅长命中类名、错误码、配置项和文件标题等明确术语；向量检索用来接住另一种表达。用户问“为什么数据库为了保证可串行化反而会主动回滚事务”，文档里写的可能是“检测到可能产生不可串行化结果的读写依赖，需要中止其中一个事务”。原词不同，说的却是同一个并发控制问题。反过来，像 <code>SQLSTATE 40001</code>、<code>could not serialize access due to read/write dependencies among transactions</code> 这样的错误标识和原始信息，一旦被泛化成语义，精确度反而会下降，所以全文召回不能被向量检索取代。如果当前 Embedding 配置支持图片，同一个查询向量还可以去匹配依赖关系图和技术手册中提取的图片。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">文本全文召回 ──┐</span><br><span class="line">文本向量召回 ──┼→ RRF 融合 → 当前版本过滤 → 多样化 → Rerank</span><br><span class="line">文档图片召回 ──┘</span><br></pre></td></tr></table></figure>
+
+<p>混合检索真正麻烦的，不是把三条查询都发出去，而是怎么把它们合成一份结果。三路召回的原始分数不在同一个尺度上，直接相加容易让分值范围更大的一路占便宜。RRF 不比较这些原始分数，只根据候选在各路结果中的名次累积贡献。同一个 Segment 如果既被配置项原词命中，又和问题语义接近，会在融合时获得两路支持；只在某一路出现的内容也不会因为分数不可比而直接消失。融合的意义不是简单拼接三份列表，而是把它们重新变成一份可比较、可去重的候选集。</p>
+<p>候选融合后，先通过前面提到的 generation 可见性检查，再进入结果整理和 Rerank。这个顺序很重要：旧版本的片段即使和问题非常相关，也不应该占用后面的候选名额，更不值得消耗一次 Rerank。版本过滤如果拖到最后，过期内容不只会污染结果，还可能提前挤掉本来应该进入重排的新版本片段。入库阶段维护的“当前 generation”，到这里才真正成为检索质量的一部分。</p>
+<p>“有关”和“适合放在前面”并不完全是同一个问题。一份长文档里的几个相邻段落往往会同时命中，如果不加处理，前十条可能有大半来自同一份文档。搜整个知识库时，Anchr 会适当限制同一文档、同一类型的候选数量，给其他资料留出位置。这不是假设其他文档一定更正确，而是避免一份长文档仅凭片段数量垄断有限的候选窗口。已经明确限定在一份文档内时，目标从“覆盖更多资料”变成“找到这份文档里最相关的位置”，打散动作就会放到 Rerank 之后，避免过早删掉有用的连续片段。</p>
+<p>Rerank 只处理已经收敛过的候选窗口，它负责重新判断候选和问题的细粒度相关性，却不是第二套无限召回。前面被范围、版本或候选窗口排除的内容，不会被 Rerank 凭空找回来。因此最终顺序不会完全抹掉前面的检索信号，而是同时参考归一化后的检索得分和 Rerank 得分；如果 Rerank 服务失败或返回空结果，则保留 RRF 的原顺序。这条降级路径能保住已有的检索结果，但 Rerank 仍然救不了召回阶段已经丢失的证据。</p>
+<p>到这里，搜索已经给出了一批排好的候选。对于搜索页面，这些结果可以直接供人浏览；对于 RAG，它们还只是可能有用的材料，不能原样塞进 Prompt。</p>
+<h2 id="搜索结果还要再收敛，才会成为模型证据"><a href="#搜索结果还要再收敛，才会成为模型证据" class="headerlink" title="搜索结果还要再收敛，才会成为模型证据"></a>搜索结果还要再收敛，才会成为模型证据</h2><p>搜索页面和问答模型对结果的需要不同。人可以先看几张文档卡片，再点开其中一条继续判断；模型的上下文有限，放进去的每个片段都在消耗窗口，也会增加引用和结论错配的机会。</p>
+<p>Anchr 先把排好的 Segment 按文档聚合成结果卡片，保留每份文档中排名靠前的命中位置。聚合之后，用户看到的是“哪些资料值得打开”，而不是十几条来自同一文件的碎片。结果卡片因此偏向阅读导航，不必和最终答案使用的证据完全相同。</p>
+<p>答案候选会在这些结果中继续收缩。固定 RAG 最多选择 5 个能够追溯和引用的候选，它们必须有真实的 Segment 标识，能对应到页面上展示的结果，而且具备可用的文本证据。限制数量不是为了追求一个漂亮的 Top 5，而是为了控制模型实际面对的事实边界。把搜索 Top K 全部塞进去，看起来给了模型更多信息，实际也把重复片段、弱相关段落和相互冲突的版本说明一起带进了上下文，模型需要在回答问题之前先替检索系统做一遍去噪。</p>
+<p>图片召回还带来一个额外边界：纯视觉向量可以帮助找到一张相关架构图，但如果当前没有可供回答引用的文本，它就不会被直接当成知识型答案的依据。能够帮助排序，不等于已经成为可表达、可核对的证据。搜索允许把线索展示给用户，自动回答则需要更严格的准入条件。</p>
+<p>进入生成阶段的 Prompt 不只有一个用户问题和几段文本。它会同时带上用户原问题、为检索改写后的查询、当前回答模式，以及经过编号的证据列表。原问题保留用户的真实意图，改写查询说明这次检索实际用了什么表达，证据列表则给出模型允许使用的事实边界。把这几部分分开，能避免“为了搜得更全而补写的查询”在生成阶段反过来改变问题本身。</p>
+<p>在调用回答模型之前，后端还会先做一次证据门禁。如果没有可引用的 Segment，有效内容太短，或者检索分数低且证据过少，系统会直接返回证据不足，而不是让模型在薄弱上下文上补齐一个答案。这一步放在模型调用之前，既减少一次没有必要的生成，也让“没搜到足够证据”和“模型调用失败”成为两种不同结果。严格问答、摘要式回答和探索式回答对证据数量及允许的表达范围不完全相同，但引用必须来自输入证据这条规则不会改变。</p>
+<p>对模型来说，这是一次受限的写作任务：证据够时生成回答，并把编号放在它所支持的陈述之后；证据不够时明确返回无证据结果。它输出的还不是可以直接交给用户的最终文本，而是一份等待后端验收的候选回答。</p>
+<h2 id="模型输出只是候选回答"><a href="#模型输出只是候选回答" class="headerlink" title="模型输出只是候选回答"></a>模型输出只是候选回答</h2><p>回答模型被要求返回一份带状态和引用编号的结构化结果：有证据时是 <code>ANSWERED</code>，证据不足时是 <code>NO_EVIDENCE</code>。这里的状态不是给页面换一句提示语那么简单。<code>NO_EVIDENCE</code> 表示检索和生成链路正常结束，只是现有资料不足以支撑结论；模型超时、协议无法解析或调用异常，则是生成失败。把两者混在一起，用户无法判断应该换个问法、补充资料，还是稍后重试。</p>
+<p>即使模型返回了 <code>ANSWERED</code>，它也只是候选回答。模型可能输出不合法的 JSON，引用一个不存在的编号，或者给出了知识型结论却没有任何引用。这些问题不能只靠 Prompt 里的“请勿编造”解决，因为后端完全可以用确定性规则检查它们。</p>
+<p>Anchr 会解析模型返回的结构，检查回答状态、引用编号是否超出输入证据，以及知识型回答是否实际使用了引用。模型只拿到了 1 到 5 号证据，回答里出现了 <code>[7]</code>，这份回答就不会直接通过。验收成功后，后端只保留答案实际引用的 Segment，而不是把所有候选都包装成“参考资料”；随后再按文档归并和重新编号，补上文件、页码、原文位置与命中原因。模型没有给出合适的引用说明时，系统会退回检索阶段已经生成的匹配摘要，避免为了装饰 Citation 再编一条理由。前面解析阶段保留的位置信息，到这里才真正变成可点击的回溯路径。</p>
+<p>回答和搜索结果卡片也是两份不同的产物。模型可能只用了两个 Segment，页面仍然可以保留其他高相关结果，方便用户自己继续阅读。反过来，如果证据没有达到回答门槛，系统可以保留找到的文档线索，同时明确告诉用户暂时无法给出有证据的结论。这同样是 RAG 的正常出口：没有生成答案，不等于这次搜索毫无价值；有时最诚实的结果，就是把相关资料交还给用户，而不替它们补出结论。</p>
+<p>在流式回答里，模型生成的协议字段也不会原样显示在页面上。服务端从增量输出中只提取可展示的回答正文；完整结果验证结束后，如果最终文本与前面的临时内容不一致，页面会再用已验证的版本校准。流式输出解决的是等待感，最终校验决定的才是这轮回答能否成立，两者不能互相代替。</p>
+<p>引用、回答状态、检索轨迹和结果卡片会和本轮会话一起保存，用户刷新页面后仍然能看到完整结果。保存检索轨迹不只是为了复现页面：当回答不理想时，需要区分问题出在查询改写、召回、版本过滤、重排、证据门禁还是生成校验。如果最后只留下一段回答文本，整条链路就重新变成了一个无法解释的黑盒。</p>
+<p>Citation 解决的是“这段回答使用了哪份资料”，不是“模型对资料的理解一定正确”。假如 PostgreSQL 文档说的是“<code>VACUUM</code> 不能清理仍可能被活动事务快照看到的旧行版本”，模型仍然可能概括成“长事务会阻塞 <code>VACUUM</code>”，把“限制部分旧版本的回收”扩大成“整个清理过程都无法运行”。引用不会自动修正这个结论，但它让用户可以直接回到原文检查。到这一步，一条固定的 RAG 链路才算完整闭合。</p>
+<h2 id="这条-RAG-链路还在继续补齐"><a href="#这条-RAG-链路还在继续补齐" class="headerlink" title="这条 RAG 链路还在继续补齐"></a>这条 RAG 链路还在继续补齐</h2><p>这篇文章里的 RAG 在生成回答之前只检索一次。问“PostgreSQL 的普通 <code>VACUUM</code> 为什么通常不会缩小表文件”时，如果一次检索已经拿到了空间复用和文件回收之间的区别，固定链路就已经够用。</p>
+<p>更复杂的问题可能是“PostgreSQL 只读副本的延迟为什么持续上升”。它既涉及 WAL 的发送、接收和回放位置，也可能需要继续核对网络吞吐、回放冲突、长查询以及当前部署参数。第一次搜索找到延迟发生在哪个阶段后，才知道下一步应该查传输链路还是回放过程；后续方向取决于前一步读到的内容。到了这里，固定 RAG 就碰到了边界。</p>
+<p>Anchr 的 Agent 是从这个边界开始的。它没有另起一套知识链路，而是在前面的检索、版本过滤和引用规则上，允许模型根据中间结果继续搜索和阅读。至于这个循环为什么后来需要预算、状态和证据边界，会放在下一篇《一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程》里单独说。</p>
+<blockquote>
+<p><strong>项目源码</strong>：<a target="_blank" rel="noopener" href="https://github.com/ryanmeowy/anchr-app">https://github.com/ryanmeowy/anchr-app</a><br><strong>Web</strong>：<a target="_blank" rel="noopener" href="https://github.com/ryanmeowy/anchr-web">https://github.com/ryanmeowy/anchr-web</a><br><strong>文档解析</strong>：<a target="_blank" rel="noopener" href="https://github.com/ryanmeowy/anchr-docling">https://github.com/ryanmeowy/anchr-docling</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"><i class="fa fa-tag"></i> Agent</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/Elasticsearch/" rel="tag"><i class="fa fa-tag"></i> Elasticsearch</a>
+              <a href="/tags/Knowledge-Base/" rel="tag"><i class="fa fa-tag"></i> Knowledge Base</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/02/11/INTJ%EF%BC%9A%E7%A4%BC%E8%B2%8C%E3%80%81%E7%96%8F%E7%A6%BB%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%B8%AA%E4%BA%BA%E7%9A%84%E8%87%AA%E6%88%91%E9%97%AD%E7%8E%AF/" rel="prev" title="INTJ：礼貌、疏离，以及一个人的自我闭环">
+                  <i class="fa fa-angle-left"></i> INTJ：礼貌、疏离，以及一个人的自我闭环
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/06/04/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/" rel="next" title="一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程">
+                  一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"203a883a6bf55fb14bcce363ca88b1ea"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

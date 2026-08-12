@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Redis 分布式锁最危险的时刻，往往不是加锁失败，而是锁已经过期，旧的持有者却还在继续执行。 客户端 A 拿到一把有效期 10 秒的锁，业务执行中因为 GC、网络阻塞或外部接口超时停顿了 15 秒。租约到期后，客户端 B 成功加锁并开始工作。此时 A 恢复运行，两个客户端都会操作同一份资源。即使加锁和解锁命令写得完全正确，这个时间窗口仍然存在。 理解这一点以后，Redis 锁的安全边界才比较清楚">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis 锁过期以后，旧客户端还在执行怎么办？">
+<meta property="og:url" content="http://example.com/2020/03/04/Redis%20%E9%94%81%E8%BF%87%E6%9C%9F%E4%BB%A5%E5%90%8E%EF%BC%8C%E6%97%A7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%98%E5%9C%A8%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="Redis 分布式锁最危险的时刻，往往不是加锁失败，而是锁已经过期，旧的持有者却还在继续执行。 客户端 A 拿到一把有效期 10 秒的锁，业务执行中因为 GC、网络阻塞或外部接口超时停顿了 15 秒。租约到期后，客户端 B 成功加锁并开始工作。此时 A 恢复运行，两个客户端都会操作同一份资源。即使加锁和解锁命令写得完全正确，这个时间窗口仍然存在。 理解这一点以后，Redis 锁的安全边界才比较清楚">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-04T01:11:45.000Z">
+<meta property="article:modified_time" content="2020-03-04T01:11:45.000Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="分布式锁">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2020/03/04/Redis%20%E9%94%81%E8%BF%87%E6%9C%9F%E4%BB%A5%E5%90%8E%EF%BC%8C%E6%97%A7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%98%E5%9C%A8%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/03/04/Redis%20%E9%94%81%E8%BF%87%E6%9C%9F%E4%BB%A5%E5%90%8E%EF%BC%8C%E6%97%A7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%98%E5%9C%A8%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F/","path":"2020/03/04/Redis 锁过期以后，旧客户端还在执行怎么办？/","title":"Redis 锁过期以后，旧客户端还在执行怎么办？"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Redis 锁过期以后，旧客户端还在执行怎么办？ | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E6%8A%8A%E5%9F%BA%E6%9C%AC%E5%8F%AF%E7%94%A8%E7%9A%84-Redis-%E9%94%81%EF%BC%8C%E9%9C%80%E8%A6%81%E5%85%88%E8%A1%A5%E4%B8%8A%E4%B8%89%E4%B8%AA%E7%BB%86%E8%8A%82"><span class="nav-number">1.</span> <span class="nav-text">一把基本可用的 Redis 锁，需要先补上三个细节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4%E6%8A%8A%E9%94%81%E5%8F%98%E6%88%90%E4%BA%86%E7%A7%9F%E7%BA%A6"><span class="nav-number">2.</span> <span class="nav-text">过期时间把锁变成了租约</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E7%BB%AD%E6%9C%9F%E8%83%BD%E7%BC%93%E8%A7%A3%E4%BB%80%E4%B9%88%EF%BC%8C%E5%8F%88%E4%B8%8D%E8%83%BD%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="nav-number">3.</span> <span class="nav-text">自动续期能缓解什么，又不能解决什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E4%BC%9A%E5%B8%A6%E6%9D%A5%E5%8F%A6%E4%B8%80%E7%A7%8D%E9%94%81%E4%B8%A2%E5%A4%B1"><span class="nav-number">4.</span> <span class="nav-text">主从切换会带来另一种锁丢失</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redlock-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E8%8A%82%E7%82%B9%E6%95%85%E9%9A%9C%EF%BC%8C%E4%BD%86%E4%BA%89%E8%AE%AE%E6%B2%A1%E6%9C%89%E6%B6%88%E5%A4%B1"><span class="nav-number">5.</span> <span class="nav-text">Redlock 解决的是节点故障，但争议没有消失</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E4%BF%9D%E6%8A%A4%E6%95%B0%E6%8D%AE%EF%BC%8C%E5%8F%AA%E6%A3%80%E6%9F%A5%E9%94%81%E8%BF%98%E4%B8%8D%E5%A4%9F"><span class="nav-number">6.</span> <span class="nav-text">要保护数据，只检查锁还不够</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8D%A2%E6%88%90-ZooKeeper%EF%BC%8C%E4%B9%9F%E4%B8%8D%E8%83%BD%E7%9C%81%E6%8E%89%E8%B5%84%E6%BA%90%E4%BE%A7%E4%BF%9D%E6%8A%A4"><span class="nav-number">7.</span> <span class="nav-text">换成 ZooKeeper，也不能省掉资源侧保护</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E7%8E%B0%E5%9C%A8%E6%80%8E%E6%A0%B7%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E8%AF%A5%E7%94%A8-Redis-%E9%94%81"><span class="nav-number">8.</span> <span class="nav-text">我现在怎样判断是否该用 Redis 锁</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/04/Redis%20%E9%94%81%E8%BF%87%E6%9C%9F%E4%BB%A5%E5%90%8E%EF%BC%8C%E6%97%A7%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%98%E5%9C%A8%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Redis 锁过期以后，旧客户端还在执行怎么办？ | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis 锁过期以后，旧客户端还在执行怎么办？
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-03-04 09:11:45" itemprop="dateCreated datePublished" datetime="2020-03-04T09:11:45+08:00">2020-03-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Redis 分布式锁最危险的时刻，往往不是加锁失败，而是锁已经过期，旧的持有者却还在继续执行。</p>
+<p>客户端 A 拿到一把有效期 10 秒的锁，业务执行中因为 GC、网络阻塞或外部接口超时停顿了 15 秒。租约到期后，客户端 B 成功加锁并开始工作。此时 A 恢复运行，两个客户端都会操作同一份资源。即使加锁和解锁命令写得完全正确，这个时间窗口仍然存在。</p>
+<p>理解这一点以后，Redis 锁的安全边界才比较清楚：它可以协调并发，却不能独自保证共享资源永远只接受当前持有者的操作。</p>
+<span id="more"></span>
+
+<h2 id="一把基本可用的-Redis-锁，需要先补上三个细节"><a href="#一把基本可用的-Redis-锁，需要先补上三个细节" class="headerlink" title="一把基本可用的 Redis 锁，需要先补上三个细节"></a>一把基本可用的 Redis 锁，需要先补上三个细节</h2><p>最简陋的实现是通过 <code>SETNX</code> 抢占一个 key，业务结束后再用 <code>DEL</code> 删除。它能完成互斥，却很容易留下无法释放的锁：客户端在加锁后崩溃，就没有机会执行 <code>DEL</code>。</p>
+<p>给锁增加过期时间可以避免无限占用，但 <code>SETNX</code> 和 <code>EXPIRE</code> 不能拆成两条命令。第一条成功后，客户端可能在第二条执行前崩溃，锁仍然没有租期。Redis 提供的 <code>SET</code> 参数可以把“仅在不存在时写入”和“设置过期时间”放在一次操作里：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET order:123 7f5d... NX PX 30000</span><br></pre></td></tr></table></figure>
+
+<p>value 也不能随便写成 <code>1</code>，而要使用每次加锁都不同的随机标识。否则 A 的锁过期、B 重新加锁以后，A 再执行 <code>DEL</code>，就会把 B 的锁一起删掉。</p>
+<p>释放锁时，需要在一次原子操作中完成“比较标识”和“删除 key”。常见做法是执行 Lua 脚本：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> redis.call(<span class="string">&quot;GET&quot;</span>, KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>] <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">return</span> redis.call(<span class="string">&quot;DEL&quot;</span>, KEYS[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>到这里，一把单 Redis 实例上的锁具备了几个基本条件：原子加锁、自带租期、每次持有都有独立标识，并且只允许持有者释放自己的锁。这也是 Redis 官方文档给出的单实例实现基础。</p>
+<p>不过，这些措施只保证 Redis 中那条锁记录不会被错误管理。共享资源是否会被旧客户端修改，仍是另一个问题。</p>
+<h2 id="过期时间把锁变成了租约"><a href="#过期时间把锁变成了租约" class="headerlink" title="过期时间把锁变成了租约"></a>过期时间把锁变成了租约</h2><p>本地互斥锁通常由持有线程主动释放；带 TTL 的分布式锁更像一份租约。客户端只在一段时间内拥有操作资格，时间到了，锁服务就会允许其他客户端接手。</p>
+<p>问题在于，Redis 知道 key 已经过期，却无法让正在运行的业务代码停下来：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">客户端 A：获得锁 token=A，有效期 10 秒</span><br><span class="line">    ↓</span><br><span class="line">执行中暂停 15 秒</span><br><span class="line">    ↓                         Redis：A 的锁过期</span><br><span class="line">                              客户端 B：获得 token=B</span><br><span class="line">    ↓</span><br><span class="line">客户端 A 恢复，继续写共享资源</span><br></pre></td></tr></table></figure>
+
+<p>唯一标识和 Lua 解锁可以防止 A 删除 B 的锁，但不能阻止 A 的业务代码继续写数据库、文件或调用下游接口。A 在写入前再次检查 Redis 也不够，因为检查完成后仍可能暂停，等它恢复时，锁已经换了持有者。</p>
+<p>这也是“给 TTL 留足冗余”只能降低概率的原因。任务耗时可以估算，进程暂停、网络延迟和依赖超时却很难给出可靠上界。</p>
+<h2 id="自动续期能缓解什么，又不能解决什么"><a href="#自动续期能缓解什么，又不能解决什么" class="headerlink" title="自动续期能缓解什么，又不能解决什么"></a>自动续期能缓解什么，又不能解决什么</h2><p>另一种做法是在任务执行期间定时续租。Redisson 的 watchdog 就采用了这个思路：没有显式指定租期时，只要持锁客户端仍在正常工作，它会持续延长锁的有效时间。</p>
+<p>这对普通的长任务很有用。业务偶尔从 10 秒变成 30 秒，不必预先设置一个很夸张的 TTL，也不会因为正常执行时间变长而轻易丢锁。</p>
+<p>但续期线程本身也运行在客户端。如果进程长时间暂停、客户端与 Redis 失联，或者续期调度没有在租期内完成，锁依然会过期。客户端恢复以后仍可能继续运行旧任务。watchdog 改善的是租期管理，并没有让租约变成永不过期的本地互斥锁。</p>
+<h2 id="主从切换会带来另一种锁丢失"><a href="#主从切换会带来另一种锁丢失" class="headerlink" title="主从切换会带来另一种锁丢失"></a>主从切换会带来另一种锁丢失</h2><p>前面的时间窗口发生在客户端一侧。Redis 使用主从复制和自动故障转移时，还要考虑锁记录本身可能在切换中消失。</p>
+<p>假设 A 在主节点上成功写入锁，主节点在这条命令同步到副本之前宕机。副本被提升为新主节点后并没有这条 key，B 就可以再次获得同一把锁。A 和 B 随后都可能认为自己拥有操作资格。</p>
+<p>这是异步复制的直接结果。Redis 官方的分布式锁说明也把它列为单实例加副本方案无法保证互斥的场景。<code>WAIT</code> 一类复制确认可以降低数据未同步的概率，但 Redis 官方明确指出，它不会把异步复制变成强一致复制。</p>
+<p>所以，讨论“Redis 锁是否安全”时，必须把部署方式说清楚。单实例、主从加故障转移以及多个独立节点上的 Redlock，并不提供同一组保证。</p>
+<h2 id="Redlock-解决的是节点故障，但争议没有消失"><a href="#Redlock-解决的是节点故障，但争议没有消失" class="headerlink" title="Redlock 解决的是节点故障，但争议没有消失"></a>Redlock 解决的是节点故障，但争议没有消失</h2><p>Redlock 不依赖一个主节点及其异步副本，而是把锁写入多个彼此独立的 Redis 主节点。以 5 个节点为例，客户端需要在锁的有效期内获得至少 3 个节点的成功响应；未获得多数派，或者总耗时已经超过有效期，都视为加锁失败。释放时则尝试清理所有节点。</p>
+<p>这套方案希望在少数 Redis 节点不可用时继续提供锁服务，也避免把一次主从切换直接等同于锁丢失。但它仍然是一种有有效期的租约，正确性依赖网络延迟、进程暂停和时钟漂移相对于 TTL 足够小。</p>
+<p>Martin Kleppmann 对 Redlock 的主要质疑也在这里：如果锁承担的是正确性责任，客户端暂停到租约过期后仍可能写入资源；Redlock 又没有提供单调递增的 fencing token，资源无法识别一个迟到的旧持有者。Redis 作者 Salvatore Sanfilippo 的回应则认为，Redlock 在明确的时序与时钟假设下可以工作，并对随机标识、资源侧检查等问题给出了不同解释。</p>
+<p>这场讨论不适合压缩成“Redlock 一定安全”或“一定不能用”。更有用的问题是：业务能否接受偶发的重复执行，基础设施能否满足算法依赖的时序假设，以及锁失效后资源层有没有第二道保护。</p>
+<h2 id="要保护数据，只检查锁还不够"><a href="#要保护数据，只检查锁还不够" class="headerlink" title="要保护数据，只检查锁还不够"></a>要保护数据，只检查锁还不够</h2><p>如果重复执行的后果只是多算一次结果，Redis 锁可以被当作效率优化。锁偶尔失效会浪费资源，却不至于破坏数据。这类场景下，单实例锁往往已经够用，设计和运维也更简单。</p>
+<p>如果锁失效会造成库存超卖、余额错误或数据覆盖，就不能把正确性全部交给租约。资源层需要能够拒绝过期持有者，fencing token 是一种常见做法。</p>
+<p>每次成功获取锁时，锁服务同时返回一个严格递增的编号：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">客户端 A 获得 token=33，随后长时间暂停</span><br><span class="line">客户端 B 获得 token=34，并成功写入资源</span><br><span class="line">客户端 A 恢复，携带 token=33 发起写入</span><br><span class="line">资源发现 33 小于已处理的 34，拒绝这次请求</span><br></pre></td></tr></table></figure>
+
+<p>随机 UUID 做不到这一点。它可以用于判断 Redis key 是否仍属于当前客户端，却没有新旧顺序；资源看到两个 UUID 时，不知道哪个请求已经过期。</p>
+<p>fencing token 也有明确限制：被保护的数据库或服务必须保存并检查这个编号。对于无法修改的第三方接口、普通文件写入或不支持条件更新的资源，它很难直接落地。此时通常还要依赖唯一约束、版本号条件更新、事务、幂等键或业务状态机来收口，而不是继续给锁增加更多技巧。</p>
+<h2 id="换成-ZooKeeper，也不能省掉资源侧保护"><a href="#换成-ZooKeeper，也不能省掉资源侧保护" class="headerlink" title="换成 ZooKeeper，也不能省掉资源侧保护"></a>换成 ZooKeeper，也不能省掉资源侧保护</h2><p>ZooKeeper 的锁通常建立在临时顺序节点之上。它能提供有序的协调记录，客户端会话失效后，临时节点也会被清理。这些性质比 Redis 的异步主从切换更适合构建协调服务。</p>
+<p>但会话失效并不会强制终止客户端进程。客户端长时间暂停或失联时，ZooKeeper 可以删除它的节点，让下一个客户端获得锁；旧客户端恢复后，仍可能继续操作资源。因此，涉及正确性的写入仍需要 fencing token 或等价的资源侧条件。换一个锁服务可以改变故障模型，不能让迟到请求自动消失。</p>
+<h2 id="我现在怎样判断是否该用-Redis-锁"><a href="#我现在怎样判断是否该用-Redis-锁" class="headerlink" title="我现在怎样判断是否该用 Redis 锁"></a>我现在怎样判断是否该用 Redis 锁</h2><p>我会先问这把锁是在提升效率，还是在承担正确性。如果只是减少重复任务，Redis 的单实例租约通常简单有效；如果错误执行一次就会破坏数据，锁只能作为入口处的并发削峰，数据库和下游服务还要有自己的约束。</p>
+<p>实现层面，我不会再从 <code>SETNX</code> 和 <code>DEL</code> 手写一套锁，而会选用维护成熟的客户端，同时确认它的加锁标识、原子解锁、续期方式、故障转移行为和失败策略。监控也不能只有“加锁是否成功”，还要看到持锁时长、续期失败、等待时间和锁过期后任务是否仍在运行。</p>
+<p>Redis 锁可以挡住大多数正常并发，但租约一旦失效，旧客户端不会收到一条能立即停止业务代码的指令。对于数据正确性要求高的场景，最后一道判断必须落在真正被修改的资源上。</p>
+<hr>
+<blockquote>
+<p><strong>参考资料</strong>：<a target="_blank" rel="noopener" href="https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/">Redis 分布式锁说明</a>、<a target="_blank" rel="noopener" href="https://redis.io/docs/latest/commands/wait/">Redis <code>WAIT</code> 命令</a>、<a target="_blank" rel="noopener" href="https://redisson.pro/docs/configuration/">Redisson watchdog 配置</a>、<a target="_blank" rel="noopener" href="https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html">Martin Kleppmann 对 Redlock 的分析</a>、<a target="_blank" rel="noopener" href="https://www.antirez.com/news/101">Salvatore Sanfilippo 的回应</a>、<a target="_blank" rel="noopener" href="https://zookeeper.apache.org/doc/current/recipes.html">ZooKeeper 锁配方</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag"><i class="fa fa-tag"></i> 分布式锁</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/11/22/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6-%E5%AF%B9%E8%B1%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/" rel="next" title="转载:Java垃圾回收机制-对象管理与内存优化">
+                  转载:Java垃圾回收机制-对象管理与内存优化 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"fd63e12eb2c234f44dff901e058f5e88"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

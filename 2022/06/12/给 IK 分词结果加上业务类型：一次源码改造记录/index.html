@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="IK 能把一段中文切成词，但在业务里，知道“切出了什么”有时还不够。面对“施耐德继电器”这样的文本，我还希望分词结果能告诉下游：施耐德 是品牌，继电器 是品类；遇到物料号时，也应该保留对应的业务类型。 普通扩展词典可以让 IK 识别新词，却不会自动区分品牌、品类和物料号。为了补上这部分信息，我顺着 IK 的词典加载与词元输出流程做了一次改造。这篇记录只整理其中最关键的路径，以及二开时实际改动的地方">
+<meta property="og:type" content="article">
+<meta property="og:title" content="给 IK 分词结果加上业务类型：一次源码改造记录">
+<meta property="og:url" content="http://example.com/2022/06/12/%E7%BB%99%20IK%20%E5%88%86%E8%AF%8D%E7%BB%93%E6%9E%9C%E5%8A%A0%E4%B8%8A%E4%B8%9A%E5%8A%A1%E7%B1%BB%E5%9E%8B%EF%BC%9A%E4%B8%80%E6%AC%A1%E6%BA%90%E7%A0%81%E6%94%B9%E9%80%A0%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="IK 能把一段中文切成词，但在业务里，知道“切出了什么”有时还不够。面对“施耐德继电器”这样的文本，我还希望分词结果能告诉下游：施耐德 是品牌，继电器 是品类；遇到物料号时，也应该保留对应的业务类型。 普通扩展词典可以让 IK 识别新词，却不会自动区分品牌、品类和物料号。为了补上这部分信息，我顺着 IK 的词典加载与词元输出流程做了一次改造。这篇记录只整理其中最关键的路径，以及二开时实际改动的地方">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082209853.png">
+<meta property="og:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082121508.png">
+<meta property="article:published_time" content="2022-06-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-12T16:21:13.748Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="分词器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082209853.png">
+
+
+<link rel="canonical" href="http://example.com/2022/06/12/%E7%BB%99%20IK%20%E5%88%86%E8%AF%8D%E7%BB%93%E6%9E%9C%E5%8A%A0%E4%B8%8A%E4%B8%9A%E5%8A%A1%E7%B1%BB%E5%9E%8B%EF%BC%9A%E4%B8%80%E6%AC%A1%E6%BA%90%E7%A0%81%E6%94%B9%E9%80%A0%E8%AE%B0%E5%BD%95/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/06/12/%E7%BB%99%20IK%20%E5%88%86%E8%AF%8D%E7%BB%93%E6%9E%9C%E5%8A%A0%E4%B8%8A%E4%B8%9A%E5%8A%A1%E7%B1%BB%E5%9E%8B%EF%BC%9A%E4%B8%80%E6%AC%A1%E6%BA%90%E7%A0%81%E6%94%B9%E9%80%A0%E8%AE%B0%E5%BD%95/","path":"2022/06/12/给 IK 分词结果加上业务类型：一次源码改造记录/","title":"给 IK 分词结果加上业务类型：一次源码改造记录"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>给 IK 分词结果加上业务类型：一次源码改造记录 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E8%AF%8D%E5%85%B8%E8%83%BD%E8%AF%86%E5%88%AB%E6%96%B0%E8%AF%8D%EF%BC%8C%E5%8D%B4%E5%88%86%E4%B8%8D%E6%B8%85%E5%AE%83%E4%BB%AC%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">扩展词典能识别新词，却分不清它们是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%88%E6%89%BE%E5%88%B0%E8%AF%8D%E5%85%B8%E6%98%AF%E6%80%8E%E6%A0%B7%E8%BF%9B%E5%86%85%E5%AD%98%E7%9A%84"><span class="nav-number">2.</span> <span class="nav-text">先找到词典是怎样进内存的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%8D%E5%85%B8%E5%88%86%E5%BC%80%E4%BB%A5%E5%90%8E%EF%BC%8C%E5%9C%A8%E5%93%AA%E9%87%8C%E7%BB%99%E8%AF%8D%E5%85%83%E6%A0%87%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">词典分开以后，在哪里给词元标类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8B%AC%E7%AB%8B%E8%AF%8D%E5%85%B8%E4%B9%9F%E5%B8%A6%E6%9D%A5%E4%BA%86%E6%96%B0%E7%9A%84%E5%8F%96%E8%88%8D"><span class="nav-number">4.</span> <span class="nav-text">独立词典也带来了新的取舍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%8D%E5%85%B8%E6%9B%B4%E6%96%B0%E6%AF%94%E9%A6%96%E6%AC%A1%E5%8A%A0%E8%BD%BD%E6%9B%B4%E9%BA%BB%E7%83%A6"><span class="nav-number">5.</span> <span class="nav-text">词典更新比首次加载更麻烦</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/12/%E7%BB%99%20IK%20%E5%88%86%E8%AF%8D%E7%BB%93%E6%9E%9C%E5%8A%A0%E4%B8%8A%E4%B8%9A%E5%8A%A1%E7%B1%BB%E5%9E%8B%EF%BC%9A%E4%B8%80%E6%AC%A1%E6%BA%90%E7%A0%81%E6%94%B9%E9%80%A0%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="给 IK 分词结果加上业务类型：一次源码改造记录 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          给 IK 分词结果加上业务类型：一次源码改造记录
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-06-12 00:00:00" itemprop="dateCreated datePublished" datetime="2022-06-12T00:00:00+08:00">2022-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>IK 能把一段中文切成词，但在业务里，知道“切出了什么”有时还不够。面对“施耐德继电器”这样的文本，我还希望分词结果能告诉下游：<code>施耐德</code> 是品牌，<code>继电器</code> 是品类；遇到物料号时，也应该保留对应的业务类型。</p>
+<p>普通扩展词典可以让 IK 识别新词，却不会自动区分品牌、品类和物料号。为了补上这部分信息，我顺着 IK 的词典加载与词元输出流程做了一次改造。这篇记录只整理其中最关键的路径，以及二开时实际改动的地方。</p>
+<span id="more"></span>
+
+<h2 id="扩展词典能识别新词，却分不清它们是什么"><a href="#扩展词典能识别新词，却分不清它们是什么" class="headerlink" title="扩展词典能识别新词，却分不清它们是什么"></a>扩展词典能识别新词，却分不清它们是什么</h2><p>IK 原本已经支持主词典、扩展词典和停用词词典。把“施耐德”加入扩展词典后，它可以作为完整词元出现在分词结果中，避免被拆成没有业务意义的片段。</p>
+<p>问题是，所有扩展词最终都会合并进主词典。对分词器来说，“施耐德”“继电器”和某个物料号都只是命中的词条，下游拿到结果后仍然不知道哪个是品牌、哪个是品类。</p>
+<p>如果只想改善切词结果，使用扩展词典已经足够。这次改造还需要保留词条所属的业务分类，因此不能把所有词继续放进同一棵词典树。我分别增加了品牌、品类和物料号词典，让每类词拥有独立的匹配入口。</p>
+<h2 id="先找到词典是怎样进内存的"><a href="#先找到词典是怎样进内存的" class="headerlink" title="先找到词典是怎样进内存的"></a>先找到词典是怎样进内存的</h2><p>IK 的源码不少，但和这次改造直接相关的主要是配置、分词核心与词典管理三部分。继续往下追，入口最终落在 <code>Dictionary</code> 和 <code>DictSegment</code> 上。</p>
+<p><code>Dictionary</code> 负责读取配置并初始化词典。分词器第一次使用时，主词典、量词词典和停用词词典会被加载到内存；配置文件里声明的扩展词典随后也会写入主词典。真正保存词条的不是一张字符串列表，而是由 <code>DictSegment</code> 组成的树。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082209853.png" alt="image-20220508220918804"></p>
+<p>以“施耐德继电器”为例，匹配从字符“施”开始：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">施</span><br><span class="line">└── 耐</span><br><span class="line">    └── 德  ← 完整词条</span><br></pre></td></tr></table></figure>
+
+<p>只要沿着字符节点依次找到“施”“耐”“德”，并且最后一个节点被标记为词尾，就可以确认“施耐德”是一个完整词条。如果走到一半没有后续节点，这次匹配便结束。</p>
+<p>这里有个实现细节很值得保留。一个节点的子节点较少时，IK 使用数组存储；数量超过阈值后，再迁移到 <code>Map</code>。数组避免了每个小分支都维护 <code>HashMap</code> 的额外开销，分支变多后改用 <code>Map</code>，又能避免数组查找随着节点数量增加而持续变慢。</p>
+<p>理解这条加载路径后，新增业务词典就不需要改动分词算法本身。我沿用原有方式，为品牌、品类和物料号分别创建 <code>DictSegment</code>，启动时从对应的词典文件读取内容，再通过 <code>fillSegment</code> 逐词写入各自的树中。</p>
+<p><img src="https://ryansimg.oss-cn-shanghai.aliyuncs.com/2021/202205082121508.png" alt="自定义词典文件"></p>
+<h2 id="词典分开以后，在哪里给词元标类型"><a href="#词典分开以后，在哪里给词元标类型" class="headerlink" title="词典分开以后，在哪里给词元标类型"></a>词典分开以后，在哪里给词元标类型</h2><p>业务词典加载完成，只解决了“数据放在哪里”的问题。接下来还要在分词结果返回之前，用当前词元去这些词典中做匹配。</p>
+<p><code>IKSegmenter.next()</code> 会逐个返回词元，同时在这里过滤停用词。这个位置已经拿到了词元的字符范围，也处在结果交给调用方之前，因此我把业务类型判断放在了这条路径上：先检查品牌词典，命中后将类型标为 <code>brand</code>；没有命中再继续检查品类、物料号等词典。</p>
+<p>一次词典匹配会得到三类状态：</p>
+<ul>
+<li><code>UNMATCH</code>：当前字符路径不存在；</li>
+<li><code>MATCH</code>：已经命中一个完整词条；</li>
+<li><code>PREFIX</code>：当前内容是某个更长词条的前缀，还可以继续向下匹配。</li>
+</ul>
+<p>这三个状态来自同一棵词典树。匹配首字符后，如果后面还有字符，就沿当前节点继续查找；处理到最后一个字符时，再根据节点是否为词尾、是否还有子节点，设置完整匹配或前缀匹配状态。业务类型判断只关心最终是否完整命中。</p>
+<p>整个改造可以简化成下面这段流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">IK 输出词元</span><br><span class="line">   ↓</span><br><span class="line">过滤停用词</span><br><span class="line">   ↓</span><br><span class="line">依次匹配品牌、品类、物料号词典</span><br><span class="line">   ↓</span><br><span class="line">命中后写入业务类型</span><br><span class="line">   ↓</span><br><span class="line">返回词元</span><br></pre></td></tr></table></figure>
+
+<p>这样处理以后，“施耐德继电器”的分词结果不再只有词元文本，还能携带 <code>brand</code>、<code>category</code> 等信息。后续做索引、聚合或业务规则时，不必再根据字符串重新猜测词元属于哪一类。</p>
+<h2 id="独立词典也带来了新的取舍"><a href="#独立词典也带来了新的取舍" class="headerlink" title="独立词典也带来了新的取舍"></a>独立词典也带来了新的取舍</h2><p>把不同业务词混进主词典，可以让它们被完整切出，但分类信息会在加载时丢失。这次实现将业务词分开保存，IK 原来的主词典继续负责分词，各业务词典只在词元输出阶段补充分类。</p>
+<p>代价是每个词元可能需要依次检查多棵树。业务词典数量继续增加时，匹配顺序和额外开销都需要重新评估。另一种做法是在主词典节点上增加类型字段，但同一个词可能属于多个分类，词典的加载和更新也要跟着改变。</p>
+<p>词典之间还要提前约定优先级。一个词如果同时出现在品牌和品类词典中，是命中第一类后立即返回，还是允许一个词元携带多个类型，会直接影响后续数据结构。当前实现采用依次匹配的方式，因此词典顺序本身就是业务规则的一部分。</p>
+<h2 id="词典更新比首次加载更麻烦"><a href="#词典更新比首次加载更麻烦" class="headerlink" title="词典更新比首次加载更麻烦"></a>词典更新比首次加载更麻烦</h2><p>词典文件随程序启动加载，只适合变化不频繁的场景。如果品牌、品类和物料号每次变化都要靠重启服务生效，维护会很麻烦，因此这次二开还处理了词典热更新。</p>
+<p>热更新需要考虑的不只是重新读取文件。加载过程中旧词典是否还能继续提供查询，新词典何时替换，多个词典怎样保持一致，以及更新失败后是否保留旧数据，都会影响线上分词结果。这里涉及当时项目的数字资产保密条款，具体实现不展示，只保留这个边界。</p>
+<p>这次改造最终没有改变 IK 原本的切词职责。主词典仍然决定一个词能否被识别，独立的业务词典则给已经产生的词元补上分类。后续如果业务类型继续增多，下一步需要关注的就是多词典匹配的开销，以及类型冲突应当如何表达。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E8%AF%8D%E5%99%A8/" rel="tag"><i class="fa fa-tag"></i> 分词器</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/05/29/Lucene%E5%88%86%E8%AF%8D%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/" rel="prev" title="Lucene分词器的基本原理">
+                  <i class="fa fa-angle-left"></i> Lucene分词器的基本原理
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/11/07/ES%E8%87%AA%E5%AE%9A%E4%B9%89%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E6%89%93%E5%88%86%E6%9C%BA%E5%88%B6/" rel="next" title="ES自定义搜索结果打分机制">
+                  ES自定义搜索结果打分机制 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"fe0823eb6bcbb29c504c6db93313cdfc"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

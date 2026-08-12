@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="如果只记得一张图的内容，却忘了文件名，怎么把它找出来？PicIndex 就是为了回答这个问题。 我用多模态 Embedding 把图片和文字映射到同一个向量空间。这样一来，搜索“赛博朋克风格的雨夜街道”或者“一只坐在窗边的猫”，系统就能按照画面语义找到相近的图片。功能跑起来以后，问题也接着冒了出来：图片里的订单号搜不准，大图调用模型太慢，同一个查询还会一遍遍地计算向量。 这些问题最后都没有靠换一个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我给图片搜索加了向量，然后发现还不够">
+<meta property="og:url" content="http://example.com/2025/06/14/%E6%88%91%E7%BB%99%E5%9B%BE%E7%89%87%E6%90%9C%E7%B4%A2%E5%8A%A0%E4%BA%86%E5%90%91%E9%87%8F%EF%BC%8C%E7%84%B6%E5%90%8E%E5%8F%91%E7%8E%B0%E8%BF%98%E4%B8%8D%E5%A4%9F/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="如果只记得一张图的内容，却忘了文件名，怎么把它找出来？PicIndex 就是为了回答这个问题。 我用多模态 Embedding 把图片和文字映射到同一个向量空间。这样一来，搜索“赛博朋克风格的雨夜街道”或者“一只坐在窗边的猫”，系统就能按照画面语义找到相近的图片。功能跑起来以后，问题也接着冒了出来：图片里的订单号搜不准，大图调用模型太慢，同一个查询还会一遍遍地计算向量。 这些问题最后都没有靠换一个">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-06-14T12:21:10.000Z">
+<meta property="article:modified_time" content="2025-12-21T14:56:23.000Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Elasticsearch">
+<meta property="article:tag" content="Multimodal">
+<meta property="article:tag" content="Hybrid Search">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2025/06/14/%E6%88%91%E7%BB%99%E5%9B%BE%E7%89%87%E6%90%9C%E7%B4%A2%E5%8A%A0%E4%BA%86%E5%90%91%E9%87%8F%EF%BC%8C%E7%84%B6%E5%90%8E%E5%8F%91%E7%8E%B0%E8%BF%98%E4%B8%8D%E5%A4%9F/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/06/14/%E6%88%91%E7%BB%99%E5%9B%BE%E7%89%87%E6%90%9C%E7%B4%A2%E5%8A%A0%E4%BA%86%E5%90%91%E9%87%8F%EF%BC%8C%E7%84%B6%E5%90%8E%E5%8F%91%E7%8E%B0%E8%BF%98%E4%B8%8D%E5%A4%9F/","path":"2025/06/14/我给图片搜索加了向量，然后发现还不够/","title":"我给图片搜索加了向量，然后发现还不够"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>我给图片搜索加了向量，然后发现还不够 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%9C%E5%BE%97%E5%88%B0%E2%80%9C%E9%9B%A8%E5%A4%9C%E8%A1%97%E9%81%93%E2%80%9D%EF%BC%8C%E5%8D%B4%E6%9C%AA%E5%BF%85%E6%90%9C%E5%BE%97%E5%88%B0%E8%AE%A2%E5%8D%95%E5%8F%B7"><span class="nav-number">1.</span> <span class="nav-text">搜得到“雨夜街道”，却未必搜得到订单号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E8%B7%AF%E7%BB%93%E6%9E%9C%E9%83%BD%E6%9C%89%E4%BA%86%EF%BC%8C%E6%8E%92%E5%BA%8F%E5%8F%8D%E8%80%8C%E6%9B%B4%E9%BA%BB%E7%83%A6"><span class="nav-number">2.</span> <span class="nav-text">两路结果都有了，排序反而更麻烦</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%85%A2%E7%9A%84%E5%8F%AF%E8%83%BD%E4%B8%8D%E6%98%AF%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">慢的可能不是模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E8%A6%81%E7%BC%93%E5%AD%98%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C"><span class="nav-number">4.</span> <span class="nav-text">不要缓存搜索结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BE%E7%89%87%E5%8F%98%E6%88%90%E5%90%91%E9%87%8F%E4%BB%A5%E5%90%8E%EF%BC%8C%E8%BF%98%E7%BC%BA%E5%B0%91%E7%AD%9B%E9%80%89%E6%9D%A1%E4%BB%B6"><span class="nav-number">5.</span> <span class="nav-text">图片变成向量以后，还缺少筛选条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-%E6%B2%A1%E6%9C%89%E8%AE%A9%E6%88%91%E8%A7%89%E5%BE%97%E5%88%AB%E6%89%AD"><span class="nav-number">6.</span> <span class="nav-text">Java 没有让我觉得别扭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%99%E4%B8%AA%E9%A1%B9%E7%9B%AE%E8%BF%98%E5%9C%A8%E9%AA%8C%E8%AF%81%E4%BB%80%E4%B9%88"><span class="nav-number">7.</span> <span class="nav-text">这个项目还在验证什么</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/14/%E6%88%91%E7%BB%99%E5%9B%BE%E7%89%87%E6%90%9C%E7%B4%A2%E5%8A%A0%E4%BA%86%E5%90%91%E9%87%8F%EF%BC%8C%E7%84%B6%E5%90%8E%E5%8F%91%E7%8E%B0%E8%BF%98%E4%B8%8D%E5%A4%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="我给图片搜索加了向量，然后发现还不够 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          我给图片搜索加了向量，然后发现还不够
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-06-14 20:21:10" itemprop="dateCreated datePublished" datetime="2025-06-14T20:21:10+08:00">2025-06-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">AI 工程化</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>如果只记得一张图的内容，却忘了文件名，怎么把它找出来？PicIndex 就是为了回答这个问题。</p>
+<p>我用多模态 Embedding 把图片和文字映射到同一个向量空间。这样一来，搜索“赛博朋克风格的雨夜街道”或者“一只坐在窗边的猫”，系统就能按照画面语义找到相近的图片。功能跑起来以后，问题也接着冒了出来：图片里的订单号搜不准，大图调用模型太慢，同一个查询还会一遍遍地计算向量。</p>
+<p>这些问题最后都没有靠换一个更强的模型解决。PicIndex 后来的大部分调整，发生在模型之外。</p>
+<span id="more"></span>
+
+<h2 id="搜得到“雨夜街道”，却未必搜得到订单号"><a href="#搜得到“雨夜街道”，却未必搜得到订单号" class="headerlink" title="搜得到“雨夜街道”，却未必搜得到订单号"></a>搜得到“雨夜街道”，却未必搜得到订单号</h2><p>向量检索对模糊描述很友好。用户不需要知道图片的文件名，也不需要准确记住某个标签，只要描述画面的大致内容，就有机会找到想要的结果。这正是我做 PicIndex 时最想要的体验。</p>
+<p>但图片里经常还有另一类信息：海报文案、合同中的人名、票据编号、产品型号。这些内容不模糊，反而越精确越好。模型可以理解两张海报在表达相似的主题，却不一定能稳定区分只差一位的编号。</p>
+<p>所以我没有继续把所有希望都压在向量上，而是给图片增加了 OCR。搜索时，向量检索去理解“这张图大概在说什么”，BM25 则从识别出的文字里找精确命中。比如“适合作为科技公司背景图”主要依赖前者，“订单号 A20251014”则更需要后者。</p>
+<p>两条检索链路保留下来以后，模糊语义和精确文字都有了各自的入口。接下来的麻烦变成了：它们各自返回一批结果，到底该怎么排在一起？</p>
+<h2 id="两路结果都有了，排序反而更麻烦"><a href="#两路结果都有了，排序反而更麻烦" class="headerlink" title="两路结果都有了，排序反而更麻烦"></a>两路结果都有了，排序反而更麻烦</h2><p>我最先碰到的问题是，两边的分数根本不在同一把尺子上。向量检索使用余弦相似度，数值范围相对稳定；BM25 的得分没有统一上限，还会受到词频、字段长度和命中方式影响。</p>
+<p>如果把两个分数直接相加，数值更大的那一路很容易压过另一边。表面上做了混合检索，最终排序可能还是几乎只由文本决定。</p>
+<p>PicIndex 里尝试了两种融合办法。现在更常用的是 RRF：不比较绝对分数，只看一张图片在两组结果中分别排第几。它如果在向量检索和文本检索里都靠前，合并后的排名也会比较高。这个方法不需要先把两套分数调到相同区间，对没有大量标注数据的个人项目很合适。</p>
+<p>另一种办法是先归一化，再做线性加权：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">最终得分 = α × 向量得分 + β × BM25 得分</span><br></pre></td></tr></table></figure>
+
+<p>线性加权的好处是可以针对场景调整。素材图更看重视觉语义，就提高向量权重；票据和扫描件更依赖文字，就提高 BM25 权重。不过没有离线评估集时，这些参数很容易变成“看起来还行”。因此我把 RRF 作为默认选择，只有场景足够明确时才考虑权重。</p>
+<p>搜索结果页上的“匹配度”也做了单独处理。Elasticsearch 返回的 <code>_score</code> 直接展示没有什么意义，我用分段映射把它转成相对直观的百分比。这个数字只能帮助用户比较结果，不代表某张图片有 92% 的概率符合查询。</p>
+<h2 id="慢的可能不是模型"><a href="#慢的可能不是模型" class="headerlink" title="慢的可能不是模型"></a>慢的可能不是模型</h2><p>调用多模态模型时，我曾经直接把 OSS 里的原图地址传过去。功能正常，但接口耗时不太理想。手机照片很容易达到几 MB，分辨率也可能超过 4000 像素；模型即使会在内部缩放图片，也要先把原文件完整下载一遍。</p>
+<p>一个直接的处理方式是让后端下载原图，压缩以后再发给模型。但这样又多了一段文件传输，CPU、内存和临时文件也都落到了应用服务器上。</p>
+<p>最后我用了 OSS 自带的动态图片处理。后端生成预签名地址时，顺便加上缩放、质量压缩和格式转换参数。原图仍然只保存一份，模型访问这个地址时，OSS 返回的是处理后的图片，应用服务器不需要参与压缩。</p>
+<p>在我的测试数据里，发给模型的图片体积平均减少了约 85%，Embedding 接口的端到端耗时下降了 300ms 以上。具体收益会受原图大小、网络环境和模型服务影响，但这次优化至少帮我定位清楚了一件事：看到模型接口慢，不能先入为主地把时间都算在推理上。文件大小和网络传输同样值得查。</p>
+<p>这也影响了图片入库的处理方式。文件由前端直传 OSS，后端拿到 Object Key 后再异步执行 OCR、图片理解和 Embedding。上传请求不用等待模型处理，应用服务器也不再中转文件流。</p>
+<h2 id="不要缓存搜索结果"><a href="#不要缓存搜索结果" class="headerlink" title="不要缓存搜索结果"></a>不要缓存搜索结果</h2><p>每次搜索之前，查询文本也要先转换成向量。像“红色跑车”这样的查询反复出现时，模型做的是完全相同的计算。它既增加等待时间，也产生额外调用成本。</p>
+<p>缓存整个搜索结果虽然直观，却不太适合 PicIndex。图片会继续入库，也可能被删除；一旦缓存的是结果列表，就要考虑什么时候失效，否则用户看到的可能一直是旧数据。</p>
+<p>我最后只缓存查询文本对应的 Embedding。相同或归一化后相同的查询再次出现时，直接从 Redis 里取向量，然后照常去 Elasticsearch 搜索。模型调用被省掉了，结果仍然来自最新索引。</p>
+<p>测试中，命中缓存后，获取查询向量的耗时从约 500ms 降到了约 20ms。这里缓存的只是查询文本的计算结果，还算不上严格的“语义缓存”。如果要让“红色汽车”和“红色跑车”共享缓存，还需要额外维护查询向量索引，并接受语义判断错误带来的误命中。对当前项目来说，这层复杂度还没有必要。</p>
+<h2 id="图片变成向量以后，还缺少筛选条件"><a href="#图片变成向量以后，还缺少筛选条件" class="headerlink" title="图片变成向量以后，还缺少筛选条件"></a>图片变成向量以后，还缺少筛选条件</h2><p>语义召回解决了“先把大致相关的图片找出来”，但用户往往还会继续缩小范围。搜索“周末露营”以后，可能想只看山地场景、白天、有帐篷、没有人物，或者横向构图的图片。</p>
+<p>这些条件不适合全部塞进向量相似度，也不方便直接展示成界面上的筛选项。于是我在图片入库时又增加了一步，让视觉模型提取场景、风格、主体和时间等结构化信息：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;scene&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;户外&quot;</span><span class="punctuation">,</span> <span class="string">&quot;山地&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;style&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;自然&quot;</span><span class="punctuation">,</span> <span class="string">&quot;旅行摄影&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;objects&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;帐篷&quot;</span><span class="punctuation">,</span> <span class="string">&quot;汽车&quot;</span><span class="punctuation">,</span> <span class="string">&quot;草地&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;time&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;白天&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>清洗后的标签以 <code>keyword</code> 字段存进 Elasticsearch。用户可以先用自然语言召回，再用这些字段过滤结果。它有点像电商网站的分面搜索，只是图片原本没有现成的品牌、价格和类目，需要先从非结构化内容里提取出来。</p>
+<p>到这里，PicIndex 中的一张图片不再只有一个向量。它同时有 OCR 文本和一组可筛选的标签：向量负责模糊语义，OCR 补上精确文字，标签则让结果更容易过滤。</p>
+<h2 id="Java-没有让我觉得别扭"><a href="#Java-没有让我觉得别扭" class="headerlink" title="Java 没有让我觉得别扭"></a>Java 没有让我觉得别扭</h2><p>这个项目的后端一直是 Spring Boot，我没有因为要调用多模态模型，就额外拆出一套 Python 服务。PicIndex 并不训练模型，Java 需要处理的是上传、权限、异步任务、Elasticsearch 检索、Redis 缓存，以及对外部模型服务的调用。</p>
+<p>这些事情本来就在 Java 擅长的范围里。需要注意的是，模型接口不能被当成一个稳定的内部方法：它会慢、会限流、会超时，返回格式可能不稳定，模型版本也可能变化。PicIndex 把模型调用隔离在适配层中，并为超时、重试、状态记录和降级留出位置。</p>
+<p>从应用层看，接入 AI 服务和接入支付、短信或第三方风控有相似之处。模型决定能力的上限，外围工程则决定这项能力能不能稳定地放进产品流程。对这部分工作来说，Java 并没有成为阻碍。</p>
+<h2 id="这个项目还在验证什么"><a href="#这个项目还在验证什么" class="headerlink" title="这个项目还在验证什么"></a>这个项目还在验证什么</h2><p>PicIndex 现在更像一次工程验证，还谈不上完整的生产系统。混合检索的参数主要靠经验调整，项目里没有足够的标注数据做系统的离线评估；视觉模型提取的标签也可能不稳定，异步任务的重试和补偿还需要继续完善。数据量再往上涨，索引构建和召回性能也要重新测试。</p>
+<p>PicIndex 还会继续迭代，不过判断一项改动值不值得保留，仍然看三个很朴素的结果：搜索有没有更准，系统有没有更好维护，增加的复杂度有没有带来实际收益。</p>
+<hr>
+<blockquote>
+<p><strong>项目源码</strong>：<a target="_blank" rel="noopener" href="https://github.com/ryanmeowy/picindex.git">GitHub</a>  </p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/Elasticsearch/" rel="tag"><i class="fa fa-tag"></i> Elasticsearch</a>
+              <a href="/tags/Multimodal/" rel="tag"><i class="fa fa-tag"></i> Multimodal</a>
+              <a href="/tags/Hybrid-Search/" rel="tag"><i class="fa fa-tag"></i> Hybrid Search</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/10/30/%E8%AE%A4%E7%9F%A5%E8%B4%9F%E8%8D%B7%E6%89%8D%E6%98%AF%E6%9C%80%E9%87%8D%E8%A6%81%E7%9A%84/" rel="prev" title="转载:认知负荷才是最重要的">
+                  <i class="fa fa-angle-left"></i> 转载:认知负荷才是最重要的
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/02/11/INTJ%EF%BC%9A%E7%A4%BC%E8%B2%8C%E3%80%81%E7%96%8F%E7%A6%BB%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%B8%AA%E4%BA%BA%E7%9A%84%E8%87%AA%E6%88%91%E9%97%AD%E7%8E%AF/" rel="next" title="INTJ：礼貌、疏离，以及一个人的自我闭环">
+                  INTJ：礼貌、疏离，以及一个人的自我闭环 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"63475a0700dd3d1665526189bcb84ad6"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>
