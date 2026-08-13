@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。 但另一类问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程">
+<meta property="og:url" content="http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。 但另一类问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-08-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T12:44:09.283Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="State Machine">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/","path":"2026/08/11/一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程/","title":"一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-photos"><a href="/photos/" rel="section"><i class="fa fa-camera fa-fw"></i>照片</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TopK-%E8%B0%83%E5%BE%97%E5%86%8D%E5%A4%A7%EF%BC%8C%E4%B9%9F%E7%8C%9C%E4%B8%8D%E5%88%B0%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%A6%81%E6%90%9C%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">TopK 调得再大，也猜不到下一步要搜什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tool-Calling-%E5%BE%88%E5%BF%AB%E8%83%BD%E8%B7%91%E8%B5%B7%E6%9D%A5%EF%BC%8C%E8%A7%84%E5%88%99%E5%8D%B4%E4%BC%9A%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%A4%9A"><span class="nav-number">2.</span> <span class="nav-text">Tool Calling 很快能跑起来，规则却会越来越多</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E2%80%9C%E7%9C%8B%E8%BF%87%E2%80%9D%E5%93%AA%E4%BA%9B%E6%9D%90%E6%96%99%EF%BC%8C%E7%94%B1%E5%90%8E%E7%AB%AF%E8%AE%B0%E8%B4%A6"><span class="nav-number">3.</span> <span class="nav-text">模型“看过”哪些材料，由后端记账</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%B0%E4%BA%86%E4%B8%8A%E9%99%90%E5%B0%B1%E6%8A%A5%E9%94%99%EF%BC%8C%E4%BC%9A%E8%BF%9E%E5%B7%B2%E7%BB%8F%E6%89%BE%E5%88%B0%E7%9A%84%E6%9D%90%E6%96%99%E4%B8%80%E8%B5%B7%E4%B8%A2%E6%8E%89"><span class="nav-number">4.</span> <span class="nav-text">到了上限就报错，会连已经找到的材料一起丢掉</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E7%AD%94%E5%8F%98%E9%95%BF%E4%BB%A5%E5%90%8E%EF%BC%8C%E9%A1%B5%E9%9D%A2%E8%BF%9E%E6%8E%A5%E5%B0%B1%E4%B8%8D%E8%83%BD%E4%BB%A3%E8%A1%A8%E4%BB%BB%E5%8A%A1%E6%9C%AC%E8%BA%AB"><span class="nav-number">5.</span> <span class="nav-text">问答变长以后，页面连接就不能代表任务本身</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%80%E5%90%8E%E8%BF%98%E6%98%AF%E4%BF%9D%E7%95%99%E4%BA%86%E5%9B%BA%E5%AE%9A-RAG"><span class="nav-number">6.</span> <span class="nav-text">为什么最后还是保留了固定 RAG</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-08-11 00:00:00" itemprop="dateCreated datePublished" datetime="2026-08-11T00:00:00+08:00">2026-08-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">AI 工程化</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户提问 → 检索 → 重排 → 构造上下文 → 生成回答</span><br></pre></td></tr></table></figure>
+
+<p>对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。</p>
+<p>但另一类问题不太一样：</p>
+<blockquote>
+<p>找出几份设计文档里所有与任务恢复有关的内容，再比较进程重启、网络断开和主动取消三种情况下分别会发生什么。</p>
+</blockquote>
+<p>这种问题很少能靠一个现成片段回答。第一次搜索可能只找到 Agent 运行恢复的说明；读完后才发现还涉及异步任务（Task）；继续查 Task，又会遇到进程内状态和持久化状态的区别。等到核对部署约束时，对“恢复”的理解可能已经和第一次检索时不同。</p>
+<p>下一步搜什么，开始取决于上一步读到的内容。Anchr 的 Agent RAG 就是从这个问题开始的。</p>
+<span id="more"></span>
+
+<h2 id="TopK-调得再大，也猜不到下一步要搜什么"><a href="#TopK-调得再大，也猜不到下一步要搜什么" class="headerlink" title="TopK 调得再大，也猜不到下一步要搜什么"></a>TopK 调得再大，也猜不到下一步要搜什么</h2><p>固定 RAG 的检索发生在生成之前，而且通常只执行一次。材料不够时，一个直接的办法是把一次检索保留的候选数，也就是 TopK，从 10 调到 30 或 50，希望一次多拿一些片段。</p>
+<p>这对“相关内容本来就在首次召回范围里，只是数量不够”有用。前面的任务恢复问题却不完全属于这种情况。用户的原问题里未必出现“租约”、“运行快照”或“单实例”这些后续概念，第一轮搜索也没有理由为它们预留位置。</p>
+<p>候选数增加后，无关内容也会跟着进入上下文。一份长文档里的相邻段落可能同时命中，看起来拿到了 30 个结果，其中大半却在重复同一件事。模型需要在更多噪声里挑出材料，却没有因此得到新的查找方向。</p>
+<p>我需要的是两个分开的动作：先用搜索找到入口，再阅读上下文；如果读到了新线索，就再发起一次搜索。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">搜索“Agent 恢复”</span><br><span class="line">        ↓</span><br><span class="line">找到 Agent 运行说明</span><br><span class="line">        ↓</span><br><span class="line">继续阅读，发现异步 Task</span><br><span class="line">        ↓</span><br><span class="line">改查 Task 状态和恢复方式</span><br><span class="line">        ↓</span><br><span class="line">再到部署文档确认运行边界</span><br></pre></td></tr></table></figure>
+
+<p>所以 Agent 有两个不同的工具：搜索用来确定“内容在哪里”，顺序阅读用来补齐“这个位置前后还说了什么”。比如搜索已经命中：</p>
+<blockquote>
+<p>新一代索引（generation）完成写入并通过可见性检查后，再把它设为当前生效版本。</p>
+</blockquote>
+<p>这时更有用的做法往往是继续读前后段落：上一段可能解释为什么不能直接覆盖，下一段可能说明旧版本什么时候清理。如果再做一次全局语义搜索，反而可能跳到文档里另一个提到索引版本的位置。</p>
+<p>顺序阅读能补齐命中位置附近的上下文，但它也要有边界。整份长文档可能有几百个片段，需要分批归纳后再合并，不适合一直占着在线问答。这类工作会交给独立的后台任务。在线 Agent 只负责判断是否要转入长任务，不会自己无限翻下去。</p>
+<h2 id="Tool-Calling-很快能跑起来，规则却会越来越多"><a href="#Tool-Calling-很快能跑起来，规则却会越来越多" class="headerlink" title="Tool Calling 很快能跑起来，规则却会越来越多"></a>Tool Calling 很快能跑起来，规则却会越来越多</h2><p>第一版 Agent 的主循环并不复杂。模型拿到用户问题和工具说明，决定下一步是搜索、阅读还是回答。后端执行工具，把结果放回模型上下文，再让它做下一轮判断。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">模型判断 → 执行工具 → 追加结果 → 回到模型判断</span><br></pre></td></tr></table></figure>
+
+<p>循环跑起来以后，问题很快从“能不能调工具”变成“多个判断同时发生时该怎么办”。</p>
+<p>模型可能在一次响应中返回多个工具调用。如果立即并行执行，后面几个调用使用的仍然是模型作出这批决定时的旧上下文。第一个搜索如果已经找到新线索，后面的调用是否还值得执行，并不能完全照旧计划判断。Anchr 会先把调用排队，一次执行一个，并在每次执行前重新检查预算、重复调用和顺序阅读限制。</p>
+<p>调用改成串行后，还要避免模型重复执行同一个工具。当前实现优先使用 Tool Call ID，也就是模型为每次工具调用附带的唯一标识。没有 ID 时，系统再比较工具名和参数。</p>
+<p>这里不适合只靠语义相似度去重。两轮模型分别搜索 <code>agent recovery</code> 和 <code>how agent run recover</code>，虽然意思接近，却可能是一次有用的查询改写。如果再调一次模型判断它们是否重复，既要花时间和调用费用，也不一定判断得准。所以系统只拦截可以确定的重复调用。如果模型只是换着说法反复搜索，最后由整体预算让它停下来。</p>
+<p>去重只是其中一条规则。预算用完时，队列里可能还有工具调用；第一个工具失败后，后面的调用可能已经没有价值；模型已经给出答案，后端还可能发现引用不合法。再加上用户取消，这些规则很快会散落在模型调用、工具执行和最终状态提交的前后。</p>
+<p>后来我把这一部分改成了显式状态机。这不是因为 Agent 必须用状态机，而是这次运行已经有了需要单独验证的执行顺序和最终状态规则。</p>
+<p>状态机每次只处理三件事：现在处于什么状态，刚刚发生了什么，下一步应该做什么。调模型、搜索和阅读文档这些有副作用的操作放在状态机外面，执行结束后，再把结果作为新事件送回来。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">当前状态 + 新事件</span><br><span class="line">          ↓</span><br><span class="line">      一次状态迁移</span><br><span class="line">          ↓</span><br><span class="line">下一状态 + 一个待执行动作</span><br></pre></td></tr></table></figure>
+
+<p>拆开以后，“已经执行 8 次工具、当前已有有效证据、队列里还有一个搜索”可以直接构造成测试状态，再检查下一步是否转入收尾。测试不用真的调八次模型和搜索接口，也不用期待模型刚好走到这条分支。状态机没有减少分支，只是让这些分支可以独立检查。</p>
+<p>状态机解决了“下一步该做什么”，但 Agent 还要记住另一类状态：它在这次运行里到底看过哪些材料。</p>
+<h2 id="模型“看过”哪些材料，由后端记账"><a href="#模型“看过”哪些材料，由后端记账" class="headerlink" title="模型“看过”哪些材料，由后端记账"></a>模型“看过”哪些材料，由后端记账</h2><p>Tool Calling 返回的虽然是结构化参数，对后端来说仍然是一份外部输入，不能直接相信。</p>
+<p>假设用户这次只选了“系统设计”和“Agent 设计”两份文档。模型在某一轮生成了另一份文档的 ID，后端不能因为它来自 Tool Call 就直接读取。它还要检查文档是否存在、当前用户能否访问，以及它是否属于这次问答选定的范围。</p>
+<p>这些范围也会放进 Prompt，帮助模型少做无效决定，但权限不依赖 Prompt 维护。原来由浏览器传入的参数，现在有一部分由模型生成，输入校验、资源权限和文档版本过滤仍然由服务端执行。</p>
+<p>权限检查解决了“能不能读”，接下来还要解决“最后能引用什么”。固定 RAG 一次只给模型一组上下文，最终引用可以从这组内容里挑选。Agent 则可能经过多轮查找：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">第一次搜索 → A、B、C</span><br><span class="line">读取 A 的前后文 → D、E</span><br><span class="line">第二次搜索 → F、G</span><br><span class="line">继续读取 F → H</span><br></pre></td></tr></table></figure>
+
+<p>到最后，模型已经接触过八个片段，它的消息历史里还可能带着以前对话中出现的引用。如果最终答案只返回一个编号，后端必须知道它对应的是本次 Agent 执行（Run）真正读过的片段，还是历史引用、其他 Run 的证据，甚至是模型自己生成的 ID。</p>
+<p>所以每次工具返回文档片段时，后端都会把它登记到当前 Run 的证据集合里。代码中把它叫作 Evidence Registry，可以理解成“这次 Agent 真正看过的 Segment 账本”。最终的知识型回答只允许引用这份账本中的内容。</p>
+<p>模型提交答案以后，后端还会检查回答类型是否与引用一致、引用 ID 是否都属于当前 Evidence Registry，以及正文中的引用标记是否合法。模型实际只有三个可用片段，却在答案里引用了第五个，这份答案就不会直接通过。</p>
+<p>首次检查失败后，系统会把具体错误送回模型，让它使用已有证据修复一次。如果第二次仍然无法生成合法答案，这次运行就收敛到安全的无证据结果，不会为了修复引用无限调用模型。</p>
+<p>这套校验只能保证引用确实来自本次查找，不能证明模型已经正确理解原文。它仍然可能引用一段真实材料，却忽略其中的限定条件。Citation 只是让用户可以返回原文检查，不代表自然语言结论已经被证明。</p>
+<p>有了证据账本，后端已经知道最终答案可以使用哪些材料。但 Agent 可以不断搜索和阅读，还需要解决另一个问题：这次执行最多能找多久？</p>
+<h2 id="到了上限就报错，会连已经找到的材料一起丢掉"><a href="#到了上限就报错，会连已经找到的材料一起丢掉" class="headerlink" title="到了上限就报错，会连已经找到的材料一起丢掉"></a>到了上限就报错，会连已经找到的材料一起丢掉</h2><p>固定 RAG 一般只有一次检索和一次生成，Agent 却可能连续调用多轮模型和工具。如果没有明确上限，一次在线问答很容易变成一个不知道何时结束的研究任务。</p>
+<p>现在 Anchr 默认允许 12 个模型步骤、8 次工具调用和 90 秒总运行时间，单次模型调用最多 30 秒。预算不是在开始时检查一次就结束，每次准备调模型或执行工具前，系统都会重新计算剩余预算。</p>
+<p>比如整个 Run 最多运行 90 秒，现在已经过去 84 秒，即使单次模型的常规超时是 30 秒，这一轮也不能再获得完整的 30 秒。否则 90 秒只是配置上的总时限，实际执行仍然可能在最后一次外部调用中超出很多。</p>
+<p>顺序阅读也有单独限制。已经拿到证据后，同一个 Run 最多真正执行两次连续阅读。第三次试图继续往后翻时，系统不再读取更多正文，而是转入基于已有证据的收尾。如果问题确实需要通读整份文档，它应该进入后台总结任务，不该靠在线 Agent 不断翻页完成。</p>
+<p>设置上限只解决了“什么时候必须停”，没有回答“停下时已经找到的材料怎么办”。如果 Agent 已经搜索和阅读了几轮，Evidence Registry 里也有可用材料，只是模型还没有主动提交答案，直接把整次执行判为失败，前面的有效工作也会被一起丢掉。</p>
+<p>所以预算耗尽后，系统会先看当前有没有证据：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">预算耗尽</span><br><span class="line">  ├─ 没有证据 → 明确返回未找到足够材料</span><br><span class="line">  └─ 已有证据 → 关闭工具，只基于现有材料生成答案</span><br></pre></td></tr></table></figure>
+
+<p>后一条路径在代码里叫 Evidence Finalizer。它不再把任何工具交给模型，也不允许重新规划查找路径，输入只有当前 Run 已经登记的证据。它要收尾的是“已经找到材料，但没在预算内正常结束”的运行，不会把没有证据的问题强行补成一个完整答案。</p>
+<p>这条收尾路径自己也可能失败，比如剩余时间不足，或模型仍然无法给出合法的带证据答案。这时系统会保留“已有证据，但收尾失败”的降级结果，不会伪装成正常完成。“没找到材料”、“找到了材料但没能完成回答”和“成功生成可验证回答”，是三个不同的结果。</p>
+<p>这些限制保证了 Agent 不会无限运行，但一次执行仍然可能持续几十秒。执行时间变长后，页面与后端任务的关系也要重新处理。</p>
+<h2 id="问答变长以后，页面连接就不能代表任务本身"><a href="#问答变长以后，页面连接就不能代表任务本身" class="headerlink" title="问答变长以后，页面连接就不能代表任务本身"></a>问答变长以后，页面连接就不能代表任务本身</h2><p>固定 RAG 的执行较短，用户发出问题后等待答案就可以。Agent 可能运行几十秒，中间经过多次搜索、阅读和模型决策。如果页面只显示一个 loading，用户很难分辨它是仍在查找，还是已经卡住。</p>
+<p>Anchr 会通过 SSE（服务端事件流）把运行进度发到页面，比如正在做决策、搜索文档或读取上下文。可以安全展示的回答也会分段发到页面，完整结果通过检查后，再校准页面上的最终内容。</p>
+<p>SSE 连接不是 Agent Run 本身。刷新页面、切换网络或电脑休眠，都可能让连接中断。如果一断线就自动取消后端执行，用户只是刷新页面，前面已经查了几十秒的任务也会一起消失。</p>
+<p>现在的处理是，连接断开只停止向这个客户端继续发送实时事件，后端仍然会完成运行并保存会话和 Run 状态。用户重新进入页面后，可以通过已持久化的 Run、Task 或会话消息恢复已经发生的结果。Redis 里的运行快照用来辅助展示活动状态，MySQL 里的会话、Run、Step 和 Task 才是最终状态的来源。</p>
+<p>在线 Run 和页面连接拆开以后，长文档总结可以更彻底地交给后台。Agent 判断需要通读时，会创建独立的后台任务，保存任务信息后就结束当前请求。后台任务再读取全文、分批归纳、合并结果并更新进度。用户离开页面后，它也不需要靠原来的 HTTP 连接维持生命周期。</p>
+<p>断开连接不等于取消任务。用户真正想停止任务时，需要发起单独的取消操作。这又带来一个和 AI 没多少关系的并发问题：Agent 已经生成完答案，正准备提交完成；同一时刻，用户点了取消。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">执行线程：检查未取消 → 准备提交 COMPLETED</span><br><span class="line">用户请求：              发起 CANCELLED</span><br></pre></td></tr></table></figure>
+
+<p>如果只在流程中的几个位置检查一个布尔值，“最后一次检查”和“提交最终状态”之间仍然有竞态窗口。所以取消、完成和失败共用同一个临界区。如果取消先被接受，尚未提交的完成或失败就不能再覆盖它；如果完成或失败已经先提交，迟到的取消也不会再改写结果。</p>
+<p>到这里，页面连接是否存在、用户是否请求取消、后端最终提交了什么结果，已经是三件需要分开处理的事。Agent 为了完成多轮查找，也因此多了不少运行成本和出错环节。这就带来下一个选择：有了 Agent 以后，还要不要保留原来的固定 RAG？</p>
+<h2 id="为什么最后还是保留了固定-RAG"><a href="#为什么最后还是保留了固定-RAG" class="headerlink" title="为什么最后还是保留了固定 RAG"></a>为什么最后还是保留了固定 RAG</h2><p>Agent 可以搜索、阅读，也可以决定何时回答，从能力上看确实能覆盖固定 RAG。但问“这份文档的发布日期是什么”时，一次检索就可能找到答案。如果走 Agent，至少要先调一次模型决定搜索，执行搜索后再调模型生成回答。同一个问题多了一轮模型调用，延迟和成本都更高。</p>
+<p>所以目前两条路径一直并存。目标明确、一次搜索大概能找到答案的问题，直接走固定 RAG；跨文档查找、连续阅读，或需要根据中间结果调整搜索方向的问题，再由用户显式开启 Agent。两类问题的边界还没有清楚到可以完全交给自动路由，所以现在仍然保留显式选择。</p>
+<p>两条路径并存，还有一个原因：固定 RAG 可以作为 Agent 失败后的退路。固定 RAG 主要面对检索和生成失败，Agent 则多了工具协议不合法、规划失败、工具边界异常和答案检查异常等出错环节。在配置允许的情况下，未预期异常可以回退到固定路径，重新执行一次路由、检索和生成。</p>
+<p>这个回退不能保证复杂问题仍然有同样的答案质量。一个本来就需要多轮查找的问题，回到单次检索以后，很可能只能找到其中一部分材料。回退只是在 Agent 编排自身出错时，让普通知识问答还能尝试一条更短、出错环节更少的路径，不代表两条路径完全等价。</p>
+<p>现在这套 Agent 的范围仍然很窄。它只处理 Anchr 里已授权的文档，不访问互联网，也没有代码执行和浏览器操作。一个问题从开始到结束由同一套 Workflow 处理，没有再拆出 Research Agent、Reviewer Agent 等多个角色。它当前要做好的，仍然是在一次检索不够时沿着文档继续查下去，同时让知识范围、执行上限和引用来源都可以被后端检查。</p>
+<p>把 Tool Calling 跑起来只是开头。固定 RAG 的步骤很少回头，Agent 却让搜索、阅读和生成之间出现了前后依赖。系统因此要记住已经执行过什么、当前拿到了哪些证据、还剩多少时间，以及最后该以完成、降级还是取消结束。这些问题很少出现在 Tool Calling 的演示里，却是 Anchr 从 RAG 走到 Agent RAG 时需要补上的主要部分。</p>
+<blockquote>
+<p><strong>项目源码</strong>：<a target="_blank" rel="noopener" href="https://github.com/ryanmeowy/anchr-app">https://github.com/ryanmeowy/anchr-app</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"><i class="fa fa-tag"></i> Agent</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/State-Machine/" rel="tag"><i class="fa fa-tag"></i> State Machine</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/" rel="prev" title="我做了一个文档知识工作台：从搜索到 RAG，再到 Agent">
+                  <i class="fa fa-angle-left"></i> 我做了一个文档知识工作台：从搜索到 RAG，再到 Agent
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"1d8de42c45266f0aacf274165cca4ae9"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+
+
+</body>
+</html>
