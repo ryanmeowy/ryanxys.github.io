@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="一个静态文件已经保存在磁盘上，服务端只是把它原样发送给客户端。业务代码没有解析或修改文件内容，但如果使用普通的 read() 加 write()，数据仍会经过用户缓冲区，在内核与用户空间之间来回搬运。 DMA 让存储设备和网卡可以直接与内存交换数据，零拷贝则进一步减少 CPU 参与的内存复制。理解这两项技术，关键不是记住“几次拷贝、几次切换”的结论，而是沿着数据路径分清：哪一步由设备完成，哪一步由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="把文件发送到网卡，数据为什么要搬四次">
+<meta property="og:url" content="http://example.com/2020/11/28/%E6%8A%8A%E6%96%87%E4%BB%B6%E5%8F%91%E9%80%81%E5%88%B0%E7%BD%91%E5%8D%A1%EF%BC%8C%E6%95%B0%E6%8D%AE%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%90%AC%E5%9B%9B%E6%AC%A1/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="一个静态文件已经保存在磁盘上，服务端只是把它原样发送给客户端。业务代码没有解析或修改文件内容，但如果使用普通的 read() 加 write()，数据仍会经过用户缓冲区，在内核与用户空间之间来回搬运。 DMA 让存储设备和网卡可以直接与内存交换数据，零拷贝则进一步减少 CPU 参与的内存复制。理解这两项技术，关键不是记住“几次拷贝、几次切换”的结论，而是沿着数据路径分清：哪一步由设备完成，哪一步由">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-11-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T12:53:21.587Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="DMA">
+<meta property="article:tag" content="零拷贝">
+<meta property="article:tag" content="mmap">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2020/11/28/%E6%8A%8A%E6%96%87%E4%BB%B6%E5%8F%91%E9%80%81%E5%88%B0%E7%BD%91%E5%8D%A1%EF%BC%8C%E6%95%B0%E6%8D%AE%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%90%AC%E5%9B%9B%E6%AC%A1/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/11/28/%E6%8A%8A%E6%96%87%E4%BB%B6%E5%8F%91%E9%80%81%E5%88%B0%E7%BD%91%E5%8D%A1%EF%BC%8C%E6%95%B0%E6%8D%AE%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%90%AC%E5%9B%9B%E6%AC%A1/","path":"2020/11/28/把文件发送到网卡，数据为什么要搬四次/","title":"把文件发送到网卡，数据为什么要搬四次"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>把文件发送到网卡，数据为什么要搬四次 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-photos"><a href="/photos/" rel="section"><i class="fa fa-camera fa-fw"></i>照片</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B2%A1%E6%9C%89-DMA-%E6%97%B6%EF%BC%8CCPU-%E8%BF%98%E8%A6%81%E8%B4%9F%E8%B4%A3%E6%90%AC%E8%BF%90%E8%AE%BE%E5%A4%87%E6%95%B0%E6%8D%AE"><span class="nav-number">1.</span> <span class="nav-text">没有 DMA 时，CPU 还要负责搬运设备数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%99%AE%E9%80%9A-read-%E5%8A%A0-write%EF%BC%8C%E6%96%87%E4%BB%B6%E5%86%85%E5%AE%B9%E8%B5%B0%E4%BA%86%E6%80%8E%E6%A0%B7%E4%B8%80%E6%9D%A1%E8%B7%AF"><span class="nav-number">2.</span> <span class="nav-text">普通 read 加 write，文件内容走了怎样一条路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%8F%AA%E6%98%AF%E8%A2%AB%E8%BD%AC%E5%8F%91%E6%97%B6%EF%BC%8C%E7%94%A8%E6%88%B7%E7%BC%93%E5%86%B2%E5%8C%BA%E6%B2%A1%E6%9C%89%E6%8F%90%E4%BE%9B%E4%BB%B7%E5%80%BC"><span class="nav-number">3.</span> <span class="nav-text">文件只是被转发时，用户缓冲区没有提供价值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mmap-%E7%9C%81%E6%8E%89-read-%E7%9A%84%E5%A4%8D%E5%88%B6%EF%BC%8C%E4%BD%86-write-%E8%B7%AF%E5%BE%84%E8%BF%98%E5%9C%A8"><span class="nav-number">4.</span> <span class="nav-text">mmap 省掉 read 的复制，但 write 路径还在</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sendfile-%E6%8A%8A%E6%96%87%E4%BB%B6%E5%88%B0-socket-%E7%9A%84%E4%BC%A0%E8%BE%93%E7%95%99%E5%9C%A8%E5%86%85%E6%A0%B8"><span class="nav-number">5.</span> <span class="nav-text">sendfile 把文件到 socket 的传输留在内核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E5%8D%A1%E6%94%AF%E6%8C%81-scatter-gather-%E5%90%8E%EF%BC%8Csocket-%E5%8F%AF%E4%BB%A5%E5%8F%AA%E4%BF%9D%E5%AD%98%E5%BC%95%E7%94%A8"><span class="nav-number">6.</span> <span class="nav-text">网卡支持 scatter-gather 后，socket 可以只保存引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%A0%E7%A7%8D%E8%B7%AF%E5%BE%84%E6%94%BE%E5%9C%A8%E4%B8%80%E8%B5%B7%E7%9C%8B"><span class="nav-number">7.</span> <span class="nav-text">几种路径放在一起看</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%B6%E6%8B%B7%E8%B4%9D%E9%80%82%E5%90%88%E2%80%9C%E4%B8%8D%E7%A2%B0%E6%95%B0%E6%8D%AE%E2%80%9D%E7%9A%84%E8%B7%AF%E5%BE%84"><span class="nav-number">8.</span> <span class="nav-text">零拷贝适合“不碰数据”的路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">9.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/28/%E6%8A%8A%E6%96%87%E4%BB%B6%E5%8F%91%E9%80%81%E5%88%B0%E7%BD%91%E5%8D%A1%EF%BC%8C%E6%95%B0%E6%8D%AE%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%90%AC%E5%9B%9B%E6%AC%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="把文件发送到网卡，数据为什么要搬四次 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          把文件发送到网卡，数据为什么要搬四次
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-11-28 00:00:00" itemprop="dateCreated datePublished" datetime="2020-11-28T00:00:00+08:00">2020-11-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>一个静态文件已经保存在磁盘上，服务端只是把它原样发送给客户端。业务代码没有解析或修改文件内容，但如果使用普通的 <code>read()</code> 加 <code>write()</code>，数据仍会经过用户缓冲区，在内核与用户空间之间来回搬运。</p>
+<p>DMA 让存储设备和网卡可以直接与内存交换数据，零拷贝则进一步减少 CPU 参与的内存复制。理解这两项技术，关键不是记住“几次拷贝、几次切换”的结论，而是沿着数据路径分清：哪一步由设备完成，哪一步由 CPU 完成，用户程序是否真的需要拿到文件内容。</p>
+<span id="more"></span>
+
+<h2 id="没有-DMA-时，CPU-还要负责搬运设备数据"><a href="#没有-DMA-时，CPU-还要负责搬运设备数据" class="headerlink" title="没有 DMA 时，CPU 还要负责搬运设备数据"></a>没有 DMA 时，CPU 还要负责搬运设备数据</h2><p>早期使用程序控制 I&#x2F;O（Programmed I&#x2F;O，PIO）时，CPU 不只负责发出磁盘读写命令，还要通过设备寄存器参与数据传送。数据量一大，CPU 会花费大量时间在设备与内存之间搬运字节，期间很难同时执行其他有效计算。</p>
+<p>DMA（Direct Memory Access，直接内存访问）改变了这部分工作。CPU 或驱动准备好内存区域、方向和长度，配置设备或 DMA 引擎并启动操作；之后由硬件在设备与内存之间传输数据。操作完成后，设备通常通过中断或轮询可见的完成状态通知 CPU。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CPU：准备描述符、启动 I/O ─────────────→ 处理完成结果</span><br><span class="line">                              ↑</span><br><span class="line">设备 DMA：设备缓冲区 ←────→ 主存</span><br></pre></td></tr></table></figure>
+
+<p>现代存储和网络设备往往具备自己的总线主控 DMA 能力，因此不必把 DMA 控制器理解成所有数据都必须经过的一块独立芯片。IOMMU 地址映射、缓存一致性、描述符管理和完成处理仍需要 CPU 与操作系统参与；DMA 省掉的是 CPU 逐字节搬运有效载荷，并不是让 CPU 与 I&#x2F;O 完全无关。</p>
+<h2 id="普通-read-加-write，文件内容走了怎样一条路"><a href="#普通-read-加-write，文件内容走了怎样一条路" class="headerlink" title="普通 read 加 write，文件内容走了怎样一条路"></a>普通 read 加 write，文件内容走了怎样一条路</h2><p>以 Linux 上把普通文件发送到 TCP socket 为例。先假设请求的数据不在页缓存中，存储设备和网卡都支持 DMA，应用程序使用自己的缓冲区循环调用 <code>read()</code> 和 <code>write()</code>。</p>
+<p>第一步，<code>read()</code> 进入内核。文件数据由存储设备通过 DMA 送入页缓存；数据就绪后，内核再由 CPU 把它复制到进程提供的用户缓冲区。Linux 的普通文件读写和文件映射通常都经过页缓存，后续读取如果命中缓存，就不需要再次访问存储设备。</p>
+<p>第二步，应用调用 <code>write()</code> 把这段用户内存写入 socket。内核通常需要把数据从用户缓冲区复制到 socket 发送路径使用的内核内存，随后网卡通过 DMA 读取待发送数据并发出网络包。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">存储设备 ──DMA──→ 页缓存 ──CPU copy──→ 用户缓冲区</span><br><span class="line">                                            │</span><br><span class="line">                                            │ write()</span><br><span class="line">                                            ↓</span><br><span class="line">网卡       ←──DMA── socket 发送缓冲 ──CPU copy──┘</span><br></pre></td></tr></table></figure>
+
+<p>在这个简化模型里，一份有效载荷经历四次数据移动：</p>
+<ol>
+<li>存储设备到页缓存，由设备 DMA 完成。</li>
+<li>页缓存到用户缓冲区，由 CPU 完成。</li>
+<li>用户缓冲区到 socket 发送内存，由 CPU 完成。</li>
+<li>socket 发送内存到网卡，由网卡 DMA 完成。</li>
+</ol>
+<p><code>read()</code> 和 <code>write()</code> 是两次系统调用，每次调用都包含进入内核和返回用户空间，因此通常概括为四次用户态&#x2F;内核态转换。这里应当叫特权级或模式转换，不能一概称为进程上下文切换：系统调用前后仍可能是同一个线程，只是执行权限和代码位置发生了变化。线程因等待 I&#x2F;O 被调度出去时，才会额外发生调度意义上的上下文切换。</p>
+<p>这些次数也不是任何环境下都固定不变。页缓存命中时没有第一步存储 DMA；文件系统、设备、协议栈和硬件卸载能力会改变实际路径；一次系统调用还可能只处理部分数据。四次移动与四次模式转换更适合用来理解经典路径，而不是直接当作性能测量结果。</p>
+<h2 id="文件只是被转发时，用户缓冲区没有提供价值"><a href="#文件只是被转发时，用户缓冲区没有提供价值" class="headerlink" title="文件只是被转发时，用户缓冲区没有提供价值"></a>文件只是被转发时，用户缓冲区没有提供价值</h2><p>如果程序需要解析、压缩、加密或改写文件内容，把数据放进用户空间是合理的。静态文件发送却不同：应用只决定发送哪个文件、从哪里开始以及发送多少字节，文件内容本身没有被业务代码读取。</p>
+<p>此时中间的两次 CPU 复制主要是在跨越内核与用户空间边界：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">页缓存 → 用户缓冲区 → socket 发送内存</span><br></pre></td></tr></table></figure>
+
+<p>零拷贝优化的目标，就是尽量让有效载荷留在内核管理的页面中，通过引用、映射或设备描述符继续向下传递。名称中的“零”通常指减少或消除 CPU 对完整有效载荷的内存复制，尤其是不再复制到用户缓冲区；磁盘把数据送入内存、网卡从内存取走数据这些物理传输仍然存在。</p>
+<h2 id="mmap-省掉-read-的复制，但-write-路径还在"><a href="#mmap-省掉-read-的复制，但-write-路径还在" class="headerlink" title="mmap 省掉 read 的复制，但 write 路径还在"></a>mmap 省掉 read 的复制，但 write 路径还在</h2><p><code>mmap()</code> 会在进程虚拟地址空间中建立文件映射。应用访问这段地址时，页表让相应虚拟页关联到文件页；如果页面尚未载入，访问会触发缺页异常，由内核把文件数据读入页缓存后建立映射。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">文件页缓存 ←──页表映射──→ 进程虚拟地址</span><br></pre></td></tr></table></figure>
+
+<p>这里没有把某个内核虚拟地址直接交给用户程序，也没有额外创建一份完整的用户缓冲区。进程可以通过自己的虚拟地址访问同一批文件页。随后调用 <code>write(socket, mapped_addr, length)</code> 时，内核仍要处理用户地址，并在普通发送路径上把有效载荷复制到 socket 使用的内核内存。</p>
+<p>在前面的假设下，<code>mmap + write</code> 可以把四次数据移动降为三次：存储设备 DMA 到页缓存、页缓存 CPU 复制到 socket 发送内存、网卡 DMA 读取发送数据。它消除了 <code>read()</code> 把页缓存复制到用户缓冲区的步骤。</p>
+<p>模式转换的数量要看怎么统计。如果每次传输都新建映射，<code>mmap()</code> 和 <code>write()</code> 仍是两次系统调用；如果映射长期复用，后续发送不必重复调用 <code>mmap()</code>，但首次访问页面可能发生缺页异常。因此，把它机械地写成永远“四次切换”并不准确。</p>
+<p><code>mmap</code> 更适合程序确实需要以地址方式访问文件、访问模式有局部性，或者映射能够复用的场景。映射大文件还要考虑地址空间、缺页成本，以及文件在映射期间被截断等边界。对于不需要查看内容的纯文件转发，它仍然让应用持有了一个没有业务用途的文件映射。</p>
+<h2 id="sendfile-把文件到-socket-的传输留在内核"><a href="#sendfile-把文件到-socket-的传输留在内核" class="headerlink" title="sendfile 把文件到 socket 的传输留在内核"></a>sendfile 把文件到 socket 的传输留在内核</h2><p>Linux 从 2.2 开始提供 <code>sendfile()</code>。调用方传入输出文件描述符、输入文件描述符、偏移量和长度，内核直接在两个文件描述符之间传输数据，不再要求应用先 <code>read()</code> 到用户缓冲区，再调用 <code>write()</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> sent = sendfile(socket_fd, file_fd, &amp;offset, count);</span><br></pre></td></tr></table></figure>
+
+<p>对于文件发送到 socket 的场景，普通路径可以简化为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">存储设备 ──DMA──→ 页缓存 ──内核处理──→ socket ──DMA──→ 网卡</span><br></pre></td></tr></table></figure>
+
+<p>应用只发起一次 <code>sendfile()</code>，所以正常返回路径通常只有一次进入内核和一次回到用户空间。文件内容不经过用户缓冲区，也就省掉了 <code>read()</code> 对应的用户空间复制。</p>
+<p>如果发送路径仍需要把页缓存内容复制到独立的 socket 数据缓冲区，那么可以按三次数据移动理解：一次存储 DMA、一次内核中的 CPU 复制、一次网卡 DMA。相比 <code>read + write</code>，它减少了一次系统调用和一次完整的 CPU 数据复制。</p>
+<p><code>sendfile()</code> 成功返回的字节数可能小于请求长度，非阻塞 socket 还可能返回 <code>EAGAIN</code>，调用方必须根据返回值继续发送剩余部分。零拷贝接口优化了数据路径，没有改变短写、错误处理和背压这些 I&#x2F;O 语义。</p>
+<h2 id="网卡支持-scatter-gather-后，socket-可以只保存引用"><a href="#网卡支持-scatter-gather-后，socket-可以只保存引用" class="headerlink" title="网卡支持 scatter-gather 后，socket 可以只保存引用"></a>网卡支持 scatter-gather 后，socket 可以只保存引用</h2><p>支持 scatter-gather DMA 的网卡可以根据一组“内存地址 + 长度”描述符，从多个不连续的物理内存区域读取数据。发送文件时，内核不必先把页缓存中的文件内容汇总复制到一块连续的 socket 缓冲区；socket 发送结构可以引用对应页面，网卡再通过 DMA 直接读取这些页面。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">存储设备 ──DMA──→ 页缓存页面</span><br><span class="line">                         │</span><br><span class="line">                         ├─ 内核建立页面引用和发送描述符</span><br><span class="line">                         ↓</span><br><span class="line">网卡       ←──────DMA────┘</span><br></pre></td></tr></table></figure>
+
+<p>在这个模型里，完整文件有效载荷只有两次物理移动：从存储设备进入内存，以及从内存进入网卡。CPU 仍要执行系统调用、维护页引用、构造协议头、提交发送描述符并处理完成事件，但不再把整段文件内容从一个内存缓冲区复制到另一个缓冲区。校验和与分段等工作是否还消耗 CPU，则取决于网卡卸载能力和协议配置。</p>
+<p>这也是文件传输中“零拷贝”比较准确的含义：用户空间对有效载荷零复制，理想发送路径上 CPU 对有效载荷也可以零复制，而设备之间仍通过 DMA 完成两次必要的数据传输。</p>
+<h2 id="几种路径放在一起看"><a href="#几种路径放在一起看" class="headerlink" title="几种路径放在一起看"></a>几种路径放在一起看</h2><p>下面的计数沿用同一假设：数据最初不在页缓存，最后通过支持 DMA 的网卡发出，只计算完整有效载荷的数据移动；具体内核和硬件可能采用不同实现。</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>系统调用路径</th>
+<th align="right">数据移动</th>
+<th align="right">CPU 完整载荷复制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>read + write</code></td>
+<td>两次调用，典型四次模式转换</td>
+<td align="right">4</td>
+<td align="right">2</td>
+</tr>
+<tr>
+<td><code>mmap + write</code></td>
+<td>建立映射后调用 <code>write</code>，转换次数取决于映射是否复用</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td><code>sendfile</code>，发送路径仍复制数据</td>
+<td>一次调用，典型两次模式转换</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td><code>sendfile</code> + scatter-gather DMA</td>
+<td>一次调用，典型两次模式转换</td>
+<td align="right">2</td>
+<td align="right">0</td>
+</tr>
+</tbody></table>
+<p>表里的数字只描述文件原样发送这一条经典路径。接收侧零拷贝、用户生成的数据、磁盘间复制、管道转发以及启用 TLS 后的发送都有不同接口和限制。Linux 还提供 <code>splice()</code>、<code>copy_file_range()</code> 和 <code>MSG_ZEROCOPY</code> 等机制，它们分别面向不同的数据来源和目标，不能因为都被称为零拷贝就互相替代。</p>
+<h2 id="零拷贝适合“不碰数据”的路径"><a href="#零拷贝适合“不碰数据”的路径" class="headerlink" title="零拷贝适合“不碰数据”的路径"></a>零拷贝适合“不碰数据”的路径</h2><p>当应用只负责授权、选择文件和控制发送范围时，<code>sendfile()</code> 可以避免让文件内容无意义地穿过用户空间。静态文件服务、下载和部分代理链路通常能从中受益。文件已经命中页缓存时，存储设备传输也会消失，收益更多来自减少 CPU 复制和系统调用开销。</p>
+<p>如果业务必须修改有效载荷，复制可能无法完全避免。应用层压缩、内容拼装、没有内核支持的加密路径，都会要求 CPU 或加速设备读取并生成新的字节序列。此时更重要的是用实际负载测量 CPU 利用率、吞吐、缺页和缓存命中情况，而不是为了满足“零拷贝”这个名字强行选择接口。</p>
+<p>DMA 与零拷贝处理的是两个相邻层次的问题：DMA 减少设备与内存传输时的 CPU 搬运，零拷贝减少内存缓冲区之间不必要的 CPU 复制。沿着数据路径逐段确认所有者和搬运者，比孤立记住“四次变两次”更容易判断一项优化是否真的适用于当前系统。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/core-api/dma-api-howto.html">Linux Kernel：Dynamic DMA Mapping Guide</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/admin-guide/mm/concepts.html#page-cache">Linux Kernel：Memory Management Concepts—Page Cache</a></li>
+<li><a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man2/mmap.2.html">Linux manual page：mmap(2)</a></li>
+<li><a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man2/sendfile.2.html">Linux manual page：sendfile(2)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/filesystems/splice.html">Linux Kernel：splice and pipes</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/networking/msg_zerocopy.html">Linux Kernel：MSG_ZEROCOPY</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DMA/" rel="tag"><i class="fa fa-tag"></i> DMA</a>
+              <a href="/tags/%E9%9B%B6%E6%8B%B7%E8%B4%9D/" rel="tag"><i class="fa fa-tag"></i> 零拷贝</a>
+              <a href="/tags/mmap/" rel="tag"><i class="fa fa-tag"></i> mmap</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/11/22/Java%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6-%E5%AF%B9%E8%B1%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/" rel="prev" title="转载:Java垃圾回收机制-对象管理与内存优化">
+                  <i class="fa fa-angle-left"></i> 转载:Java垃圾回收机制-对象管理与内存优化
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/27/%E7%AE%A1%E7%A8%8B%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E4%BA%92%E6%96%A5%E8%BF%9B%E5%85%A5%E4%B8%8E%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85/" rel="next" title="管程解决的两个问题：互斥进入与条件等待">
+                  管程解决的两个问题：互斥进入与条件等待 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"69e1d2d0be692c00c33ae332fdbc1f85"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+
+
+</body>
+</html>

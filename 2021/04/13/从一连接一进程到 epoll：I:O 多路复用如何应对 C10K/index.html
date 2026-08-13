@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="C10K 讨论的是一台服务器如何同时维持一万条网络连接。这里的“一万”指并发连接数，不等同于每秒完成一万次请求。放到今天，这个数量并不夸张；但在“一条连接对应一个进程”的服务模型里，连接数增加意味着进程数也随之增加，服务器很快就会把大量资源花在连接之间的调度上。 I&#x2F;O 多路复用改变的正是这一点：程序不再为每条连接准备一个独立进程，而是让少量线程同时观察大量文件描述符，只处理已经具备读写">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从一连接一进程到 epoll：I&#x2F;O 多路复用如何应对 C10K">
+<meta property="og:url" content="http://example.com/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="C10K 讨论的是一台服务器如何同时维持一万条网络连接。这里的“一万”指并发连接数，不等同于每秒完成一万次请求。放到今天，这个数量并不夸张；但在“一条连接对应一个进程”的服务模型里，连接数增加意味着进程数也随之增加，服务器很快就会把大量资源花在连接之间的调度上。 I&#x2F;O 多路复用改变的正是这一点：程序不再为每条连接准备一个独立进程，而是让少量线程同时观察大量文件描述符，只处理已经具备读写">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-13T12:54:37.808Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="I&#x2F;O多路复用">
+<meta property="article:tag" content="C10K">
+<meta property="article:tag" content="epoll">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/","path":"2021/04/13/从一连接一进程到 epoll：I:O 多路复用如何应对 C10K/","title":"从一连接一进程到 epoll：I/O 多路复用如何应对 C10K"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从一连接一进程到 epoll：I/O 多路复用如何应对 C10K | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-photos"><a href="/photos/" rel="section"><i class="fa fa-camera fa-fw"></i>照片</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E6%9D%A1%E8%BF%9E%E6%8E%A5%E5%AF%B9%E5%BA%94%E4%B8%80%E4%B8%AA%E8%BF%9B%E7%A8%8B%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BE%88%E9%9A%BE%E6%92%91%E5%88%B0%E4%B8%80%E4%B8%87%E6%9D%A1"><span class="nav-number">1.</span> <span class="nav-text">一条连接对应一个进程，为什么很难撑到一万条</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E5%A4%A7%E5%A4%9A%E5%9C%A8%E7%AD%89%E5%BE%85%EF%BC%8C%E6%B2%A1%E5%BF%85%E8%A6%81%E5%90%84%E8%87%AA%E5%8D%A0%E7%9D%80%E4%B8%80%E4%B8%AA%E8%BF%9B%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">连接大多在等待，没必要各自占着一个进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#select-%E8%83%BD%E5%90%8C%E6%97%B6%E7%AD%89%E5%BE%85%E5%A4%9A%E4%B8%AA%E8%BF%9E%E6%8E%A5%EF%BC%8C%E4%BD%86%E6%AF%8F%E8%BD%AE%E9%83%BD%E8%A6%81%E6%A3%80%E6%9F%A5%E5%85%A8%E9%9B%86"><span class="nav-number">3.</span> <span class="nav-text">select 能同时等待多个连接，但每轮都要检查全集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#poll-%E5%8E%BB%E6%8E%89%E4%BA%86%E5%9B%BA%E5%AE%9A%E9%9B%86%E5%90%88%EF%BC%8C%E5%8D%B4%E6%B2%A1%E6%9C%89%E5%8E%BB%E6%8E%89%E7%BA%BF%E6%80%A7%E6%89%AB%E6%8F%8F"><span class="nav-number">4.</span> <span class="nav-text">poll 去掉了固定集合，却没有去掉线性扫描</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#epoll-%E6%8A%8A%E5%85%B3%E6%B3%A8%E5%88%97%E8%A1%A8%E7%95%99%E5%9C%A8%E5%86%85%E6%A0%B8%EF%BC%8C%E5%8F%AA%E8%BF%94%E5%9B%9E%E5%B0%B1%E7%BB%AA%E4%BA%8B%E4%BB%B6"><span class="nav-number">5.</span> <span class="nav-text">epoll 把关注列表留在内核，只返回就绪事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LT-%E5%92%8C-ET-%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%8C%E4%B8%8D%E5%8F%AA%E6%98%AF%E9%80%9A%E7%9F%A5%E6%AC%A1%E6%95%B0%E5%A4%9A%E5%B0%91"><span class="nav-number">6.</span> <span class="nav-text">LT 和 ET 的区别，不只是通知次数多少</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-epoll-%E4%BB%A5%E5%90%8E%EF%BC%8CC10K-%E4%B9%9F%E4%B8%8D%E6%98%AF%E8%87%AA%E5%8A%A8%E8%A7%A3%E5%86%B3%E7%9A%84"><span class="nav-number">7.</span> <span class="nav-text">使用 epoll 以后，C10K 也不是自动解决的</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从一连接一进程到 epoll：I/O 多路复用如何应对 C10K | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从一连接一进程到 epoll：I/O 多路复用如何应对 C10K
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-04-13 00:00:00" itemprop="dateCreated datePublished" datetime="2021-04-13T00:00:00+08:00">2021-04-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>C10K 讨论的是一台服务器如何同时维持一万条网络连接。这里的“一万”指并发连接数，不等同于每秒完成一万次请求。放到今天，这个数量并不夸张；但在“一条连接对应一个进程”的服务模型里，连接数增加意味着进程数也随之增加，服务器很快就会把大量资源花在连接之间的调度上。</p>
+<p>I&#x2F;O 多路复用改变的正是这一点：程序不再为每条连接准备一个独立进程，而是让少量线程同时观察大量文件描述符，只处理已经具备读写条件的连接。<code>select</code>、<code>poll</code> 和 <code>epoll</code> 都在解决这个问题，只是随着连接数上升，它们查找就绪事件的成本差别很大。</p>
+<span id="more"></span>
+
+<h2 id="一条连接对应一个进程，为什么很难撑到一万条"><a href="#一条连接对应一个进程，为什么很难撑到一万条" class="headerlink" title="一条连接对应一个进程，为什么很难撑到一万条"></a>一条连接对应一个进程，为什么很难撑到一万条</h2><p>早期网络服务常见一种直接的处理方式：主进程负责监听端口并接受连接，每当连接建立，就通过 <code>fork()</code> 创建一个子进程，由子进程负责这条连接后续的读写。监听和数据处理被分开以后，代码边界很清楚，单条连接的处理也相对独立。</p>
+<p>问题出现在连接数持续增加之后。一万条连接可能意味着接近一万个子进程，而进程不是一个轻量的数字编号。每个进程都需要独立的任务结构、页表、栈和调度状态，系统还要在这些进程之间频繁切换。即使大量连接暂时没有数据可读，对应的进程依然占用系统资源。</p>
+<p>这里有两个细节需要说准确。Linux 的 <code>fork()</code> 使用写时复制，创建子进程时不会立刻把父进程的全部内存完整复制一遍，但复制页表、创建内核任务结构仍有成本。子进程退出后也不会必然长期占用资源；只有父进程没有通过 <code>wait()</code> 一类调用回收其退出状态时，它才会以僵尸进程的形式保留少量信息。正确回收能解决僵尸进程问题，却不能消除大量进程本身的创建、调度和内存成本。</p>
+<p>因此，单纯提高 CPU 和内存配置很难从根本上改善这个模型。连接越多，新增硬件中越大一部分会被进程管理消耗，垂直扩容的收益也会逐渐降低。</p>
+<h2 id="连接大多在等待，没必要各自占着一个进程"><a href="#连接大多在等待，没必要各自占着一个进程" class="headerlink" title="连接大多在等待，没必要各自占着一个进程"></a>连接大多在等待，没必要各自占着一个进程</h2><p>网络连接与持续运行的计算任务不同。很多时候，连接已经建立，却没有数据到达；如果此时直接执行阻塞式读取，执行线程只能停在那里等待。真正需要程序介入的时刻，是某个 socket 已经可读、可写，或者发生了异常。</p>
+<p>在 Unix&#x2F;Linux 中，socket 可以通过文件描述符表示。I&#x2F;O 多路复用允许一个执行线程同时等待多个文件描述符：只要其中任何一个进入就绪状态，等待调用就返回，程序再处理对应连接。整体流程可以简化成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">注册或提交需要关注的文件描述符</span><br><span class="line">              ↓</span><br><span class="line">       等待一批 I/O 事件</span><br><span class="line">              ↓</span><br><span class="line">     只处理已经就绪的连接</span><br><span class="line">              ↓</span><br><span class="line">          再次等待</span><br></pre></td></tr></table></figure>
+
+<p><code>select</code>、<code>poll</code> 和 <code>epoll</code> 都提供了这样的能力。它们报告的是“现在执行某种 I&#x2F;O 不会阻塞”这一就绪状态，并不会替应用程序完成业务读取、协议解析或响应发送。业务处理仍然要由用户空间完成。</p>
+<h2 id="select-能同时等待多个连接，但每轮都要检查全集"><a href="#select-能同时等待多个连接，但每轮都要检查全集" class="headerlink" title="select 能同时等待多个连接，但每轮都要检查全集"></a>select 能同时等待多个连接，但每轮都要检查全集</h2><p><code>select</code> 使用 <code>fd_set</code> 保存需要关注的文件描述符。调用时，程序把读、写和异常集合交给内核；内核检查指定范围内的描述符，返回时集合中只保留已经就绪的部分。由于集合会被修改，程序进入下一轮等待前通常还要重新构造它们。</p>
+<p>这套机制解决了“一个进程只能阻塞等待一条连接”的问题，但在高并发下有两个明显限制。</p>
+<p>第一个限制来自集合大小。在 Linux 的常见实现中，<code>FD_SETSIZE</code> 是 1024，<code>select</code> 只能监视编号小于这个值的文件描述符。它限制的是文件描述符编号，而不是简单地保证“最多有 1024 条连接”；标准输入、日志文件和监听 socket 等也会占用编号。对于要处理上万连接的服务，这个上限本身就不合适。</p>
+<p>第二个限制是每轮等待的成本。应用程序每次调用都要提交整组描述符，内核按范围检查它们，返回后应用程序还要找出哪些描述符被标记为就绪。假设监视了一万个连接，而某一时刻只有十个连接有数据，检查工作仍然主要围绕那一万个候选项展开。并发规模越大、活跃连接比例越低，这部分无效工作越明显。</p>
+<h2 id="poll-去掉了固定集合，却没有去掉线性扫描"><a href="#poll-去掉了固定集合，却没有去掉线性扫描" class="headerlink" title="poll 去掉了固定集合，却没有去掉线性扫描"></a>poll 去掉了固定集合，却没有去掉线性扫描</h2><p><code>poll</code> 与 <code>select</code> 的目标相同，只是它用一个动态的 <code>pollfd</code> 数组描述需要监视的文件描述符，不再受 <code>fd_set</code> 固定大小的约束。可监视数量仍会受到进程文件描述符上限和可用内存等系统资源限制，但不会卡在 <code>FD_SETSIZE</code> 这一接口约束上。</p>
+<p>动态数组解决了容量问题，却没有改变每轮提交和检查整个关注集合的方式。随着数组增长，内核仍要线性检查其中的元素，应用程序也要从返回结果中找到发生事件的项。<code>poll</code> 因而可以承载比 <code>select</code> 更大的描述符集合，但当连接数量继续上升时，性能仍会受到扫描规模影响。</p>
+<p>从 <code>select</code> 到 <code>poll</code>，变化主要是“集合能装多少”；要进一步改善高并发场景，还需要减少每次等待时对全部连接的重复检查。</p>
+<h2 id="epoll-把关注列表留在内核，只返回就绪事件"><a href="#epoll-把关注列表留在内核，只返回就绪事件" class="headerlink" title="epoll 把关注列表留在内核，只返回就绪事件"></a>epoll 把关注列表留在内核，只返回就绪事件</h2><p><code>epoll</code> 在内核中维护一个实例。从用户空间看，这个实例包含两类信息：一类是程序注册的关注列表，另一类是已经发生 I&#x2F;O 活动的就绪列表。</p>
+<p>程序先通过 <code>epoll_ctl()</code> 增加、修改或删除需要监视的文件描述符。等待事件时再调用 <code>epoll_wait()</code>；如果当前没有事件，调用可以阻塞，一旦有连接就绪，内核返回就绪列表中的事件。关注集合没有发生变化时，程序不需要在每轮等待前把全部文件描述符重新提交给内核，也不需要从完整集合中逐个找出活跃项。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">                         ┌→ socket A</span><br><span class="line">关注列表：A、B、C、D、E ─┼→ socket C 发生事件 → 就绪列表：C、E</span><br><span class="line">                         └→ socket E 发生事件</span><br><span class="line"></span><br><span class="line">epoll_wait() 返回 C、E，应用程序只处理这两个连接</span><br></pre></td></tr></table></figure>
+
+<p>这并不表示 <code>epoll</code> 的所有操作都是常数时间，也不表示连接增加后完全没有成本。注册和删除描述符、维护内核数据结构、复制已经就绪的事件都要消耗资源。它的关键优势在于：等待一批事件时，主要工作与实际就绪项相关，不必在每一轮重新扫描全部关注项。对于“连接很多、同一时刻只有少量连接活跃”的服务，这个差别尤其重要。</p>
+<h2 id="LT-和-ET-的区别，不只是通知次数多少"><a href="#LT-和-ET-的区别，不只是通知次数多少" class="headerlink" title="LT 和 ET 的区别，不只是通知次数多少"></a>LT 和 ET 的区别，不只是通知次数多少</h2><p><code>epoll</code> 支持水平触发（Level-Triggered，LT）和边缘触发（Edge-Triggered，ET），默认使用 LT。</p>
+<p>在 LT 模式下，只要文件描述符仍处于就绪状态，后续调用 <code>epoll_wait()</code> 时就可能继续收到通知。例如 socket 接收缓冲区里还有数据没有读完，它仍然是可读的。一次没有处理干净，下一轮还有机会继续处理，因此 LT 的行为更直观，容错空间也更大。</p>
+<p>ET 关注的是状态变化。以读取为例，数据从“没有”变成“有”时产生通知；如果程序收到通知后只读取一部分，缓冲区仍处于可读状态，就不一定会再次出现一条新的边缘通知。实际使用 ET 时，通常需要把文件描述符设为非阻塞，并持续读取，直到返回 <code>EAGAIN</code>，表示当前数据已经取尽。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">LT：缓冲区仍有数据 → 仍可能继续通知</span><br><span class="line">ET：状态发生变化   → 通知一次 → 读取到 EAGAIN</span><br></pre></td></tr></table></figure>
+
+<p>ET 可以减少重复通知，并让程序在一次唤醒中批量处理更多数据，但它不是脱离场景就必然更快的开关。处理循环更复杂，遗漏“读取到 <code>EAGAIN</code>”这一规则还可能让连接长时间得不到继续处理。是否选择 ET，要同时考虑事件频率、单次处理量和代码正确性。</p>
+<h2 id="使用-epoll-以后，C10K-也不是自动解决的"><a href="#使用-epoll-以后，C10K-也不是自动解决的" class="headerlink" title="使用 epoll 以后，C10K 也不是自动解决的"></a>使用 epoll 以后，C10K 也不是自动解决的</h2><p>I&#x2F;O 多路复用解决的是“如何高效发现哪些连接可以读写”。一个事件循环可以管理大量连接，不等于其中可以随意执行耗时操作。如果某个就绪事件触发了长时间计算、阻塞式磁盘访问或缓慢的下游请求，负责分发事件的线程仍可能被占住，其他已经就绪的连接只能等待。</p>
+<p>实际服务还要面对文件描述符上限、每条连接的缓冲区和业务状态、接收与发送速度不匹配，以及工作线程如何分配等问题。<code>epoll</code> 去掉了“一条连接对应一个进程”带来的主要扩展障碍，却不会替应用程序处理这些边界。</p>
+<p>C10K 值得记录的地方，不在“一万”这个数字，而在服务模型的变化：从给每条连接分配一个独立执行实体，转向集中等待就绪事件，再把有限的执行时间交给真正需要处理的连接。<code>select</code> 首先提供了同时等待多路 I&#x2F;O 的能力，<code>poll</code> 放宽了集合容量，<code>epoll</code> 则通过内核中的关注列表和就绪列表，避免每轮都围绕完整连接集合做重复工作。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/I-O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" rel="tag"><i class="fa fa-tag"></i> I/O多路复用</a>
+              <a href="/tags/C10K/" rel="tag"><i class="fa fa-tag"></i> C10K</a>
+              <a href="/tags/epoll/" rel="tag"><i class="fa fa-tag"></i> epoll</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/27/%E7%AE%A1%E7%A8%8B%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E4%BA%92%E6%96%A5%E8%BF%9B%E5%85%A5%E4%B8%8E%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85/" rel="prev" title="管程解决的两个问题：互斥进入与条件等待">
+                  <i class="fa fa-angle-left"></i> 管程解决的两个问题：互斥进入与条件等待
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/04/%E4%B8%80%E6%AC%A1%E6%8F%90%E4%BA%A4%E8%B7%A8%E8%BF%87%E5%A4%9A%E4%B8%AA%E6%9C%8D%E5%8A%A1%E5%90%8E%EF%BC%9A2PC%E3%80%813PC%E3%80%81CAP%20%E4%B8%8E%20TCC%20%E7%9A%84%E5%8F%96%E8%88%8D/" rel="next" title="一次提交跨过多个服务后：2PC、3PC、CAP 与 TCC 的取舍">
+                  一次提交跨过多个服务后：2PC、3PC、CAP 与 TCC 的取舍 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"eb2c9685a05725440cb6c84919a05894"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+
+
+</body>
+</html>
