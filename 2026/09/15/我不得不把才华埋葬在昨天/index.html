@@ -29,7 +29,7 @@
 <meta property="og:description" content="前几天，DeepSeek v4.1 发布了，将小模型能力的高度又向上推进了一个档次。 AI 发展的速度远远超过了所有人的预期。从那个只会咿呀学语地聊天、上下文长度只有几千 token 的初版 ChatGPT，到具有推理能力的 OpenAI o1、DeepSeek R1 与 Kimi K1.5 Thinking，只不过短短两年；从推理模型到如今能够流畅地在各类 harness 工具中执行命令、完成复">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-09-14T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-09-16T06:06:03.624Z">
+<meta property="article:modified_time" content="2026-09-16T06:12:18.139Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="AI">
 <meta property="article:tag" content="职业发展">
@@ -230,6 +230,8 @@
     
     <div class="post-body" itemprop="articleBody"><p>前几天，DeepSeek v4.1 发布了，将小模型能力的高度又向上推进了一个档次。</p>
 <p>AI 发展的速度远远超过了所有人的预期。从那个只会咿呀学语地聊天、上下文长度只有几千 token 的初版 ChatGPT，到具有推理能力的 OpenAI o1、DeepSeek R1 与 Kimi K1.5 Thinking，只不过短短两年；从推理模型到如今能够流畅地在各类 harness 工具中执行命令、完成复杂任务的智能体，也不过一年半。很难想象，倘若再等上一年、两年、三年，彼时的 AI 会成为什么样子，会有多么强大，会不会已经具备了自我进化的能力，并深度渗透进了具身智能等领域。</p>
+<span id="more"></span>
+
 <h2 id="AI-越来越会写算子了"><a href="#AI-越来越会写算子了" class="headerlink" title="AI 越来越会写算子了"></a>AI 越来越会写算子了</h2><p>AI 在我所从事的算子设计、编写这一领域同样进步飞速，在短短一年的时间内，他已经从一个只能帮我查查文档、读读代码、找找 bug 的小助手，蜕变成了一位能够独立阅读 CUDA、PTX 与 SASS 编码、通过专业工具分析每条指令的停顿时间、进而独立优化算子的算子大师。相信在不久的未来，它也能拥有自己独立设计算子调度、评估不同调度方案的性能、将其实现并优化的能力。</p>
 <p>我当然为 DeepSeek v4.1 的成功而骄傲——毕竟它的主 Attention 算子都是我写的[^1]，它的优秀正是对我的算子的一份肯定。但是，时代的车轮滚滚向前，技术的发展无人能挡。我很清楚，再过上半年或者一年，AI 写的算子大概率就会和我写得同样优秀，甚至将我超越。AI 能一秒思考 300 个 token、半秒敲出一行命令、二十秒写完一份代码，而我不行；AI 能在模型深度、思考强度、工具调用量（和环境交互的频率）、甚至并行度等方面都能不断提升，而我不能。</p>
 <p>人类在毁灭自己这件事情上，自古以来都表现得毫不犹豫。为什么在明知“我算子写得越好，我们的新模型的训练、推理速度就会越快，模型能力进步就会更快，我就会更早地被取代”的情况下，我仍然选择尽力优化算子呢？一方面确实是因为写算子对我来说就像打游戏一样，能为我提供极大的快感。我在发明了一种新技术、或者看到自己算子的性能上升的那一刻，心中的激动程度不亚于游戏的速通玩家打破了自己过往的记录。同时，当看到自己的算子的性能远超厂商官方的算子时，我心中也会萌生极大的自豪感。</p>
