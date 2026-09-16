@@ -123,7 +123,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">25</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -134,7 +134,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-count">46</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -162,6 +162,178 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/" class="post-title-link" itemprop="url">从一连接一进程到 epoll：I/O 多路复用如何应对 C10K</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-04-13 00:00:00" itemprop="dateCreated datePublished" datetime="2021-04-13T00:00:00+08:00">2021-04-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>C10K 讨论的是一台服务器如何同时维持一万条网络连接。这里的“一万”指并发连接数，不等同于每秒完成一万次请求。放到今天，这个数量并不夸张；但在“一条连接对应一个进程”的服务模型里，连接数增加意味着进程数也随之增加，服务器很快就会把大量资源花在连接之间的调度上。</p>
+<p>I&#x2F;O 多路复用改变的正是这一点：程序不再为每条连接准备一个独立进程，而是让少量线程同时观察大量文件描述符，只处理已经具备读写条件的连接。<code>select</code>、<code>poll</code> 和 <code>epoll</code> 都在解决这个问题，只是随着连接数上升，它们查找就绪事件的成本差别很大。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/04/13/%E4%BB%8E%E4%B8%80%E8%BF%9E%E6%8E%A5%E4%B8%80%E8%BF%9B%E7%A8%8B%E5%88%B0%20epoll%EF%BC%9AI:O%20%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E5%A6%82%E4%BD%95%E5%BA%94%E5%AF%B9%20C10K/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/27/%E7%AE%A1%E7%A8%8B%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E4%BA%92%E6%96%A5%E8%BF%9B%E5%85%A5%E4%B8%8E%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/03/27/%E7%AE%A1%E7%A8%8B%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E4%BA%92%E6%96%A5%E8%BF%9B%E5%85%A5%E4%B8%8E%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85/" class="post-title-link" itemprop="url">管程解决的两个问题：互斥进入与条件等待</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-03-27 00:00:00" itemprop="dateCreated datePublished" datetime="2021-03-27T00:00:00+08:00">2021-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">Java并发</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>多个线程共同操作一份状态时，仅仅保证“一次只有一个线程修改”还不够。消费者拿到锁以后可能发现队列为空，生产者拿到锁以后也可能发现队列已满；它们需要在条件不成立时暂停，并在状态变化后继续竞争执行机会。</p>
+<p>管程把共享状态、访问状态的操作、互斥规则和条件等待放进同一个抽象里。Java 的 <code>synchronized</code> 与 <code>wait/notify</code> 组合正体现了这套思路：前者保护状态，后者协调线程什么时候可以继续。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/03/27/%E7%AE%A1%E7%A8%8B%E8%A7%A3%E5%86%B3%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9A%E4%BA%92%E6%96%A5%E8%BF%9B%E5%85%A5%E4%B8%8E%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
