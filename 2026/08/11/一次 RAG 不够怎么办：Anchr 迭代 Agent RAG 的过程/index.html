@@ -19,12 +19,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ryanyang.cn","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。 但另一类问题">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程">
-<meta property="og:url" content="http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/index.html">
+<meta property="og:url" content="https://ryanyang.cn/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/index.html">
 <meta property="og:site_name" content="Low Gravity">
 <meta property="og:description" content="Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。 但另一类问题">
 <meta property="og:locale" content="zh_CN">
@@ -38,10 +38,10 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/">
+<link rel="canonical" href="https://ryanyang.cn/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/","path":"2026/08/11/一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程/","title":"一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryanyang.cn/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/","path":"2026/08/11/一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程/","title":"一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程 | Low Gravity</title>
@@ -179,7 +179,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/">
+    <link itemprop="mainEntityOfPage" href="https://ryanyang.cn/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -347,7 +347,7 @@
 
 
 
-    <div class="comments gitalk-container"></div>
+    <div class="comments giscus-container"><script src="https://giscus.app/client.js" data-repo="ryanmeowy/comments4blog" data-repo-id="R_kgDOK362Uw" data-category="Announcements" data-category-id="DIC_kwDOK362U84DFxo3" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="preferred_color_scheme" data-lang="zh-CN" data-loading="lazy" crossorigin="anonymous" async></script></div>
 </div>
   </main>
 
@@ -403,10 +403,6 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
-
-<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"1d8de42c45266f0aacf274165cca4ae9"}</script>
-<script src="/js/third-party/comments/gitalk.js"></script>
 <script src="/js/particles.js"></script>
 
 </body>

@@ -19,12 +19,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ryanyang.cn","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="最开始做 Anchr，我想解决的问题很具体：手里的文档越来越多，怎么才能把里面的信息重新找出来、用起来？ 目录能解决文件放在哪里，系统自带的全文搜索则要求我还记得原文用过哪些词。资料少时这些都够用；资料一多，更常见的情况是：我记得某份文档讲过这件事，却忘了文件名，也不记得当时的表达。 Anchr 于是从文档搜索做起。搜索基本可用后，我才在检索结果上生成回答；再往后，当一次检索不足以处理跨文档问题时">
 <meta property="og:type" content="article">
 <meta property="og:title" content="我做了一个文档知识工作台：从搜索到 RAG，再到 Agent">
-<meta property="og:url" content="http://example.com/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/index.html">
+<meta property="og:url" content="https://ryanyang.cn/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/index.html">
 <meta property="og:site_name" content="Low Gravity">
 <meta property="og:description" content="最开始做 Anchr，我想解决的问题很具体：手里的文档越来越多，怎么才能把里面的信息重新找出来、用起来？ 目录能解决文件放在哪里，系统自带的全文搜索则要求我还记得原文用过哪些词。资料少时这些都够用；资料一多，更常见的情况是：我记得某份文档讲过这件事，却忘了文件名，也不记得当时的表达。 Anchr 于是从文档搜索做起。搜索基本可用后，我才在检索结果上生成回答；再往后，当一次检索不足以处理跨文档问题时">
 <meta property="og:locale" content="zh_CN">
@@ -39,10 +39,10 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/">
+<link rel="canonical" href="https://ryanyang.cn/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/","path":"2026/08/11/我做了一个文档知识工作台：从搜索到 RAG，再到 Agent/","title":"我做了一个文档知识工作台：从搜索到 RAG，再到 Agent"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryanyang.cn/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/","path":"2026/08/11/我做了一个文档知识工作台：从搜索到 RAG，再到 Agent/","title":"我做了一个文档知识工作台：从搜索到 RAG，再到 Agent"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>我做了一个文档知识工作台：从搜索到 RAG，再到 Agent | Low Gravity</title>
@@ -180,7 +180,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/">
+    <link itemprop="mainEntityOfPage" href="https://ryanyang.cn/2026/08/11/%E6%88%91%E5%81%9A%E4%BA%86%E4%B8%80%E4%B8%AA%E6%96%87%E6%A1%A3%E7%9F%A5%E8%AF%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%EF%BC%9A%E4%BB%8E%E6%90%9C%E7%B4%A2%E5%88%B0%20RAG%EF%BC%8C%E5%86%8D%E5%88%B0%20Agent/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -332,7 +332,7 @@
 
 
 
-    <div class="comments gitalk-container"></div>
+    <div class="comments giscus-container"><script src="https://giscus.app/client.js" data-repo="ryanmeowy/comments4blog" data-repo-id="R_kgDOK362Uw" data-category="Announcements" data-category-id="DIC_kwDOK362U84DFxo3" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="preferred_color_scheme" data-lang="zh-CN" data-loading="lazy" crossorigin="anonymous" async></script></div>
 </div>
   </main>
 
@@ -388,10 +388,6 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
-
-<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryanmeowy","repo":"comments4blog","client_id":"Ov23litZ7p3dzaIY8MLt","client_secret":"ee1545936d4d52d9f20caef8fa097ad6c6c69017","admin_user":"ryanmeowy","distraction_free_mode":false,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","createIssueManually":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"4a7ee790317633f3246332b7d364e919"}</script>
-<script src="/js/third-party/comments/gitalk.js"></script>
 <script src="/js/particles.js"></script>
 
 </body>
