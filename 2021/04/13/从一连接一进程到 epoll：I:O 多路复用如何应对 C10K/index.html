@@ -29,7 +29,7 @@
 <meta property="og:description" content="C10K 讨论的是一台服务器如何同时维持一万条网络连接。这里的“一万”指并发连接数，不等同于每秒完成一万次请求。放到今天，这个数量并不夸张；但在“一条连接对应一个进程”的服务模型里，连接数增加意味着进程数也随之增加，服务器很快就会把大量资源花在连接之间的调度上。 I&#x2F;O 多路复用改变的正是这一点：程序不再为每条连接准备一个独立进程，而是让少量线程同时观察大量文件描述符，只处理已经具备读写">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-04-12T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-13T12:54:37.808Z">
+<meta property="article:modified_time" content="2026-10-24T17:45:08.624Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="I&#x2F;O多路复用">
 <meta property="article:tag" content="C10K">
@@ -140,7 +140,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

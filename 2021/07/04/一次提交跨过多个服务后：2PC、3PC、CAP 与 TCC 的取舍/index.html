@@ -29,7 +29,7 @@
 <meta property="og:description" content="单机事务把提交和回滚封装在一个数据库内部。操作一旦跨过数据库或服务边界，情况就变了：一个节点已经执行成功，另一个节点没有响应，协调者既不能确认对方失败，也不能确认成功消息只是暂时没有返回。此时要解决的不只是如何提交，还包括故障期间要不要等待、恢复后如何续接，以及重复消息会不会把同一笔业务执行两次。 2PC、3PC 和 TCC 都试图组织一次跨节点提交，CAP、异步复制与 Quorum 则解释了网络">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-08-13T12:55:02.659Z">
+<meta property="article:modified_time" content="2026-10-24T17:45:08.623Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="分布式事务">
 <meta property="article:tag" content="2PC">
@@ -141,7 +141,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-count">45</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
