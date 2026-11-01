@@ -1381,7 +1381,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #881ad7;
+  background: #6bc412;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2866,25 +2866,6 @@ header.header {
 }
 .sub-menu .menu-item {
   display: inline-block;
-}
-#particle-background {
-  height: 100%;
-  inset: 0;
-  pointer-events: none;
-  position: fixed;
-  width: 100%;
-  z-index: 0;
-}
-.headband,
-.main,
-.footer {
-  position: relative;
-  z-index: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  #particle-background {
-    display: none;
-  }
 }
 .photo-page {
   --photos-space-1: 4px;
