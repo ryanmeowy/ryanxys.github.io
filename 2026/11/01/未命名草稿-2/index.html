@@ -23,13 +23,13 @@
 
     <meta name="description" content="上个月我把手上一个 agent 应用里的三个 specialist 删了。 不是为了省 token。是那套 orchestrator 加三个 subagent 的结构，每加一个功能我就要改四个地方：路由的分类规则、subagent 自己的 prompt、主 agent 的 prompt（告诉它什么时候该转交给谁）、还有交接时那份字段约定。改完还要赌两边对“用户到底想要什么”的理解一致。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="把 subagent 折回主循环">
+<meta property="og:title" content="把 subagent 放回主循环">
 <meta property="og:url" content="https://ryanyang.cn/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/index.html">
 <meta property="og:site_name" content="Low Gravity">
 <meta property="og:description" content="上个月我把手上一个 agent 应用里的三个 specialist 删了。 不是为了省 token。是那套 orchestrator 加三个 subagent 的结构，每加一个功能我就要改四个地方：路由的分类规则、subagent 自己的 prompt、主 agent 的 prompt（告诉它什么时候该转交给谁）、还有交接时那份字段约定。改完还要赌两边对“用户到底想要什么”的理解一致。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-10-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-11-01T06:02:16.921Z">
+<meta property="article:modified_time" content="2026-11-01T11:08:59.313Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="Agent">
 <meta property="article:tag" content="方法论">
@@ -39,10 +39,10 @@
 <link rel="canonical" href="https://ryanyang.cn/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryanyang.cn/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/","path":"2026/11/01/未命名草稿-2/","title":"把 subagent 折回主循环"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryanyang.cn/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/","path":"2026/11/01/未命名草稿-2/","title":"把 subagent 放回主循环"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>把 subagent 折回主循环 | Low Gravity</title>
+<title>把 subagent 放回主循环 | Low Gravity</title>
   
 
 
@@ -115,7 +115,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%96%E4%BB%AC%E7%9C%8B%E5%88%B0%E7%9A%84%E5%92%8C%E6%88%91%E7%9C%8B%E5%88%B0%E7%9A%84%E6%98%AF%E5%90%8C%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="nav-number">1.</span> <span class="nav-text">他们看到的和我看到的是同一件事</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%81%E4%B8%9A%E9%87%8C%E4%BC%9A%E9%95%BF%E5%87%BA%E4%B8%80%E5%A0%86-subagent"><span class="nav-number">2.</span> <span class="nav-text">为什么企业里会长出一堆 subagent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E5%9C%A8%E8%83%BD%E6%8A%98%E5%9B%9E%E5%8E%BB%EF%BC%8C%E6%98%AF%E5%9B%A0%E4%B8%BA%E4%B8%89%E4%BB%B6%E4%BA%8B%E5%8F%98%E4%BA%86"><span class="nav-number">3.</span> <span class="nav-text">现在能折回去，是因为三件事变了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%86%E5%88%AB%E6%80%A5%E7%9D%80%E6%8A%8A-subagent-%E5%85%A8%E5%88%A0%E4%BA%86"><span class="nav-number">4.</span> <span class="nav-text">但别急着把 subagent 全删了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%98%E5%8F%A0%E7%9A%84%E8%B7%AF%E5%BE%84%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%B8%AA%E6%8A%8A%E6%88%91%E5%90%93%E5%88%B0%E7%9A%84%E7%BB%86%E8%8A%82"><span class="nav-number">5.</span> <span class="nav-text">折叠的路径，以及一个把我吓到的细节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E7%9A%84%E9%83%A8%E5%88%86%EF%BC%8C%E5%85%B6%E5%AE%9E%E6%98%AF%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E7%9A%84%E6%9A%97%E7%BA%BF"><span class="nav-number">6.</span> <span class="nav-text">多团队协作的部分，其实是这篇文章的暗线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E4%B8%8D%E5%A4%AA%E4%B9%B0%E8%B4%A6%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="nav-number">7.</span> <span class="nav-text">我不太买账的地方</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%90%8E"><span class="nav-number">8.</span> <span class="nav-text">最后</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%96%E4%BB%AC%E7%9C%8B%E5%88%B0%E7%9A%84%E5%92%8C%E6%88%91%E7%9C%8B%E5%88%B0%E7%9A%84%E6%98%AF%E5%90%8C%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="nav-number">1.</span> <span class="nav-text">他们看到的和我看到的是同一件事</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%81%E4%B8%9A%E9%87%8C%E4%BC%9A%E9%95%BF%E5%87%BA%E4%B8%80%E5%A0%86-subagent"><span class="nav-number">2.</span> <span class="nav-text">为什么企业里会长出一堆 subagent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E5%9C%A8%E8%83%BD%E6%94%BE%E5%9B%9E%E5%8E%BB%EF%BC%8C%E6%98%AF%E5%9B%A0%E4%B8%BA%E4%B8%89%E4%BB%B6%E4%BA%8B%E5%8F%98%E4%BA%86"><span class="nav-number">3.</span> <span class="nav-text">现在能放回去，是因为三件事变了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%86%E5%88%AB%E6%80%A5%E7%9D%80%E6%8A%8A-subagent-%E5%85%A8%E5%88%A0%E4%BA%86"><span class="nav-number">4.</span> <span class="nav-text">但别急着把 subagent 全删了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BE%E5%9B%9E%E7%9A%84%E8%B7%AF%E5%BE%84%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%B8%AA%E6%8A%8A%E6%88%91%E5%90%93%E5%88%B0%E7%9A%84%E7%BB%86%E8%8A%82"><span class="nav-number">5.</span> <span class="nav-text">放回的路径，以及一个把我吓到的细节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%9B%A2%E9%98%9F%E5%8D%8F%E4%BD%9C%E7%9A%84%E9%83%A8%E5%88%86%EF%BC%8C%E5%85%B6%E5%AE%9E%E6%98%AF%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E7%9A%84%E6%9A%97%E7%BA%BF"><span class="nav-number">6.</span> <span class="nav-text">多团队协作的部分，其实是这篇文章的暗线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E4%B8%8D%E5%A4%AA%E4%B9%B0%E8%B4%A6%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="nav-number">7.</span> <span class="nav-text">我不太买账的地方</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%90%8E"><span class="nav-number">8.</span> <span class="nav-text">最后</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -190,12 +190,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="把 subagent 折回主循环 | Low Gravity">
+      <meta itemprop="name" content="把 subagent 放回主循环 | Low Gravity">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          把 subagent 折回主循环
+          把 subagent 放回主循环
         </h1>
 
         <div class="post-meta-container">
@@ -249,9 +249,9 @@
 </ul>
 <p>文里有个数字：一家客户把多 agent 的 harness 换成单循环之后，运行时快了大概两倍。跟我上面说的“将近一半”差不多是一回事，只不过他们是认真的 A&#x2F;B，我是拍脑袋。</p>
 <p>文章把根因点得很直接：Conway’s law。你的 agent 架构长成了你组织架构图的样子。这话不好听，但我确实在好几个项目里见过——拆分的边界不是按“上下文怎么流动”画的，是按“谁向谁汇报”画的。</p>
-<h2 id="现在能折回去，是因为三件事变了"><a href="#现在能折回去，是因为三件事变了" class="headerlink" title="现在能折回去，是因为三件事变了"></a>现在能折回去，是因为三件事变了</h2><p>我一直觉得“要不要用 subagent”这个问题没有普适答案，得看是什么年代问的。</p>
+<h2 id="现在能放回去，是因为三件事变了"><a href="#现在能放回去，是因为三件事变了" class="headerlink" title="现在能放回去，是因为三件事变了"></a>现在能放回去，是因为三件事变了</h2><p>我一直觉得“要不要用 subagent”这个问题没有普适答案，得看是什么年代问的。</p>
 <p>两年前不行。那时候上下文窗口就那么点，一个 agent 塞不下七八个领域的知识，塞进去就开始注意力涣散、选错工具。所以拆 subagent 在当时是<strong>被迫</strong>的，不是因为架构更优雅，是因为上下文装不下。</p>
-<p>现在能折，作者给了三个理由，我基本认同：</p>
+<p>现在能放回去，作者给了三个理由，我基本认同：</p>
 <p>一，共享上下文确实能出更好的答案。长任务里，前面几步的原始结果都躺在同一个窗口里，模型自己就能把 A 的发现和 C 的发现连起来。而 subagent 模式下，主 agent 手里只有一堆二手摘要，这种跨步骤的联想能力基本被削掉了。这点我做 RAG 类的 agent 时感受很明显：当你把召回结果原样留在上下文里，模型经常能自己发现一些你没让它找的东西。</p>
 <p>二，渐进披露（progressive disclosure）把“上下文装不下”这个前提消掉了。这是我觉得整篇文章技术含量最高的一处。思路很朴素：agent 一开始只看到一堆 skill 和 tool 的<strong>短描述</strong>，需要哪一个才把全文加载进来。上下文里常驻的从“所有领域知识”变成了“所有领域知识的目录”，差了一到两个数量级。</p>
 <p>文章里有个数字我看了两遍：他们靠这个（包括 progressively disclosing skills 和 tools）把 Claude Code 在较新模型上的 system prompt 砍掉了 80% 以上。</p>
@@ -267,14 +267,14 @@
 <p>我自己的经验是第二条最实在。上个月删的那三个 specialist，都是串行使用的。用户先要查订单，查到订单才可能问物流，问完物流才可能问退款。这种链式的东西放在一个循环里，上下文全是增益，删了当然好。</p>
 <p>但另一个项目里我留了一个 subagent 没动，因为它干的是“把三十多份财报 PDF 全读一遍然后给我一个结论”。主 agent 根本不需要那三十份 PDF 的任何一页事后还留在上下文里，它只需要那一段结论。这种“读得远多于用得上”的活，subagent 是天然合适的，它存在的意义就是<strong>把一大坨上下文用完之后扔掉</strong>。</p>
 <p>这也是文章里那个“按上下文切分边界”的说法：分给每个 subagent 的工作，应该是几乎不需要系统其余部分的那种，交回来一个紧凑的结果。符合这个条件的分法是好的，不符合的（按问题类型分，按团队分）就是传话游戏。</p>
-<h2 id="折叠的路径，以及一个把我吓到的细节"><a href="#折叠的路径，以及一个把我吓到的细节" class="headerlink" title="折叠的路径，以及一个把我吓到的细节"></a>折叠的路径，以及一个把我吓到的细节</h2><p>文章给的迁移路径很务实，没有让你一次重构完：</p>
-<p>先有 eval。这个绕不过去，最少 10 条 golden examples 就能起步。中央团队维护一套端到端的，各团队给自己的 skill 带一套小的。还在用 orchestrator 的时候额外看 routing accuracy，折完之后改看“有没有加载对的 skill、有没有调对的 tool”。</p>
-<p>然后三种折法，从轻到重：</p>
+<h2 id="放回的路径，以及一个把我吓到的细节"><a href="#放回的路径，以及一个把我吓到的细节" class="headerlink" title="放回的路径，以及一个把我吓到的细节"></a>放回的路径，以及一个把我吓到的细节</h2><p>文章给的迁移路径很务实，没有让你一次重构完：</p>
+<p>先有 eval。这个绕不过去，最少 10 条 golden examples 就能起步。中央团队维护一套端到端的，各团队给自己的 skill 带一套小的。还在用 orchestrator 的时候额外看 routing accuracy，放回之后改看“有没有加载对的 skill、有没有调对的 tool”。</p>
+<p>然后有三种做法，从轻到重：</p>
 <p><strong>合并</strong>——把经常一起被调用的专家合成一个。判断依据是生产流量，如果大量请求都是 A 之后紧跟 B，那这就是一对紧耦合，可以直接并。</p>
 <p><strong>当工具调</strong>——保留 subagent，但主 agent 用 tool call 的方式调它，对话还握在主 agent 手里。这个好处是零改动就能拿到 baseline。代价是那些老问题还在：每个专家还是有自己的 prompt 和 owner，每次调用还是一次有损摘要加一层嵌套循环。</p>
-<p><strong>真折叠</strong>——把 prompt 变成 skill，把 API 调用变成 tool，一次一个，前后对比 eval。</p>
-<p>折叠这一步有个注意事项，我看完之后后背有点凉。</p>
-<p>文章说：对比的时候别只看总分，要看哪些任务翻转了。他们测样例客服 agent 的时候，折叠之后延迟降了，但有个原本一直通过的流程挂了。原因是主 agent 手里本来就有订单查询工具，它自己查完就答了，没去问物流专家要送达日期。</p>
+<p><strong>真放回</strong>——把 prompt 变成 skill，把 API 调用变成 tool，一次一个，前后对比 eval。</p>
+<p>放回这一步有个注意事项，我看完之后后背有点凉。</p>
+<p>文章说：对比的时候别只看总分，要看哪些任务翻转了。他们测样例客服 agent 的时候，放回之后延迟降了，但有个原本一直通过的流程挂了。原因是主 agent 手里本来就有订单查询工具，它自己查完就答了，没去问物流专家要送达日期。</p>
 <p>这个 bug 很典型。它不是崩溃，不是报错，是 agent 变得更“高效”了，自己把活干完了，只是少问了一句本来必须问的话。你如果只看总分，可能整体还涨了两个点，就把这次改动合了。</p>
 <p>更麻烦的是这句话：这个回归两次里只出现了一次。</p>
 <p>所以他们的建议是，动手之前先给生产里每一条会一起跑的 agent 链、每一条绝不能破的规则都准备评测任务，而且每个任务要跑不止一遍。我之前那套回归是每个 case 跑一次就完事，现在想想纯粹是运气好。</p>
@@ -286,14 +286,14 @@
 <p>还有个设计我觉得很值得抄：把权限校验放到 tool 内部。每个 tool 自己判断调用者能看什么能改什么，不行就返回一句人话给模型。这样<strong>一个循环就能服务不同权限的用户</strong>，不需要“一档权限一个 agent”。这个坑我们踩过。早期按角色复制了三份 agent，后面每改一次逻辑要改三遍。</p>
 <h2 id="我不太买账的地方"><a href="#我不太买账的地方" class="headerlink" title="我不太买账的地方"></a>我不太买账的地方</h2><p>先说一个我觉得被轻描淡写的前提：你的任务大部分是“深而串行、共享上下文”的。如果你的场景天然是宽扇出，比如一次要扫上百个文件、并行验证十个假设、跑一堆互不依赖的子任务——那么 subagent 的价值不是摘要，是吞吐。文章里也承认了这点（“research frontier”），但措辞很轻。我觉得这可能会让一批人误伤自己的系统。</p>
 <p>渐进披露也是要付账的。skill 描述写得不好，模型就不知道该加载哪个。这时候你省了上下文，换来的是“选错 skill”。文章里承认这需要纪律，但“描述要能触发”这件事本身很难评测，比传统 prompt 的调优更玄。我的实际体会是，skill 的描述要写得像“什么时候该用我”而不是“我是什么”，这个差别对触发率影响很大。</p>
-<p>至于 eval 这件事，说得轻巧。文章自己都承认，在内部系统难以回放、用户行为难以模拟的环境里，做 task-completion eval 非常麻烦。它给的办法是记录关键事件的时间戳，事后回放。这个技巧是实用的，但它意味着你得先把埋点做起来。也就是说，要迁移到单循环，你得先有能力度量现在的系统。这个前置条件的门槛，比“折叠 subagent”本身高得多。</p>
+<p>至于 eval 这件事，说得轻巧。文章自己都承认，在内部系统难以回放、用户行为难以模拟的环境里，做 task-completion eval 非常麻烦。它给的办法是记录关键事件的时间戳，事后回放。这个技巧是实用的，但它意味着你得先把埋点做起来。也就是说，要迁移到单循环，你得先有能力度量现在的系统。这个前置条件的门槛，比“放回 subagent”本身高得多。</p>
 <p>我见过不少团队卡在这儿：架构的道理都懂，但拿不出一个有说服力的数字，于是讨论就变成了品味之争。</p>
 <h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>文章结尾那段话我觉得比正文更值得记住：</p>
 <blockquote>
 <p>随着模型进化，我们对怎么用它的理解也在变。这意味着任何单一架构都没有背后的原则重要：测量，一次只改一件事，保留经得起验证的东西。</p>
 </blockquote>
 <p>我把它贴在了自己的备忘里。因为“要不要用 subagent”这个问题，未来一定还会被反复问，答案还会再变一次。但“先量一下再改”这件事不会过时。</p>
-<p>顺便说，他们放了个配套的参考实现 <a target="_blank" rel="noopener" href="https://github.com/anthropics/single-agent-loop-kit">anthropics&#x2F;single-agent-loop-kit</a>，把审计、baseline、合并、折叠、当工具调、日常维护串成一个 Claude Code 的 skill，每一步都停下来给你看结论，问你一遍再继续。里面还有个十分钟能跑完的客服 agent 样例，用 <code>KIT_MODEL=fake</code> 可以不花一分钱先验证管道通不通。</p>
+<p>顺便说，他们放了个配套的参考实现 <a target="_blank" rel="noopener" href="https://github.com/anthropics/single-agent-loop-kit">anthropics&#x2F;single-agent-loop-kit</a>，把审计、baseline、合并、放回、当工具调、日常维护串成一个 Claude Code 的 skill，每一步都停下来给你看结论，问你一遍再继续。里面还有个十分钟能跑完的客服 agent 样例，用 <code>KIT_MODEL=fake</code> 可以不花一分钱先验证管道通不通。</p>
 <p>如果你手上还没有 subagent，别用这个 kit，直接从一个循环开始写。这话是它 README 自己说的，我觉得挺坦率的。</p>
 
     </div>
