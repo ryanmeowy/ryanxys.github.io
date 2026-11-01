@@ -171,7 +171,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://ryanyang.cn/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/">
+    <link itemprop="mainEntityOfPage" href="https://ryanyang.cn/2026/11/01/%E6%8A%8A%20subagent%20%E6%94%BE%E5%9B%9E%E4%B8%BB%E5%BE%AA%E7%8E%AF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -189,7 +189,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/" class="post-title-link" itemprop="url">把 subagent 放回主循环</a>
+          <a href="/2026/11/01/%E6%8A%8A%20subagent%20%E6%94%BE%E5%9B%9E%E4%B8%BB%E5%BE%AA%E7%8E%AF/" class="post-title-link" itemprop="url">把 subagent 放回主循环</a>
         </h2>
 
         <div class="post-meta-container">
@@ -223,10 +223,12 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>上个月我把手上一个 agent 应用里的三个 specialist 删了。</p>
-<p>不是为了省 token。是那套 orchestrator 加三个 subagent 的结构，每加一个功能我就要改四个地方：路由的分类规则、subagent 自己的 prompt、主 agent 的 prompt（告诉它什么时候该转交给谁）、还有交接时那份字段约定。改完还要赌两边对“用户到底想要什么”的理解一致。</p>
+<p>不是为了省 token，而是那套 orchestrator 加三个 subagent 的结构，每加一个功能我要改四个地方：路由的分类规则、subagent 自己的 prompt、主 agent 的 prompt，还有交接时那份字段约定。改完还得赌两边对“用户到底想要什么”的理解是一致的。</p>
+<p>删完跑我们那套没几个 case 的回归，任务完成率没掉，端到端延迟掉了将近一半。这个数字是拍脑袋得来的，并没有做 A&#x2F;B，后面会提到别人认真的测量，结论差不多。</p>
+<p>Anthropic 的 Applied AI 团队在 10 月 22 号发了一篇文章，<a target="_blank" rel="noopener" href="https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop">Building agents: When to fold subagents into your main agent loop</a>。我第一反应不是“又多一个方法论”，而是“原来不只是我们这么干，而且他们把原因写清楚了”。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2026/11/01/%E6%9C%AA%E5%91%BD%E5%90%8D%E8%8D%89%E7%A8%BF-2/#more" rel="contents">
+              <a class="btn" href="/2026/11/01/%E6%8A%8A%20subagent%20%E6%94%BE%E5%9B%9E%E4%B8%BB%E5%BE%AA%E7%8E%AF/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
