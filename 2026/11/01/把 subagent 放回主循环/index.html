@@ -29,7 +29,7 @@
 <meta property="og:description" content="上个月我把手上一个 agent 应用里的三个 specialist 删了。 不是为了省 token，而是那套 orchestrator 加三个 subagent 的结构，每加一个功能我要改四个地方：路由的分类规则、subagent 自己的 prompt、主 agent 的 prompt，还有交接时那份字段约定。改完还得赌两边对“用户到底想要什么”的理解是一致的。 删完跑我们那套没几个 case 的">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-10-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-11-02T02:37:43.905Z">
+<meta property="article:modified_time" content="2026-11-02T02:41:43.072Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="Agent">
 <meta property="article:tag" content="方法论">
@@ -282,7 +282,7 @@
 <p>我见过不少团队卡在这儿：架构的道理都懂，但拿不出一个有说服力的数字，于是讨论就变成了品味之争。</p>
 <h2 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h2><p>文章结尾那段话我觉得比正文更值得记住：</p>
 <blockquote>
-<p>随着模型进化，我们对怎么用它的理解也在变。这意味着任何单一架构都没有背后的原则重要：测量，一次只改一件事，保留经得起验证的东西。</p>
+<p>As models evolve, our understanding of how to best use them and guidance around best practice evolve as well. That makes any one architecture less important than the principle behind it: measure, change one thing at a time, and keep what holds up.<br>(随着模型进化，我们对怎么用它的理解也在变。这意味着任何单一架构都没有背后的原则重要：测量，一次只改一件事，保留经得起验证的东西。)</p>
 </blockquote>
 <p>我把它贴在了自己的备忘里。要不要用 subagent 这个问题，大概还会被反复问，我的判断也未必是最后一次。</p>
 <p>顺便说，他们放了个配套的参考实现 <a target="_blank" rel="noopener" href="https://github.com/anthropics/single-agent-loop-kit">anthropics&#x2F;single-agent-loop-kit</a>，把审计、baseline、合并、放回、当工具调、日常维护串成一个 Claude Code 的 skill，每一步都停下来给出结论，问过一遍再继续。里面还有个十分钟能跑完的客服 agent 样例，用 <code>KIT_MODEL=fake</code> 可以不花一分钱先验证管道通不通。</p>
