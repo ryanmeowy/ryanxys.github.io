@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicont.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ryanyang.cn","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="10 月 31 号晚上，DeepSeek Harness 团队发了篇长文：《Super-agent 设计探索：迈向更自主的 Agent 系统》。 整篇读下来，最戳我的是这句话：Session 应当是系统的实现细节，而不应是用户的认知负担。 文里提到，一个人通常只能同时盯住 3 到 5 个活跃会话。我对照自己日常的状态数了一下，确实差不多——到了第六个窗口，脑子里就会开始出现“我记得有个任务在等 C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="会话应该是实现细节">
+<meta property="og:url" content="https://ryanyang.cn/2026/11/03/%E4%BC%9A%E8%AF%9D%E5%BA%94%E8%AF%A5%E6%98%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/index.html">
+<meta property="og:site_name" content="Low Gravity">
+<meta property="og:description" content="10 月 31 号晚上，DeepSeek Harness 团队发了篇长文：《Super-agent 设计探索：迈向更自主的 Agent 系统》。 整篇读下来，最戳我的是这句话：Session 应当是系统的实现细节，而不应是用户的认知负担。 文里提到，一个人通常只能同时盯住 3 到 5 个活跃会话。我对照自己日常的状态数了一下，确实差不多——到了第六个窗口，脑子里就会开始出现“我记得有个任务在等 C">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-11-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-06T13:00:36.361Z">
+<meta property="article:author" content="Ryan">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="认知负荷">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://ryanyang.cn/2026/11/03/%E4%BC%9A%E8%AF%9D%E5%BA%94%E8%AF%A5%E6%98%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryanyang.cn/2026/11/03/%E4%BC%9A%E8%AF%9D%E5%BA%94%E8%AF%A5%E6%98%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/","path":"2026/11/03/会话应该是实现细节/","title":"会话应该是实现细节"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>会话应该是实现细节 | Low Gravity</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Low Gravity</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">在这里，我们用算法解决问题，用代码表达思想</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%83%E5%88%B0%E5%BA%95%E5%9C%A8%E4%BC%98%E5%8C%96%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">它到底在优化什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E9%85%8D%E6%8B%A5%E6%9C%89-Bash-%E7%9A%84-Router"><span class="nav-number">2.</span> <span class="nav-text">不配拥有 Bash 的 Router</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%94%E6%9E%B6%E6%9E%84%E5%9B%BE%E6%9B%B4%E6%9C%89%E7%94%A8%E7%9A%84%E5%AF%B9%E7%85%A7%E8%A1%A8"><span class="nav-number">3.</span> <span class="nav-text">比架构图更有用的对照表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%BF-token-%E4%B9%B0%E6%97%B6%E9%97%B4%EF%BC%8C%E4%B9%9F%E4%B9%B0%E6%9D%A5%E4%BA%86%E9%9A%90%E6%80%A7%E9%A3%8E%E9%99%A9"><span class="nav-number">4.</span> <span class="nav-text">拿 token 买时间，也买来了隐性风险</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A2%AB%E6%94%BE%E5%A4%A7%E7%9A%84%E5%AE%89%E5%85%A8%E5%8D%8A%E5%BE%84"><span class="nav-number">5.</span> <span class="nav-text">被放大的安全半径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E6%96%87%E6%A1%A3%E9%87%8C%E6%9C%80%E5%80%BC%E5%BE%97%E6%8A%84%E7%9A%84%E4%B8%80%E5%BC%A0%E8%A1%A8"><span class="nav-number">6.</span> <span class="nav-text">源码文档里最值得抄的一张表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%A0%E7%82%B9%E4%BF%9D%E7%95%99%E6%84%8F%E8%A7%81"><span class="nav-number">7.</span> <span class="nav-text">几点保留意见</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ryan</p>
+  <div class="site-description" itemprop="description">Search. Build. Explore.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryanmeowy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryanmeowy" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ryanxys@gmail.com" title="E-Mail → mailto:ryanxys@gmail.com" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ryanyang.cn/2026/11/03/%E4%BC%9A%E8%AF%9D%E5%BA%94%E8%AF%A5%E6%98%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ryan">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Low Gravity">
+      <meta itemprop="description" content="Search. Build. Explore.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="会话应该是实现细节 | Low Gravity">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          会话应该是实现细节
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-11-03 00:00:00" itemprop="dateCreated datePublished" datetime="2026-11-03T00:00:00+08:00">2026-11-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI-%E5%B7%A5%E7%A8%8B%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">AI 工程化</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>10 月 31 号晚上，DeepSeek Harness 团队发了篇长文：《Super-agent 设计探索：迈向更自主的 Agent 系统》。</p>
+<p>整篇读下来，最戳我的是这句话：<strong>Session 应当是系统的实现细节，而不应是用户的认知负担。</strong></p>
+<p>文里提到，一个人通常只能同时盯住 3 到 5 个活跃会话。我对照自己日常的状态数了一下，确实差不多——到了第六个窗口，脑子里就会开始出现“我记得有个任务在等 CI，但死活想不起来切去哪个标签页找”的状况。</p>
+<p>他们把这叫“瓶颈转移”：单任务的上限取决于模型能力，多任务的上限取决于人的注意力。前半句现在基本是行业共识了，而后半句，正是这套系统想解的题。</p>
+<span id="more"></span>
+
+<h2 id="它到底在优化什么"><a href="#它到底在优化什么" class="headerlink" title="它到底在优化什么"></a>它到底在优化什么</h2><p>这套架构优化的是<strong>多任务吞吐</strong>，而不是单件任务的成本和延迟。</p>
+<p>十月下旬 Anthropic 那篇讲“把 subagent 放回主循环”的文章，通篇都在算怎么让单次任务质量更好、成本更低、延迟更小。DeepSeek 这篇几乎是反着来的——他们明说了要用更多的 token，去换整体更短、更稳的完成时间。</p>
+<p>看实验数据就能看出来：关掉“订阅直通”机制之后，读缓存的 token 直接从 2323 万飙到了 3177 万（涨了大概 37%），但整体完成时间几乎没变。也就是说，多烧掉的这部分钱，只是帮 Router 少做了几次分发决定，用户拿到结果的速度并没有变快。</p>
+<p>这笔账划不划算，全看分母是什么。如果按“单件任务”算，Anthropic 的单循环显然更经济；但如果分母是“一个人一天能并行推进多少件事”，DeepSeek 这套重型调度才立得住。</p>
+<p>这也决定了它的适用面其实很窄。如果你平时的负载只是“一天跑几十个互不相干的小请求”，这套东西纯属给自己找罪受；它真正瞄准的，是手里同时压着二十件事、每件都在排队等 CI 或等 Code Review 的重度并发场景。</p>
+<h2 id="不配拥有-Bash-的-Router"><a href="#不配拥有-Bash-的-Router" class="headerlink" title="不配拥有 Bash 的 Router"></a>不配拥有 Bash 的 Router</h2><p>Orchestrator 加 Worker 的双层架构并不新鲜，到处都是。但 DeepSeek 对 Router 的阉割非常狠：只接话、只派活，绝不自己动手干活——甚至连 Bash 工具都可以不给它配。</p>
+<p>我很喜欢这个设计。它的核心目的不是省算力，而是把“全局序点”彻底拍扁成一个纯粹的控制平面。所有脏活累活全下沉给 Worker，Router 的上下文里永远只有干干净净的消息、状态和分发决定，不会被大段大段的命令行输出污染。文章里说实战中 Router 用轻量模型就够了，道理也在这儿：它干的本来就是分类和转发的活。</p>
+<p>对比一下常见的 Agent Team 模式：Team Lead 既要理解业务细节、拆解子任务、高频协调组员，有时还得自己下场写两行，推理负载极重，上下文也很快就烂掉了。Super-agent 的 Router 聪明就聪明在，它只管任务与任务之间的关联，绝不插手单任务内部的拆解。</p>
+<p>有一点挺反直觉：单个常驻的 Router 会话，居然没那么容易成为性能瓶颈。</p>
+<p>原因在于，上一轮推理期间涌进来的事件会先攒着，等下一轮打包塞进去，在 Prefill 阶段直接并行算完，合并处理的边际成本极低。他们做过一轮压测：把 Trigger 速率从每分钟 1 条拉高到 40 条，平均批处理大小从 1.0 涨到 2.8，单次请求耗时虽然从 2.5 秒涨到了 3.9 秒，但平摊到每个决定上的推理时间，反而从 6.4 秒跌到了 1.6 秒。</p>
+<p><strong>消息越堵，单次决策反而越便宜。</strong> 这个数字我核对了兩遍才反应过来。只要不撑爆上下文窗口、不超出模型单轮能兜住的事件数量上限，Router 这一层的吞吐比直觉上抗造得多。</p>
+<h2 id="比架构图更有用的对照表"><a href="#比架构图更有用的对照表" class="headerlink" title="比架构图更有用的对照表"></a>比架构图更有用的对照表</h2><p>文里那张四种方案的对照表，其实比架构图更有看头。</p>
+<p>其中一组对比是“单 Session + subagent 工具”：</p>
+<ul>
+<li>用<strong>中性提示词</strong>跑了 5 次，结果模型一次都没调 subagent，全自己硬扛了，p95 耗时飙到 29.5 分钟；</li>
+<li>改成<strong>提示词鼓励优先委派</strong>后，5 次里有 4 次老老实实分了工，速度明显快了，但还是跑不过 Super-agent——因为剩下那 1 次，模型自己觉得“这活儿挺小”，顺手就自己干了，直接拖出了长尾。</li>
+</ul>
+<p>DeepSeek 由此得出的结论是：靠写 prompt 让单个会话自己决定分不分工，根本不稳定；必须靠双层架构在系统层面把分工焊死。</p>
+<p>好玩的是，同一组实验数据，拿去印证 Anthropic 那篇文章也完全成立。“5 次里 0 次委派”恰恰说明了把复杂的结构决策交给 prompt 有多脆弱。其实两边看到了同一个病灶，只是开的药方相反：DeepSeek 选择再加一层铁板钉钉的系统架构，而 Anthropic 选择把复杂的架构直接砍掉。</p>
+<p>这两种路线背后站着同一个前提：<strong>现在模型把单件事干好的能力已经足够强了。</strong> 至于在这个前提之上怎么往上搭，两家走向了不同的分岔路。</p>
+<p>不过这两套方案在工程上并不打架。Super-agent 的 Worker 内部照样可以挂 subagent（原型代码里 Worker 的子代理直接用了 Harness 的 standard preset）。放到实际落地里，完全可以外层用双层架构接管并发调度，Worker 内部则按 Anthropic 的路子，该收拢回单循环就收拢。</p>
+<h2 id="拿-token-买时间，也买来了隐性风险"><a href="#拿-token-买时间，也买来了隐性风险" class="headerlink" title="拿 token 买时间，也买来了隐性风险"></a>拿 token 买时间，也买来了隐性风险</h2><p>整套系统里，唯独“订阅与直通”是在加了机制之后反而省钱的。</p>
+<p>逻辑很直接：同一个 PR 或同一个 IM 话题下的连续消息，天然构成一条 Thread。一旦某个 Worker 订阅了这条 Thread，后续事件就直接由底层程序透传过去，不再每次都去敲 Router 的门问“这条归谁管”。延迟没怎么变，但实打实省下了 Router 的决策开销。</p>
+<p>沿着这个思路再往前推一步，就是他们做的“投机执行”：收到会议邀约时，不等你吩咐，先在后台查好日程冲突、拟好回复草稿；群里有人报 bug 时，后台悄悄拉代码试着复现，只有确凿复现了、而且顺手找到了简单的修法，才跳出来说话，否则全程装死。</p>
+<p>这设计确实很妙，但账面下藏着两笔隐性成本：<br>一是那些最后“全程装死”、被丢弃掉的后台尝试，烧掉的也是真金白银的 token，而且全花在了没人要求的无用功上；<br>二是到底什么叫“确认了问题且修法足够简单”？这个准入标准本身，依然得靠模型自己拍脑袋判断。</p>
+<p>同样靠模型拍脑袋兜底的，还有主架构外挂着的那个 <strong>Watchdog（看门狗）</strong>。</p>
+<p>它是一个由定时消息唤醒的独立 Session。除了处理接口报错这类常规故障，它还要盯着每个 Worker，用模型去判断人家“有没有取得实质进展”、“方向有没有跑偏”，觉得不对劲就强行介入。</p>
+<p>这事在工程上其实非常难拿捏。要想判断“有没有实质进展”，Watchdog 就得先看懂任务本身，但它的上下文视野又是受限的。如果一个 Worker 是在正确的方向上绕了点远路，Watchdog 到底是该拉它一把，还是直接把它掐死？文章里没细说。不管是投机执行还是 Watchdog，本质上都是在用“带有不确定性的模型判断”去兜底另一个“模型判断”，这里面是没有标准答案的。</p>
+<h2 id="被放大的安全半径"><a href="#被放大的安全半径" class="headerlink" title="被放大的安全半径"></a>被放大的安全半径</h2><p>安全问题是文章里没回避、但读完挺让人捏把汗的一块。</p>
+<p>一旦云端的 Agent Loop 被服务端入侵、或者遭了提示词注入（Prompt Injection），它名下挂着的所有端侧设备都会跟着裸奔。退一步讲，就算云端固若金汤，只要本地环境里的密钥或凭据被读进了模型上下文，在正常的推理流转里也随时可能漏出去。团队给出的远期设想是：做一套“让 Agent 在完全摸不到凭据明文的前提下使用凭据”的隔离机制。</p>
+<p>但在那套机制做出来之前，风险是结结实实的。翻看开源原型的部署文档就能看到，目前的 Worker 和 Router 全是以 <code>danger-full-access</code> 权限直接跑在你的系统用户下的，能顺着路径随便跑程序、读主目录。官方也只能在文档里劝大家：最好单开一个只放 Agent 凭据的独立系统账号来跑。</p>
+<p>说白了，这套架构把安全爆炸半径从“单个聊天窗口”直接放大到了“这个人的所有设备”。而眼下业界防提示词注入的手段，根本还撑不起这么大的权限半径。文章很诚实地把它列进了开放问题，但谁要是光看着架构图觉得很爽就往生产环境里搬，落地时大概率会非常难受。</p>
+<h2 id="源码文档里最值得抄的一张表"><a href="#源码文档里最值得抄的一张表" class="headerlink" title="源码文档里最值得抄的一张表"></a>源码文档里最值得抄的一张表</h2><p>这次他们把研究原型也开源了（MIT 协议）。README 写得很坦诚：代码基本是让 Coding Agent 写的，跟内部版本以及文章里的完整设想对不齐，不少特性还停留在纸面上。</p>
+<p>我去翻了一遍仓库，最想抄走的不是架构代码，而是 <code>docs/001-domain.md</code> 末尾那张 <strong>Rejected concepts（被否决的概念）</strong> 表。里面一条条列着他们<strong>决定不做什么</strong>，以及为什么不做：</p>
+<ul>
+<li><strong>不做 Principal 或 Membership 实体</strong>：人（用户）不进入领域模型，只作为 Trigger 上的一个普通属性；</li>
+<li><strong>不让 Eval 自己调度延迟事件</strong>：需要等待的条件，一律当成普通的 Source 处理；</li>
+<li><strong>不强绑“一条 Thread 只能对应一个 Ticket”</strong>：允许一条讨论串里同时承载多件互不隶属的工作。</li>
+</ul>
+<p>平时看工程文档，满眼都是“我们设计了什么”，很少有人专门留一节写“我们砍掉了什么诱人的想法、理由是什么”。但对后来者来说，后者往往值钱得多——那张否决表，基本就是这套系统真正的演进史。</p>
+<p>另外，<code>docs/000-philosophy.md</code> 里写了一句设计哲学：<strong>尽可能少占用人的注意力，尽可能多给价值。</strong> 落到代码里，体现为一个很克制的默认配置：所有由系统主动发起的工作，默认全走 <code>observe</code>（观察）模式——只静默记录“如果让我干，我本来打算怎么做”，绝不直接动手。这个默认开关，比任何架构图都更能体现克制。</p>
+<h2 id="几点保留意见"><a href="#几点保留意见" class="headerlink" title="几点保留意见"></a>几点保留意见</h2><p>最后留三点我自己持保留态度的地方：</p>
+<p><strong>第一，实验负载的水分不小。</strong> 这一点他们自己也认。测试集里每次塞大概 300 条消息，其实只有 20 条左右是正经干活的请求，真正的编码任务还用了一个只消耗时间的 mock 工具顶替（官方原话是“基于合成负载与简化环境，仅作为初步参考”）。这套测试验的是并发调度和抗干扰能力，不是干活质量。所以“p95 耗时只有单 Session 的一半”这个漂亮数字，仅仅在“多条任务流同时砸过来”的特定场景下成立，千万别直接外推成“多 Agent 架构比单 Agent 强”。</p>
+<p><strong>第二，工程复杂度实在太高了。</strong> Router、Worker、两级过滤、订阅直通、Inline &amp; Spill、链式召回、投机执行、Watchdog、存算分离……这单子里的随便拎出一块，都能轻松吃掉一个小团队好几个月的维护预算。文章说“相似的设计约束会导出相似的架构选择”，这话我信；但反过来说，如果你的业务约束根本没严苛到那个份上，硬上这套架构就是自讨苦吃。</p>
+<p><strong>第三，也是最根本的一点：这套架构跟当下的模型能力绑得太死了。</strong> 整套设计都建立在“单任务能力已经够用，但多任务调度不行”的假设上。万一过阵子底层模型再迭代一轮，连长周期的多线调度也能在一个上下文里自己理顺了呢？到那时候，今天为了接管调度而精心搭起来的层层脚手架，反倒会变成 Anthropic 警告的那种“捆住新模型手脚的僵化结构”。DeepSeek 在当下的时间点没做错选择，只是这套重型装甲跟前提假设咬得太紧，底座一变，上面就得跟着大拆大改。</p>
+<hr>
+<p>如果整篇长文只能带走一样东西，我不会选双层架构，也不会选那组 p95 数据，我只带走开头那句 <strong>“Session 应当是实现细节”</strong>。</p>
+<p>这其实是个纯粹的产品拷问，跟底层用什么架构无关：你到底希望用户脑子里装着“要干的事本身”，还是每天都在回忆“那件事被我扔在哪个聊天窗口里了”？</p>
+<p>市面上绝大多数 Agent 产品，到现在都还没打算回答这个问题。</p>
+<p><em>参考资料：DeepSeek Harness 团队《Super-agent 设计探索：迈向更自主的 Agent 系统》（2026-10-31）；开源原型 <code>deepseek-ai/dsh-superagent-prototype</code>（MIT 协议，非官方正式产品）。</em></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Agent/" rel="tag"><i class="fa fa-tag"></i> Agent</a>
+              <a href="/tags/%E8%AE%A4%E7%9F%A5%E8%B4%9F%E8%8D%B7/" rel="tag"><i class="fa fa-tag"></i> 认知负荷</a>
+              <a href="/tags/AI/" rel="tag"><i class="fa fa-tag"></i> AI</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/11/01/%E6%8A%8A%20subagent%20%E6%94%BE%E5%9B%9E%E4%B8%BB%E5%BE%AA%E7%8E%AF/" rel="prev" title="把 subagent 放回主循环">
+                  <i class="fa fa-angle-left"></i> 把 subagent 放回主循环
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments giscus-container"><script src="https://giscus.app/client.js" data-repo="ryanmeowy/comments4blog" data-repo-id="R_kgDOK362Uw" data-category="Announcements" data-category-id="DIC_kwDOK362U84DFxo3" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="bottom" data-theme="preferred_color_scheme" data-lang="zh-CN" data-loading="lazy" crossorigin="anonymous" async></script></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+
+  
+
+
+
+
+
+
+</body>
+</html>
