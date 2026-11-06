@@ -21,15 +21,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"ryanyang.cn","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":true,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。 但另一类问题">
+    <meta name="description" content="Anchr 最开始只有一条传统的 RAG 链路：用户提问，系统搜出相关内容并重新排序，挑前几个片段塞给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  应付大多数事实型问题，这条链路足够了。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有说明，搜一次基本就能拿到核心材料，剩下的就是让模型整理成通顺的话。 但有些问题没法这么干：  找出几份设计文档">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一次 RAG 不够怎么办：Anchr 迭代 Agent RAG 的过程">
 <meta property="og:url" content="https://ryanyang.cn/2026/08/11/%E4%B8%80%E6%AC%A1%20RAG%20%E4%B8%8D%E5%A4%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9AAnchr%20%E8%BF%AD%E4%BB%A3%20Agent%20RAG%20%E7%9A%84%E8%BF%87%E7%A8%8B/index.html">
 <meta property="og:site_name" content="Low Gravity">
-<meta property="og:description" content="Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。 但另一类问题">
+<meta property="og:description" content="Anchr 最开始只有一条传统的 RAG 链路：用户提问，系统搜出相关内容并重新排序，挑前几个片段塞给模型，最后生成带引用的回答。 1用户提问 → 检索 → 重排 → 构造上下文 → 生成回答  应付大多数事实型问题，这条链路足够了。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有说明，搜一次基本就能拿到核心材料，剩下的就是让模型整理成通顺的话。 但有些问题没法这么干：  找出几份设计文档">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-10T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-11-02T14:19:56.072Z">
+<meta property="article:modified_time" content="2026-11-06T14:13:47.687Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="Agent">
 <meta property="article:tag" content="RAG">
@@ -117,7 +117,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TopK-%E8%B0%83%E5%BE%97%E5%86%8D%E5%A4%A7%EF%BC%8C%E4%B9%9F%E7%8C%9C%E4%B8%8D%E5%88%B0%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%A6%81%E6%90%9C%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">TopK 调得再大，也猜不到下一步要搜什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tool-Calling-%E5%BE%88%E5%BF%AB%E8%83%BD%E8%B7%91%E8%B5%B7%E6%9D%A5%EF%BC%8C%E8%A7%84%E5%88%99%E5%8D%B4%E4%BC%9A%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%A4%9A"><span class="nav-number">2.</span> <span class="nav-text">Tool Calling 很快能跑起来，规则却会越来越多</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E2%80%9C%E7%9C%8B%E8%BF%87%E2%80%9D%E5%93%AA%E4%BA%9B%E6%9D%90%E6%96%99%EF%BC%8C%E7%94%B1%E5%90%8E%E7%AB%AF%E8%AE%B0%E8%B4%A6"><span class="nav-number">3.</span> <span class="nav-text">模型“看过”哪些材料，由后端记账</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%B0%E4%BA%86%E4%B8%8A%E9%99%90%E5%B0%B1%E6%8A%A5%E9%94%99%EF%BC%8C%E4%BC%9A%E8%BF%9E%E5%B7%B2%E7%BB%8F%E6%89%BE%E5%88%B0%E7%9A%84%E6%9D%90%E6%96%99%E4%B8%80%E8%B5%B7%E4%B8%A2%E6%8E%89"><span class="nav-number">4.</span> <span class="nav-text">到了上限就报错，会连已经找到的材料一起丢掉</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E7%AD%94%E5%8F%98%E9%95%BF%E4%BB%A5%E5%90%8E%EF%BC%8C%E9%A1%B5%E9%9D%A2%E8%BF%9E%E6%8E%A5%E5%B0%B1%E4%B8%8D%E8%83%BD%E4%BB%A3%E8%A1%A8%E4%BB%BB%E5%8A%A1%E6%9C%AC%E8%BA%AB"><span class="nav-number">5.</span> <span class="nav-text">问答变长以后，页面连接就不能代表任务本身</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%80%E5%90%8E%E8%BF%98%E6%98%AF%E4%BF%9D%E7%95%99%E4%BA%86%E5%9B%BA%E5%AE%9A-RAG"><span class="nav-number">6.</span> <span class="nav-text">为什么最后还是保留了固定 RAG</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TopK-%E8%B0%83%E5%BE%97%E5%86%8D%E5%A4%A7%EF%BC%8C%E4%B9%9F%E7%8C%9C%E4%B8%8D%E5%88%B0%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%A6%81%E6%90%9C%E4%BB%80%E4%B9%88"><span class="nav-number">1.</span> <span class="nav-text">TopK 调得再大，也猜不到下一步要搜什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tool-Calling-%E8%B7%91%E8%B5%B7%E6%9D%A5%E5%AE%B9%E6%98%93%EF%BC%8C%E4%BD%86%E8%BE%B9%E7%95%8C%E8%A7%84%E5%88%99%E4%BC%9A%E8%B6%8A%E5%A0%86%E8%B6%8A%E5%A4%9A"><span class="nav-number">2.</span> <span class="nav-text">Tool Calling 跑起来容易，但边界规则会越堆越多</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E2%80%9C%E7%9C%8B%E8%BF%87%E2%80%9D%E4%BB%80%E4%B9%88%EF%BC%8C%E5%BE%97%E7%94%B1%E5%90%8E%E7%AB%AF%E8%AE%B0%E8%B4%A6"><span class="nav-number">3.</span> <span class="nav-text">模型“看过”什么，得由后端记账</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%B0%E4%BA%86%E4%B8%8A%E9%99%90%E5%B0%B1%E7%9B%B4%E6%8E%A5%E6%8A%A5%E9%94%99%EF%BC%8C%E5%89%8D%E9%9D%A2%E7%9A%84%E6%B4%BB%E5%B0%B1%E7%99%BD%E5%B9%B2%E4%BA%86"><span class="nav-number">4.</span> <span class="nav-text">到了上限就直接报错，前面的活就白干了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%80%97%E6%97%B6%E5%8F%98%E9%95%BF%E5%90%8E%EF%BC%8C%E5%B0%B1%E4%B8%8D%E8%83%BD%E6%8A%8A%E4%BB%BB%E5%8A%A1%E7%BB%91%E6%AD%BB%E5%9C%A8%E9%A1%B5%E9%9D%A2%E8%BF%9E%E6%8E%A5%E4%B8%8A%E4%BA%86"><span class="nav-number">5.</span> <span class="nav-text">耗时变长后，就不能把任务绑死在页面连接上了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%80%E5%90%8E%E8%BF%98%E6%98%AF%E7%95%99%E7%9D%80%E5%9B%BA%E5%AE%9A-RAG%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">为什么最后还是留着固定 RAG？</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -229,83 +229,89 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>Anchr 最开始只有一条比较传统的 RAG 链路：用户提出问题，系统搜索相关内容，对候选结果重新排序，再把前几个片段交给模型，最后生成带引用的回答。</p>
+    <div class="post-body" itemprop="articleBody"><p>Anchr 最开始只有一条传统的 RAG 链路：用户提问，系统搜出相关内容并重新排序，挑前几个片段塞给模型，最后生成带引用的回答。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户提问 → 检索 → 重排 → 构造上下文 → 生成回答</span><br></pre></td></tr></table></figure>
 
-<p>对大量事实型问题，这条链路已经够用。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有对应说明，一次检索通常就能找到主要材料，后面只需要把它们整理成一段连贯的回答。</p>
-<p>但另一类问题不太一样：</p>
+<p>应付大多数事实型问题，这条链路足够了。比如问“文档重新解析后，旧索引怎么处理”，只要知识库里有说明，搜一次基本就能拿到核心材料，剩下的就是让模型整理成通顺的话。</p>
+<p>但有些问题没法这么干：</p>
 <blockquote>
 <p>找出几份设计文档里所有与任务恢复有关的内容，再比较进程重启、网络断开和主动取消三种情况下分别会发生什么。</p>
 </blockquote>
-<p>这种问题很少能靠一个现成片段回答。第一次搜索可能只找到 Agent 运行恢复的说明；读完后才发现还涉及异步任务（Task）；继续查 Task，又会遇到进程内状态和持久化状态的区别。等到核对部署约束时，对“恢复”的理解可能已经和第一次检索时不同。</p>
-<p>下一步搜什么，开始取决于上一步读到的内容。Anchr 的 Agent RAG 就是从这个问题开始的。</p>
+<p>这种问题很难靠现成的几个片段拼出答案。第一次搜索可能只翻出 Agent 运行恢复的说明；顺着读下去，才发现还牵扯到异步任务（Task）；掉头去查 Task，又冒出进程内状态和持久化状态的区别。等最后去核对部署约束时，你对“恢复”这两个字的理解，早就和第一轮搜索时不一样了。</p>
+<p>下一步搜什么，完全取决于上一步读到了什么。Anchr 的 Agent RAG 就是为了解决这种问题做出来的。</p>
 <span id="more"></span>
 
-<h2 id="TopK-调得再大，也猜不到下一步要搜什么"><a href="#TopK-调得再大，也猜不到下一步要搜什么" class="headerlink" title="TopK 调得再大，也猜不到下一步要搜什么"></a>TopK 调得再大，也猜不到下一步要搜什么</h2><p>固定 RAG 的检索发生在生成之前，而且通常只执行一次。材料不够时，一个直接的办法是把一次检索保留的候选数，也就是 TopK，从 10 调到 30 或 50，希望一次多拿一些片段。</p>
-<p>这对“相关内容本来就在首次召回范围里，只是数量不够”有用。前面的任务恢复问题却不完全属于这种情况。用户的原问题里未必出现“租约”、“运行快照”或“单实例”这些后续概念，第一轮搜索也没有理由为它们预留位置。</p>
-<p>候选数增加后，无关内容也会跟着进入上下文。一份长文档里的相邻段落可能同时命中，看起来拿到了 30 个结果，其中大半却在重复同一件事。模型需要在更多噪声里挑出材料，却没有因此得到新的查找方向。</p>
-<p>我需要的是两个分开的动作：先用搜索找到入口，再阅读上下文；如果读到了新线索，就再发起一次搜索。</p>
+<h2 id="TopK-调得再大，也猜不到下一步要搜什么"><a href="#TopK-调得再大，也猜不到下一步要搜什么" class="headerlink" title="TopK 调得再大，也猜不到下一步要搜什么"></a>TopK 调得再大，也猜不到下一步要搜什么</h2><p>传统 RAG 的检索都在生成之前，而且通常是一锤子买卖。材料不够怎么办？最直观的做法是把单次检索保留的候选数（TopK）从 10 调到 30 甚至 50，指望大力出奇迹，一次把东西捞全。</p>
+<p>如果相关内容本来就在第一次召回的池子里，只是排名靠后，调大 TopK 确实管用。但前面的“任务恢复”问题不是这样。用户的原问题里压根没有“租约”、“运行快照”或“单实例”这些词，第一轮搜索怎么可能未卜先知，把它们的坑位留出来？</p>
+<p>更糟的是，候选数放大后，垃圾信息也跟着进来了。一份长文档里挨着的几段话可能同时命中，看着拿到了 30 个结果，其实大半都在车轱辘话来回说。模型在一堆噪音里大海捞针，不仅累，还没法找到新的排查方向。</p>
+<p>实际上我们需要把动作拆开：先用搜索找入口，再顺着读上下文；读出新线索了，就发起下一轮搜索。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">搜索“Agent 恢复”</span><br><span class="line">        ↓</span><br><span class="line">找到 Agent 运行说明</span><br><span class="line">        ↓</span><br><span class="line">继续阅读，发现异步 Task</span><br><span class="line">        ↓</span><br><span class="line">改查 Task 状态和恢复方式</span><br><span class="line">        ↓</span><br><span class="line">再到部署文档确认运行边界</span><br></pre></td></tr></table></figure>
 
-<p>所以 Agent 有两个不同的工具：搜索用来确定“内容在哪里”，顺序阅读用来补齐“这个位置前后还说了什么”。比如搜索已经命中：</p>
+<p>所以我在 Agent 里给了两个不同的工具：<strong>搜索</strong>用来定位“东西在哪”，<strong>顺序阅读</strong>用来看清“这地方前后还聊了什么”。比如搜索命中了这么一句：</p>
 <blockquote>
 <p>新一代索引（generation）完成写入并通过可见性检查后，再把它设为当前生效版本。</p>
 </blockquote>
-<p>这时更有用的做法往往是继续读前后段落：上一段可能解释为什么不能直接覆盖，下一段可能说明旧版本什么时候清理。如果再做一次全局语义搜索，反而可能跳到文档里另一个提到索引版本的位置。</p>
-<p>顺序阅读能补齐命中位置附近的上下文，但它也要有边界。整份长文档可能有几百个片段，需要分批归纳后再合并，不适合一直占着在线问答。这类工作会交给独立的后台任务。在线 Agent 只负责判断是否要转入长任务，不会自己无限翻下去。</p>
-<h2 id="Tool-Calling-很快能跑起来，规则却会越来越多"><a href="#Tool-Calling-很快能跑起来，规则却会越来越多" class="headerlink" title="Tool Calling 很快能跑起来，规则却会越来越多"></a>Tool Calling 很快能跑起来，规则却会越来越多</h2><p>第一版 Agent 的主循环并不复杂。模型拿到用户问题和工具说明，决定下一步是搜索、阅读还是回答。后端执行工具，把结果放回模型上下文，再让它做下一轮判断。</p>
+<p>这时候最合理的动作往往是把它的上下段也调出来看看：上一段可能在讲为什么不能直接覆盖，下一段可能在讲旧版本什么时候清理。如果这时候不去翻上下文，而是再做一次全局语义搜索，很容易直接跳到文档里另一个八竿子打不着的“索引版本”章节去。</p>
+<p>当然，顺序阅读得有个度。一篇长文档切下来可能有几百个片段，真要从头读到尾，得先分批归纳再合并，这种重活不适合卡着在线问答的请求干。遇到这种情况，应该转给独立的后台任务。在线 Agent 只负责判断要不要转后台，绝对不能自己没完没了地往下翻页。</p>
+<h2 id="Tool-Calling-跑起来容易，但边界规则会越堆越多"><a href="#Tool-Calling-跑起来容易，但边界规则会越堆越多" class="headerlink" title="Tool Calling 跑起来容易，但边界规则会越堆越多"></a>Tool Calling 跑起来容易，但边界规则会越堆越多</h2><p>第一版 Agent 的主循环非常简单：模型拿着用户问题和工具列表，自己决定下一步是搜、是读，还是直接回答。后端负责跑工具，把结果塞回上下文，再让模型做下一轮判断。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">模型判断 → 执行工具 → 追加结果 → 回到模型判断</span><br></pre></td></tr></table></figure>
 
-<p>循环跑起来以后，问题很快从“能不能调工具”变成“多个判断同时发生时该怎么办”。</p>
-<p>模型可能在一次响应中返回多个工具调用。如果立即并行执行，后面几个调用使用的仍然是模型作出这批决定时的旧上下文。第一个搜索如果已经找到新线索，后面的调用是否还值得执行，并不能完全照旧计划判断。Anchr 会先把调用排队，一次执行一个，并在每次执行前重新检查预算、重复调用和顺序阅读限制。</p>
-<p>调用改成串行后，还要避免模型重复执行同一个工具。当前实现优先使用 Tool Call ID，也就是模型为每次工具调用附带的唯一标识。没有 ID 时，系统再比较工具名和参数。</p>
-<p>这里不适合只靠语义相似度去重。两轮模型分别搜索 <code>agent recovery</code> 和 <code>how agent run recover</code>，虽然意思接近，却可能是一次有用的查询改写。如果再调一次模型判断它们是否重复，既要花时间和调用费用，也不一定判断得准。所以系统只拦截可以确定的重复调用。如果模型只是换着说法反复搜索，最后由整体预算让它停下来。</p>
-<p>去重只是其中一条规则。预算用完时，队列里可能还有工具调用；第一个工具失败后，后面的调用可能已经没有价值；模型已经给出答案，后端还可能发现引用不合法。再加上用户取消，这些规则很快会散落在模型调用、工具执行和最终状态提交的前后。</p>
-<p>后来我把这一部分改成了显式状态机。这不是因为 Agent 必须用状态机，而是这次运行已经有了需要单独验证的执行顺序和最终状态规则。</p>
-<p>状态机每次只处理三件事：现在处于什么状态，刚刚发生了什么，下一步应该做什么。调模型、搜索和阅读文档这些有副作用的操作放在状态机外面，执行结束后，再把结果作为新事件送回来。</p>
+<p>但循环一跑起来，问题马上就从“怎么调工具”变成了“一堆状况同时撞上怎么办”。</p>
+<p>比如模型在一次响应里同时扔回来好几个工具调用。如果后端直接并发执行，那后面几个调用依赖的其实还是模型做决定时的旧上下文。万一第一个搜索已经摸到了新线索，后面几个原定的搜索还有没有必要跑，其实很难说。所以在 Anchr 里，工具调用会先排队，挨个串行执行。每次执行前，都要重新检查一遍预算、看看有没有重复调用、有没有超出阅读限制。</p>
+<p>改成串行之后，还得防着模型犯傻、反复调同一个工具。现在的做法是优先看 Tool Call ID（模型给每次调用生成的唯一标识）；如果没有 ID，再去比对工具名和参数。</p>
+<p>这里千万别用语义相似度去重。模型第一轮搜 <code>agent recovery</code>，第二轮搜 <code>how agent run recover</code>，字面意思差不多，但这很可能是一次有用的查询改写。如果为了去重再调一次模型来判断意思重不重复，既费钱又慢，还不一定准。所以系统只拦板上钉钉的完全重复。如果模型只是换着花样搜同一种东西，那就靠整体预算把它卡死。</p>
+<p>去重只是冰山一角。工程上很快会遇到一堆破事：预算刚用完，队列里还排着两个工具没跑怎么办？第一个工具报错了，后面的还要不要继续？模型答案都写好了，后端校验却发现引用格式不对怎么处理？再算上用户随时可能点“取消”，这些控制逻辑很快就会散落在调模型、跑工具、提交状态的各个角落，糊成一团。</p>
+<p>后来我干脆把这一块重构成了一个显式的状态机。倒不是说写 Agent 非得上状态机不可，而是当执行顺序和结束条件变得这么复杂时，你必须得有办法把它们单独拎出来验证。</p>
+<p>状态机每次只认三件事：现在什么状态、刚发生了什么事件、下一步该干嘛。像调模型、搜文档这种有副作用的 IO 操作全剥离到状态机外面，跑完了再把结果包装成新事件喂回来。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">当前状态 + 新事件</span><br><span class="line">          ↓</span><br><span class="line">      一次状态迁移</span><br><span class="line">          ↓</span><br><span class="line">下一状态 + 一个待执行动作</span><br></pre></td></tr></table></figure>
 
-<p>拆开以后，“已经执行 8 次工具、当前已有有效证据、队列里还有一个搜索”可以直接构造成测试状态，再检查下一步是否转入收尾。测试不用真的调八次模型和搜索接口，也不用期待模型刚好走到这条分支。状态机没有减少分支，只是让这些分支可以独立检查。</p>
-<p>状态机解决了“下一步该做什么”，但 Agent 还要记住另一类状态：它在这次运行里到底看过哪些材料。</p>
-<h2 id="模型“看过”哪些材料，由后端记账"><a href="#模型“看过”哪些材料，由后端记账" class="headerlink" title="模型“看过”哪些材料，由后端记账"></a>模型“看过”哪些材料，由后端记账</h2><p>Tool Calling 返回的虽然是结构化参数，对后端来说仍然是一份外部输入，不能直接相信。</p>
-<p>假设用户这次只选了“系统设计”和“Agent 设计”两份文档。模型在某一轮生成了另一份文档的 ID，后端不能因为它来自 Tool Call 就直接读取。它还要检查文档是否存在、当前用户能否访问，以及它是否属于这次问答选定的范围。</p>
-<p>这些范围也会放进 Prompt，帮助模型少做无效决定，但权限不依赖 Prompt 维护。原来由浏览器传入的参数，现在有一部分由模型生成，输入校验、资源权限和文档版本过滤仍然由服务端执行。</p>
-<p>权限检查解决了“能不能读”，接下来还要解决“最后能引用什么”。固定 RAG 一次只给模型一组上下文，最终引用可以从这组内容里挑选。Agent 则可能经过多轮查找：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">第一次搜索 → A、B、C</span><br><span class="line">读取 A 的前后文 → D、E</span><br><span class="line">第二次搜索 → F、G</span><br><span class="line">继续读取 F → H</span><br></pre></td></tr></table></figure>
+<p>这么一拆，写测试就舒服多了。想测“已经跑了 8 次工具、手里有可用证据、队列里还剩一个搜索没跑”这种刁钻场景，直接在内存里拼好当前状态喂给状态机，看它下一步是不是乖乖转去收尾就行。既不用真去调八次模型和搜索接口，也不用烧香拜佛指望模型刚好走出这条分支。状态机没法减少分支数量，但能让你把每个分支看清楚、测明白。</p>
+<p>不过，状态机只管“下一步往哪走”，Agent 还有另一笔账要算：这趟跑下来，它到底看过了哪些材料？</p>
+<h2 id="模型“看过”什么，得由后端记账"><a href="#模型“看过”什么，得由后端记账" class="headerlink" title="模型“看过”什么，得由后端记账"></a>模型“看过”什么，得由后端记账</h2><p>Tool Calling 返回的虽然是结构化参数，但说到底还是模型生成的外部输入，后端绝对不能无条件信任。</p>
+<p>打个比方，用户这次问答只勾选了《系统设计》和《Agent 设计》两份文档。结果模型在某一轮抽风，自己编了另一份文档的 ID 传过来。后端不能因为这是 Tool Call 传来的就直接去查库，必须老老实实校验文档存不存在、当前用户有没有权限看、在不在这次勾选的范围内。</p>
+<p>虽然我们也会把文档范围写进 Prompt 提醒模型别乱来，但权限控制绝不能靠 Prompt 兜底。以前从前端传过来的参数怎么校验，现在模型生成的参数就得怎么校验，资源权限和版本过滤一步都不能省。</p>
+<p>拦住了越权读取，接下来还要管住“嘴”——最后生成的答案到底能引用什么？</p>
+<p>传统 RAG 只给模型喂一次上下文，引用肯定是从这堆材料里挑出来的。但 Agent 会经历多轮查找：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">第一次搜索 → 拿到片段 A、B、C</span><br><span class="line">顺着 A 往下读 → 拿到 D、E</span><br><span class="line">第二次搜索 → 拿到 F、G</span><br><span class="line">顺着 F 往下读 → 拿到 H</span><br></pre></td></tr></table></figure>
 
-<p>到最后，模型已经接触过八个片段，它的消息历史里还可能带着以前对话中出现的引用。如果最终答案只返回一个编号，后端必须知道它对应的是本次 Agent 执行（Run）真正读过的片段，还是历史引用、其他 Run 的证据，甚至是模型自己生成的 ID。</p>
-<p>所以每次工具返回文档片段时，后端都会把它登记到当前 Run 的证据集合里。代码中把它叫作 Evidence Registry，可以理解成“这次 Agent 真正看过的 Segment 账本”。最终的知识型回答只允许引用这份账本中的内容。</p>
-<p>模型提交答案以后，后端还会检查回答类型是否与引用一致、引用 ID 是否都属于当前 Evidence Registry，以及正文中的引用标记是否合法。模型实际只有三个可用片段，却在答案里引用了第五个，这份答案就不会直接通过。</p>
-<p>首次检查失败后，系统会把具体错误送回模型，让它使用已有证据修复一次。如果第二次仍然无法生成合法答案，这次运行就收敛到安全的无证据结果，不会为了修复引用无限调用模型。</p>
-<p>这套校验只能保证引用确实来自本次查找，不能证明模型已经正确理解原文。它仍然可能引用一段真实材料，却忽略其中的限定条件。Citation 只是让用户可以返回原文检查，不代表自然语言结论已经被证明。</p>
-<p>有了证据账本，后端已经知道最终答案可以使用哪些材料。但 Agent 可以不断搜索和阅读，还需要解决另一个问题：这次执行最多能找多久？</p>
-<h2 id="到了上限就报错，会连已经找到的材料一起丢掉"><a href="#到了上限就报错，会连已经找到的材料一起丢掉" class="headerlink" title="到了上限就报错，会连已经找到的材料一起丢掉"></a>到了上限就报错，会连已经找到的材料一起丢掉</h2><p>固定 RAG 一般只有一次检索和一次生成，Agent 却可能连续调用多轮模型和工具。如果没有明确上限，一次在线问答很容易变成一个不知道何时结束的研究任务。</p>
-<p>现在 Anchr 默认允许 12 个模型步骤、8 次工具调用和 90 秒总运行时间，单次模型调用最多 30 秒。预算不是在开始时检查一次就结束，每次准备调模型或执行工具前，系统都会重新计算剩余预算。</p>
-<p>比如整个 Run 最多运行 90 秒，现在已经过去 84 秒，即使单次模型的常规超时是 30 秒，这一轮也不能再获得完整的 30 秒。否则 90 秒只是配置上的总时限，实际执行仍然可能在最后一次外部调用中超出很多。</p>
-<p>顺序阅读也有单独限制。已经拿到证据后，同一个 Run 最多真正执行两次连续阅读。第三次试图继续往后翻时，系统不再读取更多正文，而是转入基于已有证据的收尾。如果问题确实需要通读整份文档，它应该进入后台总结任务，不该靠在线 Agent 不断翻页完成。</p>
-<p>设置上限只解决了“什么时候必须停”，没有回答“停下时已经找到的材料怎么办”。如果 Agent 已经搜索和阅读了几轮，Evidence Registry 里也有可用材料，只是模型还没有主动提交答案，直接把整次执行判为失败，前面的有效工作也会被一起丢掉。</p>
-<p>所以预算耗尽后，系统会先看当前有没有证据：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">预算耗尽</span><br><span class="line">  ├─ 没有证据 → 明确返回未找到足够材料</span><br><span class="line">  └─ 已有证据 → 关闭工具，只基于现有材料生成答案</span><br></pre></td></tr></table></figure>
+<p>几轮下来，模型已经见过了八个片段，而且历史对话的上下文里可能还残留着之前几轮问答的引用编号。如果模型最后的答案里标了个 <code>[3]</code>，后端怎么知道这个 <code>[3]</code> 指的是这次真正读过的片段，还是之前聊天的残留记录，甚至是模型自己瞎编的 ID？</p>
+<p>所以在 Anchr 里，每次工具返回文档片段，后端都会在当前 Run 的账本里记上一笔。代码里这叫 <code>Evidence Registry</code>（证据账本），专门记录“这次运行真正拿到过的文档片段”。最终生成的回答，只准从这本账里挑东西引用。</p>
+<p>等模型交卷后，后端会对着账本做一轮硬性检查：回答类型和引用能不能对上？引用的 ID 在不在当前账本里？正文里的角标格式合不合法？如果账本里明明只有三个片段，模型却在答案里标了个第五个，这答案就会被直接打回。</p>
+<p>第一次被打回时，系统会把具体的报错信息塞回给模型，让它就着现有的证据改一次。如果改完第二次还是过不了校验，系统就不会再跟它死磕了，直接降级返回安全的无证据结果，免得为了修几个角标把 Token 耗光。</p>
+<p>当然，这套校验只能保证“引用确实来自这次查到的材料”，证明不了“模型真的读懂了原文”。模型完全可能引了一段真实的文档，却把里面的前提条件忘得一干二净。加引用角标只是为了方便用户点回去核对原文，不代表模型写出来的结论就一定是铁律。</p>
+<p>账本建好了，引用管住了，但因为 Agent 可以自己决定继续搜、继续读，紧接着就会撞上下一个问题：这一趟到底允许它找多久？</p>
+<h2 id="到了上限就直接报错，前面的活就白干了"><a href="#到了上限就直接报错，前面的活就白干了" class="headerlink" title="到了上限就直接报错，前面的活就白干了"></a>到了上限就直接报错，前面的活就白干了</h2><p>传统 RAG 是一锤子检索加一锤子生成，耗时很容易预估；但 Agent 可能会一轮接一轮地调模型、跑工具。如果不卡死上限，一次普通的在线提问很容易失控，跑成一个看不到头的后台调研。</p>
+<p>目前 Anchr 的默认预算是：最多 12 个模型步骤、8 次工具调用、总耗时不超过 90 秒，单次调模型最多等 30 秒。而且这个预算不是在开头看一眼就完事了，每次准备调模型或跑工具前，系统都会重新抠一遍还剩多少额度。</p>
+<p>举个例子，整个 Run 限时 90 秒，现在已经跑了 84 秒。哪怕单次模型调用的常规超时是 30 秒，这最后一轮也绝不能再给足 30 秒，最多只能给 6 秒。不然的话，90 秒的总限时就成了摆设，最后一次请求照样能把总时间拖长一大截。</p>
+<p>顺序阅读也有单独的紧箍咒。在拿到有效证据之后，同一个 Run 里最多只允许连续翻页两次。当模型第三次试图继续往后读时，系统会强行打断，不再加载新正文，而是逼着它用已经拿到的材料开始收尾。要是某个问题真的非得把几万字的文档从头通读到尾，那它一开始就该走后台长任务，而不是在线上问答里没完没了地翻页。</p>
+<p>不过，设上限只是解决了“什么时候踩刹车”，还有个更实际的问题：“踩死刹车的时候，手里已经找到的材料怎么处理？”</p>
+<p>如果 Agent 已经兢兢业业搜了好几轮，账本（Evidence Registry）里也攒下了不少好材料，只差最后一步没来得及交卷。这时候如果因为超时或超步数，直接给前端甩一个“执行失败”，前面做完的有效功就全扔水里了。</p>
+<p>所以在预算耗尽的那一刻，系统会先低头看一眼账本：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">预算耗尽</span><br><span class="line">  ├─ 账本是空的 → 直接告诉用户没找到足够材料</span><br><span class="line">  └─ 账本里有货 → 拔掉所有工具，逼模型只用现有材料写答案</span><br></pre></td></tr></table></figure>
 
-<p>后一条路径在代码里叫 Evidence Finalizer。它不再把任何工具交给模型，也不允许重新规划查找路径，输入只有当前 Run 已经登记的证据。它要收尾的是“已经找到材料，但没在预算内正常结束”的运行，不会把没有证据的问题强行补成一个完整答案。</p>
-<p>这条收尾路径自己也可能失败，比如剩余时间不足，或模型仍然无法给出合法的带证据答案。这时系统会保留“已有证据，但收尾失败”的降级结果，不会伪装成正常完成。“没找到材料”、“找到了材料但没能完成回答”和“成功生成可验证回答”，是三个不同的结果。</p>
-<p>这些限制保证了 Agent 不会无限运行，但一次执行仍然可能持续几十秒。执行时间变长后，页面与后端任务的关系也要重新处理。</p>
-<h2 id="问答变长以后，页面连接就不能代表任务本身"><a href="#问答变长以后，页面连接就不能代表任务本身" class="headerlink" title="问答变长以后，页面连接就不能代表任务本身"></a>问答变长以后，页面连接就不能代表任务本身</h2><p>固定 RAG 的执行较短，用户发出问题后等待答案就可以。Agent 可能运行几十秒，中间经过多次搜索、阅读和模型决策。如果页面只显示一个 loading，用户很难分辨它是仍在查找，还是已经卡住。</p>
-<p>Anchr 会通过 SSE（服务端事件流）把运行进度发到页面，比如正在做决策、搜索文档或读取上下文。可以安全展示的回答也会分段发到页面，完整结果通过检查后，再校准页面上的最终内容。</p>
-<p>SSE 连接不是 Agent Run 本身。刷新页面、切换网络或电脑休眠，都可能让连接中断。如果一断线就自动取消后端执行，用户只是刷新页面，前面已经查了几十秒的任务也会一起消失。</p>
-<p>现在的处理是，连接断开只停止向这个客户端继续发送实时事件，后端仍然会完成运行并保存会话和 Run 状态。用户重新进入页面后，可以通过已持久化的 Run、Task 或会话消息恢复已经发生的结果。Redis 里的运行快照用来辅助展示活动状态，MySQL 里的会话、Run、Step 和 Task 才是最终状态的来源。</p>
-<p>在线 Run 和页面连接拆开以后，长文档总结可以更彻底地交给后台。Agent 判断需要通读时，会创建独立的后台任务，保存任务信息后就结束当前请求。后台任务再读取全文、分批归纳、合并结果并更新进度。用户离开页面后，它也不需要靠原来的 HTTP 连接维持生命周期。</p>
-<p>断开连接不等于取消任务。用户真正想停止任务时，需要发起单独的取消操作。这又带来一个和 AI 没多少关系的并发问题：Agent 已经生成完答案，正准备提交完成；同一时刻，用户点了取消。</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">执行线程：检查未取消 → 准备提交 COMPLETED</span><br><span class="line">用户请求：              发起 CANCELLED</span><br></pre></td></tr></table></figure>
+<p>后面这条路在代码里叫 <code>Evidence Finalizer</code>。一旦进到这里，系统会把模型的工具全收走，也不准它再做什么新规划，输入里只有当前账本记下的片段。它的任务很明确：既然找过东西了，不管找没找全，先把手头的材料整理出来给个交代；当然，如果账本本来就是空的，也绝不硬编。</p>
+<p>万一连这个收尾动作自己都失败了（比如剩下的几秒钟根本不够模型生成完，或者生成的引用还是不合法），系统就会老老实实返回一个“找到了部分材料，但未能生成最终回答”的降级状态，绝不硬装成正常完成。在 Anchr 里，“没找到材料”、“找到了材料但没写完回答”和“成功给出可验证的回答”，是三种完全不同的业务结果。</p>
+<p>靠着预算控制和强行收尾，我们把单次运行时间按在了几十秒以内。但几十秒对前端页面来说已经很漫长了，浏览器连接和后端任务之间的关系也得跟着重新设计。</p>
+<h2 id="耗时变长后，就不能把任务绑死在页面连接上了"><a href="#耗时变长后，就不能把任务绑死在页面连接上了" class="headerlink" title="耗时变长后，就不能把任务绑死在页面连接上了"></a>耗时变长后，就不能把任务绑死在页面连接上了</h2><p>跑传统 RAG 只要几秒钟，用户提完问干等就行。但 Agent 动辄跑几十秒，中间要经历好几次搜索、阅读和思考。如果页面上只转一个冷冰冰的 Loading 圈，用户根本搞不清它是在认真查资料，还是早就卡死了。</p>
+<p>为了解决这个问题，Anchr 用 SSE（Server-Sent Events）把后端的一举一动实时推给前端：现在是在做规划、在搜哪篇文档，还是在读哪段上下文，页面上一目了然。能提前展示的回答内容也会分段流式推过去，等最后整篇答案通过了引用校验，再把页面上的最终状态对齐。</p>
+<p>但这里有个大坑：<strong>SSE 连接绝对不能等同于 Agent 任务本身。</strong></p>
+<p>用户随手刷个新、切一下 Wi-Fi，甚至合上笔记本电脑，都会导致连接断开。如果连接一断，后端就跟着把任务掐掉，那用户等了四十秒不小心按到刷新，心态直接就崩了。</p>
+<p>现在的机制是，连接断了，后端只是不再往这个通道推实时事件，但 Agent 该怎么跑还怎么跑，跑完照样把会话和状态存进数据库。等用户重新打开页面，直接从落盘的记录里把结果捞出来就行。在架构上，Redis 里的运行快照只用来伺候前端的实时状态展示，真正说了算的最终状态，全在 MySQL 的会话、Run、Step 和 Task 表里。</p>
+<p>把在线任务和页面连接解耦之后，前面提到的“长文档通读”也就顺理成章了。当 Agent 发现这活儿在线干不完，就会建一个独立的后台任务，把任务信息存好后直接结束当前的问答请求。后台任务自己在暗处慢慢读全文、分批总结、合并进度，用户就算直接关掉浏览器走人，也完全不影响它在后台跑完。</p>
+<p>既然断网不等于取消，那用户真想喊停的时候，就得调专门的取消接口。这又引出了一个很经典的并发问题（跟 AI 倒是一点关系没有）：假设 Agent 刚好写完答案，正准备往数据库里写 <code>COMPLETED</code>；同一毫秒，用户嫌慢，伸手点了取消，请求打进来要写 <code>CANCELLED</code>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">执行线程：检查发现未取消 → 准备提交 COMPLETED</span><br><span class="line">用户请求：                发起 CANCELLED</span><br></pre></td></tr></table></figure>
 
-<p>如果只在流程中的几个位置检查一个布尔值，“最后一次检查”和“提交最终状态”之间仍然有竞态窗口。所以取消、完成和失败共用同一个临界区。如果取消先被接受，尚未提交的完成或失败就不能再覆盖它；如果完成或失败已经先提交，迟到的取消也不会再改写结果。</p>
-<p>到这里，页面连接是否存在、用户是否请求取消、后端最终提交了什么结果，已经是三件需要分开处理的事。Agent 为了完成多轮查找，也因此多了不少运行成本和出错环节。这就带来下一个选择：有了 Agent 以后，还要不要保留原来的固定 RAG？</p>
-<h2 id="为什么最后还是保留了固定-RAG"><a href="#为什么最后还是保留了固定-RAG" class="headerlink" title="为什么最后还是保留了固定 RAG"></a>为什么最后还是保留了固定 RAG</h2><p>Agent 可以搜索、阅读，也可以决定何时回答，从能力上看确实能覆盖固定 RAG。但问“这份文档的发布日期是什么”时，一次检索就可能找到答案。如果走 Agent，至少要先调一次模型决定搜索，执行搜索后再调模型生成回答。同一个问题多了一轮模型调用，延迟和成本都更高。</p>
-<p>所以目前两条路径一直并存。目标明确、一次搜索大概能找到答案的问题，直接走固定 RAG；跨文档查找、连续阅读，或需要根据中间结果调整搜索方向的问题，再由用户显式开启 Agent。两类问题的边界还没有清楚到可以完全交给自动路由，所以现在仍然保留显式选择。</p>
-<p>两条路径并存，还有一个原因：固定 RAG 可以作为 Agent 失败后的退路。固定 RAG 主要面对检索和生成失败，Agent 则多了工具协议不合法、规划失败、工具边界异常和答案检查异常等出错环节。在配置允许的情况下，未预期异常可以回退到固定路径，重新执行一次路由、检索和生成。</p>
-<p>这个回退不能保证复杂问题仍然有同样的答案质量。一个本来就需要多轮查找的问题，回到单次检索以后，很可能只能找到其中一部分材料。回退只是在 Agent 编排自身出错时，让普通知识问答还能尝试一条更短、出错环节更少的路径，不代表两条路径完全等价。</p>
-<p>现在这套 Agent 的范围仍然很窄。它只处理 Anchr 里已授权的文档，不访问互联网，也没有代码执行和浏览器操作。一个问题从开始到结束由同一套 Workflow 处理，没有再拆出 Research Agent、Reviewer Agent 等多个角色。它当前要做好的，仍然是在一次检索不够时沿着文档继续查下去，同时让知识范围、执行上限和引用来源都可以被后端检查。</p>
-<p>把 Tool Calling 跑起来只是开头。固定 RAG 的步骤很少回头，Agent 却让搜索、阅读和生成之间出现了前后依赖。系统因此要记住已经执行过什么、当前拿到了哪些证据、还剩多少时间，以及最后该以完成、降级还是取消结束。这些问题很少出现在 Tool Calling 的演示里，却是 Anchr 从 RAG 走到 Agent RAG 时需要补上的主要部分。</p>
+<p>如果只是在代码里随便找几个地方检查一下 <code>isCancelled</code> 布尔值，那在“最后一次检查通过”到“真正写入数据库”之间的这几毫秒窗口里，两边肯定会撞车。所以在实现上，取消、完成和失败这三个终态必须抢同一把锁（共用临界区）。谁先落袋，谁就生效：取消要是先写进去了，后面跑完的完成结果就得直接丢弃；反过来，如果答案已经提交成功了，晚一步到的取消请求也就不能再去篡改结果。</p>
+<p>折腾到这一步，连接在不在、用户取没取消、后端到底算不算跑完，已经彻底拆成了三件独立的事。可以看出来，为了让 Agent 具备多轮查找的能力，系统背上了不少运行成本，也多出了很多可能翻车的环节。</p>
+<p>这就逼着我们思考最后一个问题：既然 Agent 这么能干，原来的固定 RAG 是不是可以直接删掉了？</p>
+<h2 id="为什么最后还是留着固定-RAG？"><a href="#为什么最后还是留着固定-RAG？" class="headerlink" title="为什么最后还是留着固定 RAG？"></a>为什么最后还是留着固定 RAG？</h2><p>从功能上看，Agent 会搜、会读、还会自己拿主意，确实能把固定 RAG 的活全干了。但算一下经济账就不一样了：假设用户只是问一句“这份文档的发布日期是哪天？”，固定 RAG 搜一次、生成一次就完事了；要是走 Agent，它至少得先调一次模型决定“我要去搜索”，等搜完拿到结果，再调一次模型写回答。同样一个简单问题，凭空多出一次模型调用，不仅慢，钱也花得冤枉。</p>
+<p>所以在 Anchr 里，这两条路现在是并存的。目标很明确、搜一把就能出结果的简单问题，默认走固定 RAG；遇到需要跨文档比对、顺藤摸瓜往下读，或者得看一步走一步的复杂问题，再由用户手动打开 Agent 模式。因为这两类问题在实际场景里的边界还没清晰到能让程序百发百中地自动分流，目前还是把选择权交给了用户。</p>
+<p>留着固定 RAG 还有另一个很实在的理由：<strong>拿它当备胎。</strong></p>
+<p>固定 RAG 会出错的地方无非就是检索和生成；但 Agent 链路长，幺蛾子也多：工具参数格式不对、规划死循环、工具执行异常、引用校验死活过不去……哪一步劈叉了都会导致任务失败。只要配置允许，一旦 Agent 在编排过程中遇到预期外的异常，系统就会自动退回到固定 RAG，老老实实走一遍单次检索加生成。</p>
+<p>当然，这种兜底退路保不住复杂问题的回答质量。一个本来就需要翻三四次文档才能拼全的问题，退回到单次检索，大概率只能答出个片面结论。设置这个回退机制，只是为了在 Agent 框架自身抽风的时候，尽量给用户捞回一点东西，不至于直接报错开天窗，并不代表这两条链路可以画等号。</p>
+<p>老实说，现在这套 Agent 的本事还很有限。它只能翻阅 Anchr 里授权过的文档，不能联网，不会跑代码，也没接浏览器操作。一个问题从头到尾就靠同一个 Workflow 串下来，没有搞什么 Research Agent、Reviewer Agent 互相开会的多智能体架构。它目前唯一想做踏实的，就是在单次检索不够用的时候，能顺着文档的脉络继续往下查；同时把权限边界、运行耗时和引用来源这几本账，在后端算得明明白白。</p>
+<p>说到底，把模型的 Tool Calling 跑通只是万里长征第一步。传统的 RAG 是一条道走到黑，而 Agent 让搜索、阅读和生成互相咬合、前后依赖。为了兜住这种不确定性，后端系统必须自己长出记性：得记住跑过哪些工具、手里攒了哪些证据、兜里还剩多少时间，以及最后到底该按成功、降级还是取消来收场。</p>
+<p>这些脏活累活很少会出现在演示 Tool Calling 的 Demo 里，但当你真想把 RAG 升级成生产可用的 Agent RAG 时，它们才是真正要啃下来的硬骨头。</p>
 <blockquote>
 <p><strong>项目源码</strong>：<a target="_blank" rel="noopener" href="https://github.com/ryanmeowy/anchr-app">https://github.com/ryanmeowy/anchr-app</a></p>
 </blockquote>
