@@ -589,8 +589,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>线上偶发 <code>RejectedExecutionException</code> 时，我先检查了线程池配置：32 个核心线程，最大线程数也是 32，队列长度 16。任务按批提交，每批完成后才会进入下一批。单看这些数字，线程池似乎留有余量，不应该轻易触发拒绝。</p>
-<p>调大队列以后，异常暂时消失了，但这只能说明故障和瞬时容量有关，并没有解释为什么。后面的排查发现，我对 <code>corePoolSize + queueCapacity</code> 的理解更深了一层：它描述的是某一时刻能够容纳多少在途任务，并不保证每次批量提交都能被接住。</p>
+          <p>线上偶发 <code>RejectedExecutionException</code> 告警时，我的第一反应是先翻线程池配置：核心线程 32，最大线程 32，队列长度 16。业务侧是按批提交任务的，每批干完才会塞下一批。单看纸面数字，这个池子明明留着余量，按理说不该触发拒绝策略。</p>
+<p>先把队列调大后，报错确实停了。但这种止血只能说明故障跟“瞬时容量”有关，并没能解释刚才到底发生了什么。等顺着源码把整个链路摸了一遍我才意识到，以前我对 <code>corePoolSize + queueCapacity</code> 的理解太静态了——它只代表池子在某一时刻最多能兜住多少在途任务，可没答应过每次批量提交都能稳稳接住。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2023/05/16/%E7%BA%BF%E7%A8%8B%E6%98%8E%E6%98%8E%E7%A9%BA%E9%97%B2%EF%BC%8C%E4%BB%BB%E5%8A%A1%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E6%98%AF%E8%A2%AB%E6%8B%92%E7%BB%9D%E4%BA%86%EF%BC%9F/#more" rel="contents">
