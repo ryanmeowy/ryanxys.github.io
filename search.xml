@@ -22,9 +22,9 @@
             
             <tag> Agent </tag>
             
-            <tag> 认知负荷 </tag>
-            
             <tag> AI </tag>
+            
+            <tag> 认知负荷 </tag>
             
         </tags>
       
@@ -191,14 +191,12 @@
       
       <categories>
           
-          <category> AI 工程化 </category>
+          <category> 搜索 </category>
           
       </categories>
       
       
         <tags>
-            
-            <tag> Agent </tag>
             
             <tag> RAG </tag>
             
