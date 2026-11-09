@@ -1385,7 +1385,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #09ff6e;
+  background: #959d91;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -3133,5 +3133,12 @@ header.header {
 @media (prefers-reduced-motion: reduce) {
   .post-body .photo-card__image {
     transition: none;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .post-body div.mermaid {
+    background: #f7f8fa;
+    border-radius: 8px;
+    padding: 12px;
   }
 }
