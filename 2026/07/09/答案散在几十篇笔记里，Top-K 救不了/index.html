@@ -29,7 +29,7 @@
 <meta property="og:description" content="最近在折腾本地知识库的检索。场景不复杂：笔记散在几十上百个 Markdown 文件里，问一个问题，相关的记录可能分布在十几篇里。用标准的 Top-K 去捞，很快就会卡住。 K 调小了漏东西；调大了上下文塞满，token 涨得比效果快。我一开始也试着在 K 上找平衡点，试了几次发现方向本身不对：K 这个数字同时背着两个互相冲突的任务，怎么调都是两头堵。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-08T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-11-09T07:36:01.183Z">
+<meta property="article:modified_time" content="2026-11-09T07:58:17.013Z">
 <meta property="article:author" content="Ryan">
 <meta property="article:tag" content="RAG">
 <meta property="article:tag" content="Hybrid Search">
@@ -292,11 +292,57 @@
 <p>搜索接口返回的应该是笔记级摘要、命中片段和 <code>note_id</code>，整段全文留给模型按 id 去取，让它自己决定读到多深。再单独配一个 <code>grep</code> 工具——本地几千到几万篇 Markdown，精确字符串匹配毫秒级就能回来，找编号、人名、专有名词比走向量靠谱得多。平时写笔记有打双链（wikilink）习惯的话，再加一个顺着链接查邻居的工具。</p>
 <p>控制层面，轮数上限一般给到 6 到 10 轮，要求每轮先写清已知什么、缺什么，旧的检索结果和中间输出及时压成摘要，避免上下文无限膨胀。</p>
 <p>不过我不建议一上来就跑完整的 Agent loop。可以先做个半固定的版本：默认正常检索一次，只有模型判断证据不够时，才允许它补一到两轮。主干流程大概长这样：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    Q([&quot;用户提问&quot;]) --&gt; Recall[&quot;1. 混合粗召回&lt;br/&gt;(BM25 + 向量 + 笔记摘要)&lt;br/&gt;候选池 K = 150&quot;]</span><br><span class="line">    Recall --&gt; Rerank[&quot;2. 精排与去重&lt;br/&gt;(Cross-Encoder + 同笔记折叠)&quot;]</span><br><span class="line">    Rerank --&gt; Pack[&quot;3. 按 Token 预算装箱&lt;br/&gt;最终上下文 ≈ 10~20 条&quot;]</span><br><span class="line">    </span><br><span class="line">    Pack --&gt; Check&#123;&quot;证据够吗？&quot;&#125;</span><br><span class="line">    </span><br><span class="line">    Check -- &quot;单跳问题 / 证据已够&quot; --&gt; LLM([&quot;直接生成答案&quot;])</span><br><span class="line">    </span><br><span class="line">    Check -. &quot;缺证据 (限补 1~2 轮)&quot; .-&gt; Tools[&quot;按需调本地工具&lt;br/&gt;grep | read_note(id) | wikilink&quot;]</span><br><span class="line">    Tools -. &quot;压缩中间结果，追加上下文&quot; .-&gt; Check</span><br><span class="line"></span><br><span class="line">    style Recall fill:#f0f7ff,stroke:#91caff</span><br><span class="line">    style Rerank fill:#f0f7ff,stroke:#91caff</span><br><span class="line">    style Pack fill:#f0f7ff,stroke:#91caff</span><br><span class="line">    style Check fill:#fffbe6,stroke:#ffe58f</span><br><span class="line">    style Tools fill:#f6ffed,stroke:#b7eb8f,stroke-dasharray: 5 5</span><br></pre></td></tr></table></figure>
+<pre><code class="mermaid">flowchart LR
+    Q([&quot;用户提问&quot;]) --&gt; Recall[&quot;1. 混合粗召回&lt;br/&gt;(BM25 + 向量 + 笔记摘要)&lt;br/&gt;候选池 K = 150&quot;]
+    Recall --&gt; Rerank[&quot;2. 精排与去重&lt;br/&gt;(Cross-Encoder + 同笔记折叠)&quot;]
+    Rerank --&gt; Pack[&quot;3. 按 Token 预算装箱&lt;br/&gt;最终上下文 ≈ 10~20 条&quot;]
+    
+    Pack --&gt; Check&#123;&quot;证据够吗？&quot;&#125;
+    
+    Check -- &quot;单跳问题 / 证据已够&quot; --&gt; LLM([&quot;直接生成答案&quot;])
+    
+    Check -. &quot;缺证据 (限补 1~2 轮)&quot; .-&gt; Tools[&quot;按需调本地工具&lt;br/&gt;grep | read_note(id) | wikilink&quot;]
+    Tools -. &quot;压缩中间结果，追加上下文&quot; .-&gt; Check
+
+    style Recall fill:#f0f7ff,stroke:#91caff
+    style Rerank fill:#f0f7ff,stroke:#91caff
+    style Pack fill:#f0f7ff,stroke:#91caff
+    style Check fill:#fffbe6,stroke:#ffe58f
+    style Tools fill:#f6ffed,stroke:#b7eb8f,stroke-dasharray: 5 5</code></pre>
 
 <p>这个折中版本能拿到大部分收益，延迟可控，平时做评测也好对齐。等这套跑顺了，再考虑放开轮数。</p>
 <h2 id="我现在的顺序"><a href="#我现在的顺序" class="headerlink" title="我现在的顺序"></a>我现在的顺序</h2><p>如果从头改起，我现在的动手顺序很固定：先做混合检索加 rerank 加按预算打包，这是基础，不做的话后面每一步都会被底层的召回质量拖住；然后加上笔记级索引，专门治跨文档的聚合问题；再往后是允许补一到两轮检索的半固定循环；完整 Agent 放最后。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">    subgraph S1[&quot;阶段一：标准静态 RAG（一个 K 干两份活）&quot;]</span><br><span class="line">        direction LR</span><br><span class="line">        Q1([&quot;提问&quot;]) --&gt; V1[&quot;向量检索 (Top-K)&quot;]</span><br><span class="line">        V1 -- &quot;直接塞入 K 条&lt;br/&gt;(K 小漏召回 / K 大爆 Token)&quot; --&gt; L1[&quot;LLM 生成&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph S2[&quot;阶段二：解耦召回与上下文（基础底座）&quot;]</span><br><span class="line">        direction LR</span><br><span class="line">        Q2([&quot;提问&quot;]) --&gt; H2[&quot;混合粗召回&lt;br/&gt;(向量 + BM25 + 摘要)&lt;br/&gt;大候选池 K=150&quot;]</span><br><span class="line">        H2 --&gt; R2[&quot;Rerank 精排&quot;]</span><br><span class="line">        R2 --&gt; B2[&quot;按笔记去重 &amp;&lt;br/&gt;按预算打包&quot;]</span><br><span class="line">        B2 --&gt; L2[&quot;LLM 生成&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    subgraph S3[&quot;阶段三：半固定循环 -&gt; 完整 Agent（按需迭代）&quot;]</span><br><span class="line">        direction LR</span><br><span class="line">        Q3([&quot;提问&quot;]) --&gt; H3[&quot;阶段二底座&lt;br/&gt;首轮检索打包&quot;]</span><br><span class="line">        H3 --&gt; E3&#123;&quot;证据齐了吗？&quot;&#125;</span><br><span class="line">        E3 -- &quot;缺拼图：补 1~2 轮&quot; --&gt; T3[&quot;调工具：改写查询 /&lt;br/&gt;grep / 读全文 / 查双链&quot;]</span><br><span class="line">        T3 --&gt; C3[&quot;压缩历史 &amp; 更新清单&quot;]</span><br><span class="line">        C3 --&gt; E3</span><br><span class="line">        E3 -- &quot;够了&quot; --&gt; L3[&quot;LLM 生成&quot;]</span><br><span class="line">    end</span><br><span class="line"></span><br><span class="line">    S1 ~~~ S2 ~~~ S3</span><br><span class="line"></span><br><span class="line">    style S1 fill:#fafafa,stroke:#d9d9d9</span><br><span class="line">    style S2 fill:#f0f7ff,stroke:#91caff</span><br><span class="line">    style S3 fill:#f6ffed,stroke:#b7eb8f</span><br><span class="line">    style E3 fill:#fffbe6,stroke:#ffe58f</span><br></pre></td></tr></table></figure>
+<pre><code class="mermaid">flowchart TB
+    subgraph S1[&quot;阶段一：标准静态 RAG（一个 K 干两份活）&quot;]
+        direction LR
+        Q1([&quot;提问&quot;]) --&gt; V1[&quot;向量检索 (Top-K)&quot;]
+        V1 -- &quot;直接塞入 K 条&lt;br/&gt;(K 小漏召回 / K 大爆 Token)&quot; --&gt; L1[&quot;LLM 生成&quot;]
+    end
+
+    subgraph S2[&quot;阶段二：解耦召回与上下文（基础底座）&quot;]
+        direction LR
+        Q2([&quot;提问&quot;]) --&gt; H2[&quot;混合粗召回&lt;br/&gt;(向量 + BM25 + 摘要)&lt;br/&gt;大候选池 K=150&quot;]
+        H2 --&gt; R2[&quot;Rerank 精排&quot;]
+        R2 --&gt; B2[&quot;按笔记去重 &amp;&lt;br/&gt;按预算打包&quot;]
+        B2 --&gt; L2[&quot;LLM 生成&quot;]
+    end
+
+    subgraph S3[&quot;阶段三：半固定循环 -&gt; 完整 Agent（按需迭代）&quot;]
+        direction LR
+        Q3([&quot;提问&quot;]) --&gt; H3[&quot;阶段二底座&lt;br/&gt;首轮检索打包&quot;]
+        H3 --&gt; E3&#123;&quot;证据齐了吗？&quot;&#125;
+        E3 -- &quot;缺拼图：补 1~2 轮&quot; --&gt; T3[&quot;调工具：改写查询 /&lt;br/&gt;grep / 读全文 / 查双链&quot;]
+        T3 --&gt; C3[&quot;压缩历史 &amp; 更新清单&quot;]
+        C3 --&gt; E3
+        E3 -- &quot;够了&quot; --&gt; L3[&quot;LLM 生成&quot;]
+    end
+
+    S1 ~~~ S2 ~~~ S3
+
+    style S1 fill:#fafafa,stroke:#d9d9d9
+    style S2 fill:#f0f7ff,stroke:#91caff
+    style S3 fill:#f6ffed,stroke:#b7eb8f
+    style E3 fill:#fffbe6,stroke:#ffe58f</code></pre>
 
 <p>判断要不要走到完整 Agent，主要看两件事。一是日常问题里聚合和多跳的占比，偶尔出现的话半固定补检索就够了，占比高才值得上完整 loop；二是延迟预算，如果要求秒级响应，多轮串行的方案可以直接pass。</p>
 <p>还有一种情况连 RAG 都不用做。Anthropic 那篇文章里提过，如果知识库小于 20 万 token（大概五百页文档），直接把全文塞进 prompt 配合 Prompt Caching 更简单。本地笔记库如果只有几百篇、总量不大，这笔账值得先算一下，可能比搭一套检索管线省事得多。</p>
@@ -384,6 +430,8 @@
 
   
 
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"default"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.17.2/mermaid.min.js","integrity":"sha256-WB7X10vZBI0OOpE2OSfXLvIpQtdyJUayf3zCnjU5Drg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
 
 
   <script src="/js/third-party/fancybox.js"></script>
